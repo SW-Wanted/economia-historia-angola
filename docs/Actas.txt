@@ -1,0 +1,72 @@
+Acta1:
+*Resumo – Pontos da apresentação de protótipos no Figma*
+
+1. *Secção "Conteúdo"*  
+   - Vários itens listados para permitir scroll na página.
+   - Objetivo: simular navegação real com conteúdo extenso.
+
+2. *Uso de Variáveis*  
+   - Trabalho com variáveis para filtros, barras de pesquisa e outros elementos interativos.
+   - Aproveitar recursos do Figma para criar protótipos dinâmicos e funcionais.
+
+3. *Linkagem de Telas*  
+   - Todas as telas precisam estar linkadas 
+   - Regra: qualquer botão ou secção que mostre uma prévia/apresentação de algo deve levar para a sua tela principal.
+   - Nenhuma tela “morta” – tudo navegável.
+
+4. *Conteúdos e Comentários*  
+   - Adicionar tarefa: criação de *Sala de Discussão*.
+   - Sala de Discussão = secção de comentários privada.
+   - Professor decide quem pode comentar/visualizar.
+   
+Acta2:
+*Resumo – Decisões e Sugestões de UX/Acesso do Sistema*
+
+*Contexto de acesso sem conta*  
+A ideia é liberar parte do sistema para usuários não logados, gerando curiosidade — igual ao YouTube que deixa ver vídeos/comentários, mas pede login para interagir. Hoje, _textos com jindungo_ exigem login. 
+
+*Sugestões aprovadas*
+
+1. *FAQ para usuários*  
+   Adicionar secção de Perguntas Frequentes para reduzir dúvidas básicas.
+
+2. *Página inicial estilo SPA*  
+   - Explicar o que é o sistema para o público geral.  
+   - Evitar excesso de informação: objetivo é “prender” o usuário, não entregar tudo de cara.
+
+3. *Overview leve na home*  
+   - Mostrar um panorama do que a aplicação oferece.  
+   - Sem sobrecarregar: apenas guiar e despertar curiosidade.
+
+4. *Fóruns*  
+   - Acesso livre para visualização por qualquer usuário.  
+   - Ao criar tópico, escolher: *Público* ou *Privado*.  
+   - Privado: entra só por convite + aprovação do professor.  
+   - Se o artigo/tópico for privado, permitir *solicitar acesso*.  
+   - Fóruns ficam abertos para leitura, mesmo sem conta.
+
+5. *Identidade visual*  
+   Atenção à tipografia dos conteúdos visuais para manter fidelidade da identidade do sistema.
+   
+  
+  
+Acta3:
+Organização dos Fóruns na Comunidade
+
+Criação de Conteúdo:
+	-Todos os membros podem criar tópicos.
+	-Existe a funcionalidade de denúncia, caso o conteúdo seja inadequado.
+
+Comunidade:
+	 Dentro da comunidade é possível criar discussões:
+	-Podem ser públicas ou privadas.
+	-Se forem privadas, é necessário aprovação para entrar.
+	Também é possível publicar dentro de categorias, que podem ser:
+	-Públicas
+	-Privadas
+
+Convites:
+	-Caso permitido, é possível convidar membros por:
+	E-mail
+	Código de acesso
+      …

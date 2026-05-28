@@ -1,0 +1,107 @@
+name: 📚 Documentação
+description: Tarefa de documentação académica ou técnica
+labels: [documentation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # 📚 Tarefa de Documentação
+        Preenche os detalhes para tarefas de documentação académica ou técnica.
+        
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Tipo de Documentação
+      description: Que tipo de documento é?
+      options:
+        - 📄 Artefacto Académico (Requisitos, Especificações)
+        - 📊 Diagramas UML
+        - 📖 Documentação Técnica (API, README)
+        - 📱 Manual do Utilizador
+        - 🤝 Guia de Contribuição
+    validations:
+      required: true
+
+  - type: dropdown
+    id: location
+    attributes:
+      label: Localização
+      description: Onde a documentação deve ser adicionada/actualizada?
+      options:
+        - /docs - Artefactos académicos
+        - /docs/diagramas - Diagramas UML
+        - /web/README.md
+        - /mobile/README.md
+        - /backend/README.md
+        - Raiz do projecto
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objectivo
+      description: O que deve ser documentado e qual o propósito?
+      placeholder: |
+        Documentar os requisitos funcionais do módulo de Quiz...
+    validations:
+      required: true
+
+  - type: textarea
+    id: content
+    attributes:
+      label: Conteúdo a Incluir
+      description: Lista os tópicos/secções que devem ser documentados.
+      placeholder: |
+        - [ ] Introdução
+        - [ ] Requisitos funcionais
+        - [ ] Requisitos não-funcionais
+        - [ ] Diagramas
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: diagrams
+    attributes:
+      label: Diagramas Necessários
+      description: Que diagramas devem ser incluídos? (Se aplicável)
+      options:
+        - label: Diagrama de Casos de Uso
+        - label: Diagrama de Classes
+        - label: Diagrama de Sequência
+        - label: Diagrama de Actividades
+        - label: Diagrama ER (Entidade-Relacionamento)
+        - label: Diagrama de Componentes
+        - label: Diagrama de Arquitectura
+        - label: Wireframes/Mockups
+
+  - type: checkboxes
+    id: workflow
+    attributes:
+      label: Fluxo de Trabalho
+      description: Estado actual no fluxo de documentação.
+      options:
+        - label: "Rascunho: Criar no formato Markdown"
+        - label: "Revisão: Pedir revisão "
+        - label: "Oficial: Adicionar ao projecto"
+        - label: "PR: Abrir Pull Request"
+
+  - type: textarea
+    id: references
+    attributes:
+      label: Referências
+      description: Links úteis para a elaboração da documentação.
+      placeholder: |
+        - https://docs.exemplo.com
+        - Livro/Artigo: ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notas Adicionais
+      description: Informação adicional relevante.
+    validations:
+      required: false

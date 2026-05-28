@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussões & Dúvidas Gerais
+    url: https://github.com/SW-Wanted/economia-historia-angola/discussions
+    about: Use as discussões do GitHub para perguntas gerais, ideias ou conversas sobre o projecto.
+  - name: 📖 Guia de Contribuição
+    url: https://github.com/SW-Wanted/economia-historia-angola/blob/main/CONTRIBUTING.md
+    about: Lê o guia de contribuição para entender como contribuir correctamente para o projecto.
+  - name: 📋 Ver Issues Existentes
+    url: https://github.com/SW-Wanted/economia-historia-angola/issues?q=is%3Aissue
+    about: Verifica se já existe uma issue para o teu problema antes de criar uma nova.
+  - name: 📊 Project Board
+    url: https://github.com/users/SW-Wanted/projects/6
+    about: Visualiza o progresso do projecto e as tarefas em andamento.

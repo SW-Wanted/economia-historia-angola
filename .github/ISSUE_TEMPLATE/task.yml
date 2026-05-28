@@ -1,0 +1,157 @@
+name: 📋 Tarefa
+description: Tarefa de desenvolvimento, documentação ou outras actividades
+labels: [todo]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # 📋 Nova Tarefa
+        Preenche os detalhes da tarefa de forma clara para facilitar a execução.
+        
+  - type: input
+    id: title
+    attributes:
+      label: Título da Tarefa
+      description: Um título claro e descritivo.
+      placeholder: "Implementar ecrã de login"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Tipo de Tarefa
+      description: Que tipo de trabalho é necessário?
+      options:
+        - 💻 Desenvolvimento (Código)
+        - 📚 Documentação
+        - 🎨 Design (UI/UX)
+        - 🧪 Testes
+        - ⚙️ Configuração/DevOps
+        - 🔍 Investigação/Research
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Plataforma
+      description: Em que parte do projecto será feito o trabalho?
+      multiple: true
+      options:
+        - Web (Next.js)
+        - Mobile (Flutter)
+        - Backend (Node.js + Fastify)
+        - Documentação (/docs)
+        - GitHub/CI/CD
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Módulo Relacionado
+      description: A que funcionalidade está relacionada?
+      options:
+        - Explorar Conteúdos
+        - Quiz Interactivo
+        - Fórum de Discussão
+        - Comentários
+        - Perfil e Subscrição
+        - Autenticação
+        - Geral/Infraestrutura
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridade
+      options:
+        - 🔴 Alta - Urgente
+        - 🟡 Média - Normal
+        - 🟢 Baixa - Quando possível
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objectivo
+      description: Descreve claramente o que precisa ser entregue.
+      placeholder: |
+        O objectivo desta tarefa é...
+    validations:
+      required: true
+
+  - type: textarea
+    id: subtasks
+    attributes:
+      label: Sub-tarefas
+      description: Lista as etapas necessárias para completar a tarefa.
+      placeholder: |
+        - [ ] Sub-tarefa 1
+        - [ ] Sub-tarefa 2
+        - [ ] Sub-tarefa 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de Aceitação
+      description: O que deve estar feito para considerar a tarefa completa?
+      placeholder: |
+        - [ ] Critério 1
+        - [ ] Critério 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Entregável Esperado
+      description: O que deve ser entregue no final?
+      placeholder: |
+        Ex: Link do Figma, Arquivo Markdown na pasta /docs, Endpoints da API, Tela implementada...
+    validations:
+      required: true
+
+  - type: input
+    id: assignee
+    attributes:
+      label: Responsável Sugerido
+      description: Quem deve executar esta tarefa? (username do GitHub)
+      placeholder: "@username"
+    validations:
+      required: false
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependências
+      description: Issues ou tarefas que precisam estar concluídas antes.
+      placeholder: |
+        - #123
+        - #456
+    validations:
+      required: false
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: Recursos / Referências
+      description: Links úteis para a execução desta tarefa.
+      placeholder: |
+        - https://docs.exemplo.com
+        - Figma: https://figma.com/...
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notas Adicionais
+      description: Informação adicional relevante para quem vai executar.
+    validations:
+      required: false

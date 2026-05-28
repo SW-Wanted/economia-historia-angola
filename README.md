@@ -1,0 +1,90 @@
+# Economia com História — Angola
+
+> Plataforma educativa sobre história económica de Angola, disponível em Web e Mobile.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+[![Next.js](https://img.shields.io/badge/Web-Next.js%2014-black)](./web)
+[![Flutter](https://img.shields.io/badge/Mobile-Flutter%203-blue)](./mobile)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js%20%2B%20Fastify-brightgreen)](./backend)
+
+---
+
+## Sobre o Projecto
+
+**Economia com História — Angola** é uma aplicação educativa que integra conteúdos históricos e económicos de forma interactiva e acessível. A plataforma permite aos utilizadores explorar conteúdos multimédia, participar em quizzes, debater no fórum e acompanhar o seu progresso de aprendizagem.
+
+---
+
+## Módulos
+
+| Módulo | Descrição |
+|---|---|
+| Explorar Conteúdos | Vídeos, textos e podcasts sobre economia e história angolana |
+| Quiz Interactivo | Perguntas contextualizadas com pontuação e ranking |
+| Fórum de Discussão | Debates e troca de experiências entre utilizadores |
+| Comentários | Espaço aberto para reflexões sobre os conteúdos |
+| Perfil e Subscrição | Área do utilizador com histórico e notificações |
+
+---
+
+## Arquitectura
+
+```mermaid
+flowchart TB
+    BROWSER["Browser<br/>Utilizador Web"] --> WEB["Next.js 14<br/>App Router + SSR"]
+    PHONE["Telemóvel<br/>Android + iOS"] --> MOBILE["Flutter 3<br/>Android + iOS"]
+
+    WEB --> API["REST API<br/>Node.js + Fastify"]
+    MOBILE --> API
+
+    API --> SUPABASE["Supabase<br/>Auth + Realtime"]
+    API --> POSTGRES["PostgreSQL<br/>Base de Dados"]
+    API --> STORAGE["Storage<br/>Imagens + média"]
+
+    classDef top fill:#3a3a3a,stroke:#8a8a8a,color:#f5f5f5;
+    classDef web fill:#4b3fb8,stroke:#6f66d6,color:#ffffff;
+    classDef mobile fill:#12539f,stroke:#2a74c4,color:#ffffff;
+    classDef api fill:#0b6f5f,stroke:#25a08c,color:#dffaf4;
+    classDef data fill:#8a5409,stroke:#c8892f,color:#ffe7bf;
+
+    class BROWSER,PHONE top;
+    class WEB web;
+    class MOBILE mobile;
+    class API api;
+    class SUPABASE,POSTGRES,STORAGE data;
+```
+
+---
+
+## Estrutura do Repositório
+
+```text
+economia-historia-angola/
+├── web/          → Frontend Web (Next.js 14 + TailwindCSS)
+├── mobile/       → App Mobile (Flutter 3 — Android e iOS)
+├── backend/      → API REST (Node.js + Fastify + Prisma)
+└── docs/         → Artefactos académicos (requisitos, diagramas, protótipos)
+```
+
+---
+
+## Stack de Desenvolvimento
+
+| Camada | Tecnologia |
+|---|---|
+| Web | Next.js 14, TailwindCSS, shadcn/ui, Zustand |
+| Mobile | Flutter 3, Dart, Material 3, Riverpod, Go Router |
+| Backend | Node.js, Fastify, Prisma ORM, TypeScript |
+| Base de dados | PostgreSQL (via Supabase) |
+| Auth e Storage | Supabase Auth, Supabase Storage |
+| Deploy Web | Vercel |
+| Deploy Backend | Railway |
+
+---
+
+Consulta os READMEs individuais de cada pasta para instruções detalhadas:
+
+- [`docs/README.md`](./docs/README.md)
+- [`web/README.md`](./web/README.md)
+- [`mobile/README.md`](./mobile/README.md)
+- [`backend/README.md`](./backend/README.md)

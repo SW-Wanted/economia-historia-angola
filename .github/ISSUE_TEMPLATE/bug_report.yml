@@ -1,0 +1,171 @@
+name: 🐛 Relatório de Bug
+description: Reporte um erro ou comportamento inesperado na aplicação
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # 🐛 Relatório de Bug
+        Obrigado por reportar este problema! Por favor, preenche o formulário abaixo com o máximo de detalhes possível.
+
+  - type: checkboxes
+    attributes:
+      label: Verificações Prévias
+      description: Por favor, confirma que fizeste estas verificações antes de submeter.
+      options:
+        - label: Verifiquei se já existe uma [issue semelhante](https://github.com/SW-Wanted/economia-historia-angola/issues?q=is%3Aissue)
+          required: true
+        - label: Testei com a versão mais recente do código (branch main)
+          required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Plataforma Afetada
+      description: Em que plataforma ocorre o bug?
+      options:
+        - Web (Next.js)
+        - Mobile Android (Flutter)
+        - Mobile iOS (Flutter)
+        - Backend/API (Node.js + Fastify)
+        - Múltiplas plataformas
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Módulo Afetado
+      description: Em que módulo da aplicação ocorre o problema?
+      options:
+        - Explorar Conteúdos
+        - Quiz Interactivo
+        - Fórum de Discussão
+        - Comentários
+        - Perfil e Subscrição
+        - Autenticação
+        - Navegação/Routing
+        - Outro
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Gravidade
+      description: Qual o impacto deste bug?
+      options:
+        - Crítico - A aplicação não funciona
+        - Alto - Funcionalidade principal afetada
+        - Médio - Funcionalidade secundária afetada
+        - Baixo - Problema menor/cosmético
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição do Bug
+      description: Descreve de forma clara e concisa qual é o problema.
+      placeholder: Quando tento fazer X, acontece Y em vez de Z...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para Reproduzir
+      description: Lista os passos exactos para reproduzir o bug.
+      placeholder: |
+        1. Ir para '...'
+        2. Clicar em '...'
+        3. Fazer scroll até '...'
+        4. Ver o erro
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento Esperado
+      description: O que deveria acontecer?
+      placeholder: A aplicação deveria...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamento Actual
+      description: O que está a acontecer de errado?
+      placeholder: Em vez disso, a aplicação...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: Frequência do Bug
+      description: Com que frequência consegues reproduzir o problema?
+      options:
+        - Sempre (100%)
+        - Frequentemente (>50%)
+        - Às vezes (<50%)
+        - Raramente
+        - Aconteceu apenas uma vez
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Informações sobre o ambiente onde o bug ocorre.
+      value: |
+        **Web:**
+        - Browser: 
+        - Versão: 
+        - Sistema Operativo: 
+
+        **Mobile:**
+        - Dispositivo: 
+        - Versão do SO: 
+
+        **Backend (se aplicável):**
+        - Endpoint: 
+        - Código HTTP: 
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Mensagens de Erro
+      description: Cola aqui logs da consola, mensagens de erro ou stack traces.
+      render: shell
+      placeholder: |
+        Error: Something went wrong
+          at Component.render (file.js:42:15)
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Vídeos
+      description: Se aplicável, arrasta imagens ou vídeos para ilustrar o problema.
+      placeholder: Arrasta ficheiros para aqui ou cola imagens...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Informações Adicionais
+      description: Qualquer outro contexto que possa ajudar a resolver o problema.
+      placeholder: |
+        - Isto começou a acontecer depois de...
+        - Funciona correctamente quando...
+        - Tentei resolver fazendo...
+    validations:
+      required: false

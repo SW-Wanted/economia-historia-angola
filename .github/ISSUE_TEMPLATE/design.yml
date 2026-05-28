@@ -1,0 +1,145 @@
+name: 🎨 Design UI/UX
+description: Tarefa de design de interfaces e experiência do utilizador
+labels: [figma, design]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # 🎨 Tarefa de Design UI/UX
+        Preenche os detalhes para tarefas de design de interfaces.
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objectivo do Design
+      description: O que precisa ser desenhado ou melhorado?
+      placeholder: |
+        Criar o design do ecrã de...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Plataforma(s) Alvo
+      description: Para que plataformas é o design?
+      multiple: true
+      options:
+        - Web (Desktop)
+        - Web (Responsivo/Mobile)
+        - Mobile Android
+        - Mobile iOS
+        - Todas as plataformas
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Módulo/Ecrã
+      description: A que parte da aplicação pertence?
+      options:
+        - Página Inicial / Home
+        - Explorar Conteúdos
+        - Quiz Interactivo
+        - Fórum de Discussão
+        - Comentários
+        - Perfil e Subscrição
+        - Autenticação (Login/Registo)
+        - Navegação/Menu
+        - Outro
+    validations:
+      required: true
+
+  - type: dropdown
+    id: design-type
+    attributes:
+      label: Tipo de Design
+      description: Que tipo de trabalho é necessário?
+      options:
+        - Wireframe (baixa fidelidade)
+        - Mockup (alta fidelidade)
+        - Protótipo interactivo
+        - Componente/UI Kit
+        - Redesign de ecrã existente
+        - Design System
+    validations:
+      required: true
+
+  - type: textarea
+    id: screens
+    attributes:
+      label: Ecrãs a Criar
+      description: Lista os ecrãs/componentes que devem ser desenhados.
+      placeholder: |
+        - [ ] Ecrã de login
+        - [ ] Ecrã de registo
+        - [ ] Modal de confirmação
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: states
+    attributes:
+      label: Estados a Considerar
+      description: Que estados de UI devem ser incluídos?
+      options:
+        - label: Estado normal/default
+        - label: Estado vazio (empty state)
+        - label: Estado de carregamento (loading)
+        - label: Estado de erro
+        - label: Estado de sucesso
+        - label: Estado hover/focus
+        - label: Estado disabled
+
+  - type: checkboxes
+    id: specs
+    attributes:
+      label: Especificações Técnicas
+      description: Requisitos técnicos para o design.
+      options:
+        - label: Exportar assets em @1x, @2x e @3x (Mobile)
+        - label: Usar nomenclatura padronizada para layers
+        - label: Documentar espaçamentos e tamanhos
+        - label: Criar componentes reutilizáveis
+        - label: Incluir anotações para desenvolvedores
+
+  - type: textarea
+    id: references
+    attributes:
+      label: Referências Visuais
+      description: Links ou imagens de inspiração para o design.
+      placeholder: |
+        Arrasta imagens ou cola links de referência aqui...
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de Aceitação
+      description: O que deve estar pronto para considerar o design completo?
+      placeholder: |
+        - [ ] Design aprovado pela equipa
+        - [ ] Protótipo interactivo criado
+        - [ ] Assets exportados
+        - [ ] Handoff documentado
+    validations:
+      required: true
+
+  - type: input
+    id: figma-link
+    attributes:
+      label: Link do Figma
+      description: URL do ficheiro Figma onde o design será criado.
+      placeholder: "https://www.figma.com/file/..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notas Adicionais
+      description: Informação adicional relevante para o designer.
+    validations:
+      required: false

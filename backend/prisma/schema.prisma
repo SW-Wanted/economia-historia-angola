@@ -1,0 +1,834 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  extensions = [citext]
+}
+
+enum RoleCode {
+  USER
+  WRITER
+  PROFESSOR
+  MODERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum PermissionCode {
+  CONTENT_CREATE
+  CONTENT_UPDATE_OWN
+  CONTENT_APPROVE
+  CONTENT_PUBLISH
+  CONTENT_DELETE
+  JINDUNGO_ACCESS
+  JINDUNGO_WRITE
+  COMMENT_CREATE
+  COMMENT_MODERATE
+  PRIVATE_ROOM_VIEW
+  PRIVATE_ROOM_MANAGE
+  COMMUNITY_CREATE
+  COMMUNITY_MODERATE
+  COMMUNITY_APPROVE_MEMBER
+  FORUM_TOPIC_CREATE
+  FORUM_MODERATE
+  QUIZ_MANAGE
+  USER_MANAGE
+  ROLE_MANAGE
+  REPORT_REVIEW
+}
+
+enum Visibility {
+  PUBLIC
+  AUTHENTICATED
+  PRIVATE
+  COMMUNITY
+  PERMISSIONED
+}
+
+enum ContentType {
+  VIDEO
+  PODCAST
+  TEXT
+  MICROTEXT
+  PDF
+  ARTICLE
+  AUDIO
+}
+
+enum ContentStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  ARCHIVED
+  REJECTED
+}
+
+enum CommunityType {
+  PUBLIC
+  PRIVATE
+}
+
+enum MembershipStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  BANNED
+  LEFT
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum TopicStatus {
+  OPEN
+  LOCKED
+  HIDDEN
+  ARCHIVED
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+enum CommentStatus {
+  VISIBLE
+  HIDDEN
+  DELETED
+}
+
+enum QuizAttemptStatus {
+  STARTED
+  SUBMITTED
+  ABANDONED
+}
+
+enum NotificationType {
+  SYSTEM
+  CONTENT
+  COMMENT
+  COMMUNITY
+  FORUM
+  QUIZ
+  MODERATION
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+  TRIALING
+}
+
+enum SyncOperation {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum ACLSubjectType {
+  USER
+  ROLE
+  COMMUNITY
+}
+
+enum ACLResourceType {
+  CONTENT
+  COMMENT_THREAD
+  DISCUSSION_ROOM
+  COMMUNITY
+  FORUM
+  TOPIC
+  QUIZ
+}
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  email           String    @unique @db.Citext
+  passwordHash    String?
+  name            String
+  username        String?   @unique @db.Citext
+  avatarUrl       String?
+  bio             String?
+  region          String?
+  province        String?
+  municipality    String?
+  school          String?
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  roles                UserRole[]
+  refreshTokens        RefreshToken[]
+  authoredContents     Content[]             @relation("ContentAuthor")
+  comments             Comment[]
+  topics               Topic[]
+  topicReplies         TopicReply[]
+  memberships          CommunityMembership[]
+  invitationsSent      Invitation[]          @relation("InvitationsSent")
+  quizAttempts         QuizAttempt[]
+  userAnswers          UserAnswer[]
+  favorites            Favorite[]
+  contentViews         ContentView[]
+  progress             Progress[]
+  notifications        Notification[]
+  subscriptions        Subscription[]
+  auditLogs            AuditLog[]
+  reports              Report[]              @relation("ReportReporter")
+  moderatedReports     Report[]              @relation("ReportModerator")
+  roomParticipants     DiscussionRoomParticipant[]
+  accessRequests       AccessRequest[]
+  uploadAssets         Asset[]
+  syncCursors          SyncCursor[]
+  rankingSnapshots     RankingEntry[]
+
+  @@index([region, school])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        RoleCode @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String         @id @default(uuid()) @db.Uuid
+  code        PermissionCode @unique
+  description String?
+  createdAt   DateTime       @default(now())
+
+  roles RolePermission[]
+}
+
+model UserRole {
+  userId    String   @db.Uuid
+  roleId    String   @db.Uuid
+  grantedBy String?  @db.Uuid
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+}
+
+model RolePermission {
+  roleId       String @db.Uuid
+  permissionId String @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model AccessControlEntry {
+  id           String          @id @default(uuid()) @db.Uuid
+  subjectType  ACLSubjectType
+  subjectId    String
+  resourceType ACLResourceType
+  resourceId   String
+  permission   PermissionCode
+  grantedById  String?         @db.Uuid
+  expiresAt    DateTime?
+  createdAt    DateTime        @default(now())
+
+  @@unique([subjectType, subjectId, resourceType, resourceId, permission])
+  @@index([resourceType, resourceId])
+  @@index([subjectType, subjectId])
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  tokenHash  String    @unique
+  userAgent  String?
+  ipAddress  String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Category {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String    @unique
+  description String?
+  parentId    String?   @db.Uuid
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  contents    Content[]
+  quizzes     Quiz[]
+  forums      Forum[]
+  topics      Topic[]
+
+  @@index([parentId])
+}
+
+model Tag {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  contents ContentTag[]
+  topics   TopicTag[]
+}
+
+model Content {
+  id                String        @id @default(uuid()) @db.Uuid
+  title             String
+  slug              String        @unique
+  summary           String?
+  body              String?
+  type              ContentType
+  status            ContentStatus @default(DRAFT)
+  visibility        Visibility    @default(PUBLIC)
+  isJindungo        Boolean       @default(false)
+  sourceUrl         String?
+  mediaUrl          String?
+  thumbnailUrl      String?
+  durationSeconds   Int?
+  version           Int           @default(1)
+  publishedAt       DateTime?
+  authorId          String        @db.Uuid
+  categoryId        String?       @db.Uuid
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+
+  author       User         @relation("ContentAuthor", fields: [authorId], references: [id])
+  category     Category?    @relation(fields: [categoryId], references: [id])
+  tags         ContentTag[]
+  comments     Comment[]
+  favorites    Favorite[]
+  views        ContentView[]
+  progress     Progress[]
+  assets       Asset[]
+  accessRequests AccessRequest[]
+
+  @@index([status, visibility, publishedAt])
+  @@index([type, categoryId])
+  @@index([isJindungo])
+  @@index([updatedAt])
+  @@index([deletedAt])
+}
+
+model ContentTag {
+  contentId String @db.Uuid
+  tagId     String @db.Uuid
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([contentId, tagId])
+}
+
+model Asset {
+  id           String   @id @default(uuid()) @db.Uuid
+  uploaderId   String?  @db.Uuid
+  contentId    String?  @db.Uuid
+  key          String   @unique
+  bucket       String
+  mimeType     String
+  sizeBytes    Int
+  checksum     String?
+  publicUrl    String?
+  createdAt    DateTime @default(now())
+  deletedAt    DateTime?
+
+  uploader User?    @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
+  content  Content? @relation(fields: [contentId], references: [id], onDelete: SetNull)
+
+  @@index([contentId])
+  @@index([uploaderId])
+}
+
+model Favorite {
+  userId    String   @db.Uuid
+  contentId String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@id([userId, contentId])
+}
+
+model ContentView {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String?  @db.Uuid
+  anonymousId    String?
+  contentId      String   @db.Uuid
+  watchedSeconds Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([contentId, createdAt])
+  @@index([userId])
+}
+
+model Progress {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @db.Uuid
+  contentId      String   @db.Uuid
+  percentage     Decimal  @default(0) @db.Decimal(5, 2)
+  positionSeconds Int?
+  completedAt    DateTime?
+  updatedAt      DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+  @@index([updatedAt])
+}
+
+model Comment {
+  id             String        @id @default(uuid()) @db.Uuid
+  contentId      String?       @db.Uuid
+  roomId         String?       @db.Uuid
+  parentId       String?       @db.Uuid
+  authorId       String        @db.Uuid
+  text           String
+  visibility     Visibility    @default(PUBLIC)
+  status         CommentStatus @default(VISIBLE)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+
+  content  Content?        @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  room     DiscussionRoom? @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  parent   Comment?        @relation("CommentTree", fields: [parentId], references: [id])
+  replies  Comment[]       @relation("CommentTree")
+  author   User            @relation(fields: [authorId], references: [id])
+  reports  Report[]
+
+  @@index([contentId, createdAt])
+  @@index([roomId, createdAt])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([deletedAt])
+}
+
+model DiscussionRoom {
+  id          String     @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  visibility  Visibility @default(PRIVATE)
+  professorId String?    @db.Uuid
+  contentId   String?    @db.Uuid
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+
+  comments     Comment[]
+  participants DiscussionRoomParticipant[]
+
+  @@index([contentId])
+  @@index([professorId])
+}
+
+model DiscussionRoomParticipant {
+  roomId    String   @db.Uuid
+  userId    String   @db.Uuid
+  canComment Boolean @default(true)
+  canView    Boolean @default(true)
+  createdAt DateTime @default(now())
+
+  room DiscussionRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+}
+
+model Community {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String        @unique
+  description String?
+  type        CommunityType @default(PUBLIC)
+  ownerId     String        @db.Uuid
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
+
+  memberships CommunityMembership[]
+  forums      Forum[]
+  invitations Invitation[]
+  reports     Report[]
+
+  @@index([type])
+  @@index([ownerId])
+  @@index([deletedAt])
+}
+
+model CommunityMembership {
+  id          String           @id @default(uuid()) @db.Uuid
+  communityId String           @db.Uuid
+  userId      String           @db.Uuid
+  status      MembershipStatus @default(PENDING)
+  isModerator Boolean          @default(false)
+  joinedAt    DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, userId])
+  @@index([userId, status])
+}
+
+model Invitation {
+  id          String           @id @default(uuid()) @db.Uuid
+  communityId String?          @db.Uuid
+  email       String?          @db.Citext
+  code        String           @unique
+  status      InvitationStatus @default(PENDING)
+  invitedById String           @db.Uuid
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime         @default(now())
+
+  community Community? @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  invitedBy User       @relation("InvitationsSent", fields: [invitedById], references: [id])
+
+  @@index([communityId, status])
+  @@index([email])
+}
+
+model Forum {
+  id          String     @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String     @unique
+  description String?
+  visibility  Visibility @default(PUBLIC)
+  communityId String?    @db.Uuid
+  categoryId  String?    @db.Uuid
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+
+  community Community? @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  category  Category?  @relation(fields: [categoryId], references: [id])
+  topics    Topic[]
+
+  @@index([visibility])
+  @@index([communityId])
+}
+
+model Topic {
+  id          String      @id @default(uuid()) @db.Uuid
+  title       String
+  slug        String
+  body        String
+  status      TopicStatus @default(OPEN)
+  visibility  Visibility  @default(PUBLIC)
+  forumId     String      @db.Uuid
+  categoryId  String?     @db.Uuid
+  authorId    String      @db.Uuid
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+
+  forum    Forum        @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  category Category?    @relation(fields: [categoryId], references: [id])
+  author   User         @relation(fields: [authorId], references: [id])
+  replies  TopicReply[]
+  tags     TopicTag[]
+  reports  Report[]
+
+  @@unique([forumId, slug])
+  @@index([forumId, createdAt])
+  @@index([authorId])
+  @@index([visibility, status])
+}
+
+model TopicTag {
+  topicId String @db.Uuid
+  tagId   String @db.Uuid
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([topicId, tagId])
+}
+
+model TopicReply {
+  id        String    @id @default(uuid()) @db.Uuid
+  topicId   String    @db.Uuid
+  authorId  String    @db.Uuid
+  parentId  String?   @db.Uuid
+  body      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  topic   Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  author  User         @relation(fields: [authorId], references: [id])
+  parent  TopicReply?  @relation("ReplyTree", fields: [parentId], references: [id])
+  replies TopicReply[] @relation("ReplyTree")
+  reports Report[]
+
+  @@index([topicId, createdAt])
+  @@index([authorId])
+}
+
+model Report {
+  id           String       @id @default(uuid()) @db.Uuid
+  reporterId   String       @db.Uuid
+  moderatorId  String?      @db.Uuid
+  communityId  String?      @db.Uuid
+  topicId      String?      @db.Uuid
+  replyId      String?      @db.Uuid
+  commentId    String?      @db.Uuid
+  reason       String
+  status       ReportStatus @default(PENDING)
+  resolution   String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  reporter  User       @relation("ReportReporter", fields: [reporterId], references: [id])
+  moderator User?      @relation("ReportModerator", fields: [moderatorId], references: [id])
+  community Community? @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  topic     Topic?     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  reply     TopicReply? @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  comment   Comment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([reporterId])
+}
+
+model Quiz {
+  id          String        @id @default(uuid()) @db.Uuid
+  title       String
+  slug        String        @unique
+  description String?
+  visibility  Visibility    @default(PUBLIC)
+  categoryId  String?       @db.Uuid
+  createdById String        @db.Uuid
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
+
+  category  Category?      @relation(fields: [categoryId], references: [id])
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@index([visibility, publishedAt])
+  @@index([categoryId])
+}
+
+model QuizQuestion {
+  id              String   @id @default(uuid()) @db.Uuid
+  quizId          String   @db.Uuid
+  statement       String
+  explanation     String?
+  points          Int      @default(1)
+  position        Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  options QuizOption[]
+  answers UserAnswer[]
+
+  @@index([quizId, position])
+}
+
+model QuizOption {
+  id         String   @id @default(uuid()) @db.Uuid
+  questionId String   @db.Uuid
+  text       String
+  isCorrect  Boolean  @default(false)
+  position   Int      @default(0)
+
+  question QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers  UserAnswer[]
+
+  @@index([questionId, position])
+}
+
+model QuizAttempt {
+  id             String            @id @default(uuid()) @db.Uuid
+  quizId         String            @db.Uuid
+  userId         String            @db.Uuid
+  status         QuizAttemptStatus @default(STARTED)
+  score          Int               @default(0)
+  totalQuestions Int               @default(0)
+  startedAt      DateTime          @default(now())
+  submittedAt    DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers UserAnswer[]
+
+  @@index([quizId, userId])
+  @@index([submittedAt])
+}
+
+model UserAnswer {
+  id          String   @id @default(uuid()) @db.Uuid
+  attemptId   String   @db.Uuid
+  userId      String   @db.Uuid
+  questionId  String   @db.Uuid
+  optionId    String?  @db.Uuid
+  textAnswer   String?
+  isCorrect   Boolean  @default(false)
+  pointsEarned Int     @default(0)
+  answeredAt  DateTime @default(now())
+
+  attempt  QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  option   QuizOption? @relation(fields: [optionId], references: [id], onDelete: SetNull)
+
+  @@unique([attemptId, questionId])
+  @@index([userId])
+}
+
+model RankingEntry {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  scope       String
+  scopeId     String?
+  period      String
+  score       Int
+  attempts    Int      @default(0)
+  rank        Int?
+  computedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scope, scopeId, period])
+  @@index([scope, scopeId, period, score])
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType
+  title     String
+  body      String?
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+model Subscription {
+  id        String             @id @default(uuid()) @db.Uuid
+  userId    String             @db.Uuid
+  plan      String
+  status    SubscriptionStatus @default(ACTIVE)
+  startedAt DateTime           @default(now())
+  expiresAt DateTime?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model AccessRequest {
+  id          String           @id @default(uuid()) @db.Uuid
+  userId      String           @db.Uuid
+  contentId   String?          @db.Uuid
+  permission  PermissionCode
+  status      MembershipStatus @default(PENDING)
+  reason      String?
+  reviewedBy  String?          @db.Uuid
+  reviewedAt  DateTime?
+  createdAt   DateTime         @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content? @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([contentId, permission])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorId     String?  @db.Uuid
+  action      String
+  entityType  String
+  entityId    String?
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+}
+
+model SyncCursor {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  scope     String
+  cursor    DateTime
+  deviceId  String?
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scope, deviceId])
+}
+
+model SyncEvent {
+  id           String        @id @default(uuid()) @db.Uuid
+  entityType   String
+  entityId     String
+  operation    SyncOperation
+  version      Int
+  payload      Json?
+  occurredAt   DateTime      @default(now())
+
+  @@index([entityType, occurredAt])
+  @@index([occurredAt])
+}

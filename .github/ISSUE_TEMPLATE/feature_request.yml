@@ -1,0 +1,162 @@
+name: ✨ Pedido de Funcionalidade
+description: Sugere uma nova funcionalidade ou melhoria para o projecto
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # ✨ Pedido de Funcionalidade
+        Obrigado pela tua sugestão! Por favor, descreve a funcionalidade com o máximo de detalhes.
+        
+  - type: checkboxes
+    attributes:
+      label: Verificações Prévias
+      description: Por favor, confirma estas verificações antes de submeter.
+      options:
+        - label: Verifiquei se já existe uma [issue ou discussão semelhante](https://github.com/SW-Wanted/economia-historia-angola/issues?q=is%3Aissue)
+          required: true
+        - label: Esta funcionalidade está alinhada com o objectivo educativo do projecto
+          required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Resumo da Funcionalidade
+      description: Descreve de forma clara e concisa a funcionalidade desejada.
+      placeholder: Gostaria de poder...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema / Motivação
+      description: Que problema esta funcionalidade resolve? Descreve o contexto.
+      placeholder: |
+        Como utilizador, fico frustrado quando...
+        
+        OU
+        
+        Actualmente não é possível...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Plataforma(s) Alvo
+      description: Em que plataforma(s) deve ser implementada?
+      multiple: true
+      options:
+        - Web (Next.js)
+        - Mobile Android (Flutter)
+        - Mobile iOS (Flutter)
+        - Backend/API (Node.js + Fastify)
+        - Todas as plataformas
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Módulo Relacionado
+      description: A que módulo da aplicação está relacionada?
+      options:
+        - Explorar Conteúdos
+        - Quiz Interactivo
+        - Fórum de Discussão
+        - Comentários
+        - Perfil e Subscrição
+        - Autenticação
+        - Novo módulo
+        - Geral / Infraestrutura
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridade Sugerida
+      description: Na tua opinião, qual a importância desta funcionalidade?
+      options:
+        - Alta - Essencial para o projecto
+        - Média - Importante mas não urgente
+        - Baixa - Nice to have
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Complexidade Estimada
+      description: Qual achas que seria a complexidade de implementação?
+      options:
+        - Baixa - Pequena alteração
+        - Média - Algumas horas/dias de trabalho
+        - Alta - Funcionalidade complexa
+        - Não sei avaliar
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solução Proposta
+      description: Como imaginas que esta funcionalidade funcionaria?
+      placeholder: |
+        1. O utilizador acede a...
+        2. Clica em...
+        3. O sistema mostra...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de Aceitação
+      description: O que deve estar feito para considerar a funcionalidade completa?
+      placeholder: |
+        - [ ] O utilizador pode...
+        - [ ] O sistema deve...
+        - [ ] A interface mostra...
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups / Protótipos
+      description: Se tiveres, adiciona esboços, wireframes ou links do Figma.
+      placeholder: Arrasta imagens ou cola links do Figma aqui...
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas Consideradas
+      description: Consideraste outras abordagens? Porque escolheste esta?
+      placeholder: |
+        Alternativa 1: ...
+        Razão para não escolher: ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: references
+    attributes:
+      label: Referências
+      description: Links para documentação, exemplos ou inspirações.
+      placeholder: |
+        - https://exemplo.com/funcionalidade-similar
+        - Inspirado na app X...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Informações Adicionais
+      description: Qualquer outro contexto relevante para esta sugestão.
+    validations:
+      required: false
