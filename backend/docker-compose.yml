@@ -8,24 +8,14 @@ services:
       - "3001:3001"
     env_file:
       - .env
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/economia_historia?schema=public
-      REDIS_URL: redis://redis:6379
-      S3_ENDPOINT: http://minio:9000
-      S3_PUBLIC_BASE_URL: http://localhost:9000/economia-historia
     volumes:
       - .:/app
       - /app/node_modules
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      minio:
-        condition: service_started
 
   postgres:
     image: postgres:16-alpine
+    profiles:
+      - local-infra
     environment:
       POSTGRES_DB: economia_historia
       POSTGRES_USER: postgres
@@ -42,11 +32,15 @@ services:
 
   redis:
     image: redis:7-alpine
+    profiles:
+      - local-infra
     ports:
       - "6379:6379"
 
   minio:
     image: minio/minio:RELEASE.2024-06-26T01-06-18Z
+    profiles:
+      - local-infra
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
