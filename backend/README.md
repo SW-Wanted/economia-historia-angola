@@ -204,11 +204,31 @@ Para escala enterprise em AWS: API em ECS/Fargate ou EKS, RDS PostgreSQL Multi-A
 
 ## Execução
 
-Este ambiente de trabalho tinha `node`, mas não tinha `npm`. Numa máquina com Node.js 20 LTS e npm:
+### Ambiente online com Supabase
+
+O backend está preparado para usar:
+
+- Supabase Postgres em `DATABASE_URL`;
+- Supabase Storage via endpoint S3 em `S3_ENDPOINT`;
+- Redis online em `REDIS_URL` para BullMQ/cache/rate-limit distribuído.
+
+No Supabase:
+
+1. Cria o projeto e copia a connection string em **Project Settings > Database**.
+2. Ativa o bucket `economia-historia` em **Storage**.
+3. Ativa o protocolo S3 em **Storage > Settings > S3 protocol** e gera `S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY`.
+4. Preenche o `.env` a partir de `.env.example`.
+
+Segundo a documentação oficial da Supabase, o endpoint S3 segue o formato:
+
+```text
+https://PROJECT_REF.storage.supabase.co/storage/v1/s3
+```
+
+Com Node.js 20 LTS e npm:
 
 ```bash
 cd backend
-cp .env.example .env
 npm install
 npx prisma generate
 npx prisma migrate dev
@@ -216,12 +236,33 @@ npm run prisma:seed
 npm run start:dev
 ```
 
-Com Docker:
+Com Docker usando serviços online:
 
 ```bash
 cd backend
-cp .env.example .env
-docker compose up --build
+docker compose up api --build
+```
+
+### Ambiente local com Docker
+
+Se quiser voltar para Postgres/Redis/MinIO locais, usa o perfil `local-infra` e valores locais no `.env`:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/economia_historia?schema=public
+REDIS_URL=redis://redis:6379
+S3_REGION=auto
+S3_ENDPOINT=http://minio:9000
+S3_BUCKET=economia-historia
+S3_ACCESS_KEY_ID=minioadmin
+S3_SECRET_ACCESS_KEY=minioadmin
+S3_PUBLIC_BASE_URL=http://localhost:9000/economia-historia
+```
+
+Depois:
+
+```bash
+cd backend
+docker compose --profile local-infra up --build
 ```
 
 ## Flutter e Next.js
