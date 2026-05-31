@@ -1,0 +1,255 @@
+<!DOCTYPE html><html class="light" lang="pt-AO"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#1c1b1b",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "primary-fixed-dim": "#ffb3ac",
+                    "on-secondary-container": "#636563",
+                    "tertiary-container": "#454748",
+                    "on-primary-container": "#ff9a91",
+                    "secondary-fixed-dim": "#c6c7c5",
+                    "outline-variant": "#e0bfbc",
+                    "on-secondary": "#ffffff",
+                    "inverse-primary": "#ffb3ac",
+                    "on-tertiary-container": "#b5b5b6",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "surface-container-lowest": "#ffffff",
+                    "surface": "#fcf9f8",
+                    "primary": "#690008",
+                    "surface-container": "#f0eded",
+                    "on-surface": "#1c1b1b",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-container-highest": "#e5e2e1",
+                    "primary-container": "#8b1a1a",
+                    "error": "#ba1a1a",
+                    "surface-bright": "#fcf9f8",
+                    "secondary-fixed": "#e2e3e1",
+                    "on-surface-variant": "#58413f",
+                    "inverse-surface": "#313030",
+                    "surface-container-high": "#eae7e7",
+                    "secondary": "#5d5f5d",
+                    "surface-variant": "#e5e2e1",
+                    "primary-fixed": "#ffdad6",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "tertiary": "#2f3131",
+                    "on-secondary-fixed": "#1a1c1b",
+                    "tertiary-fixed": "#e2e2e2",
+                    "surface-container-low": "#f6f3f2",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed-variant": "#454746",
+                    "surface-dim": "#dcd9d9",
+                    "surface-tint": "#ac322e",
+                    "background": "#fcf9f8",
+                    "on-primary-fixed": "#410003",
+                    "outline": "#8c716e",
+                    "on-primary-fixed-variant": "#8a1a1a",
+                    "secondary-container": "#e2e3e1",
+                    "on-error-container": "#93000a",
+                    "inverse-on-surface": "#f3f0ef"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "max-content-width": "1160px",
+                    "stack-sm": "8px",
+                    "margin-desktop": "40px",
+                    "gutter": "24px",
+                    "stack-md": "16px",
+                    "stack-xl": "64px",
+                    "sidebar-width": "280px",
+                    "stack-lg": "32px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "body-lg": ["Merriweather"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "body-md": ["Merriweather"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "1.8", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #fcf9f8; color: #1c1b1b; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        .content-blur {
+            filter: blur(8px);
+            user-select: none;
+            pointer-events: none;
+        }
+        .premium-overlay {
+            background: linear-gradient(to bottom, transparent 0%, rgba(105, 0, 8, 0.95) 40%, rgba(105, 0, 8, 1) 100%);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden" style="background-color: rgb(242, 242, 240); color: rgb(28, 27, 27);">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-screen w-sidebar-width bg-surface border-r border-outline-variant flex flex-col p-margin-desktop gap-stack-lg z-50">
+<div class="flex flex-col gap-1">
+<div class="font-headline-sm text-headline-sm font-bold text-primary">Economia com História</div>
+<div class="font-label-md text-label-md text-secondary">Angola</div>
+</div>
+<nav class="flex flex-col gap-stack-sm mt-stack-md">
+<!-- Início -->
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Início</span>
+</a>
+<!-- Explorar (ACTIVE) -->
+<a class="flex items-center gap-stack-sm bg-primary text-on-primary rounded-lg px-4 py-3 font-bold" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Explorar</span>
+</a>
+<!-- Mapa Económico -->
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-md text-label-md">Mapa Económico</span>
+</a>
+<!-- Fórum -->
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+<span class="font-label-md text-label-md">Fórum</span>
+</a>
+<!-- Perfil -->
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Perfil</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-stack-sm">
+
+
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Definições</span>
+</a>
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Sair</span>
+</a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-sidebar-width min-h-screen flex flex-col">
+<!-- TopAppBar Shell -->
+<header class="docked full-width top-0 sticky z-40 bg-surface border-b border-outline-variant flex justify-between items-center px-margin-desktop py-stack-md max-w-full">
+<div class="flex items-center gap-stack-lg">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-secondary" data-icon="search">search</span>
+<input class="bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 w-64 text-label-md focus:ring-2 focus:ring-primary transition-all" placeholder="Pesquisar arquivo..." type="text">
+</div>
+<nav class="hidden md:flex items-center gap-stack-lg">
+<a class="text-secondary hover:text-primary font-label-md text-label-md transition-all" href="#">Microtextos</a>
+<a class="text-primary font-bold border-b-2 border-primary font-label-md text-label-md transition-all" href="#">Jindungo</a>
+<a class="text-secondary hover:text-primary font-label-md text-label-md transition-all" href="#">Arquivo</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="material-symbols-outlined text-secondary p-2 hover:bg-surface-container-high rounded-full transition-all" data-icon="notifications">notifications</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Carlos Tchípia profile photo" data-alt="A professional studio portrait of a sophisticated young African scholar, wearing a modern charcoal blazer and thin gold-framed glasses. The background is a soft, out-of-focus editorial library setting with warm, ambient lighting that emphasizes a clean and intellectual aesthetic consistent with a high-end digital journal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAss4171sIe5r818xE9PZhfwawlhD_pFs4iri6W1YBUY_7VsyjyHRT7uYdlirBk6C7u-D6MGD3LZf8mCvfyB5VQmN5Ll13eMzUlnJCPsv0EDrEHjiLjT4WXQMmC3pAFJe5CJTTcPav-HZAdD-hXFHPaVvqMwKWQ2iL36sPMAVAAaFRIrnInHZwTx-eCo3ku3xNt76bdpqcQgUw15K6TP2_Zku3CFAIzI8a3caCgUJ0Ppk1-Ycm2SOfevV8276K2Ky_RFXm2jpHJYnwF">
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<article class="max-w-max-content-width mx-auto px-margin-desktop py-stack-xl flex-grow">
+<!-- Breadcrumbs -->
+<div class="flex items-center gap-2 mb-stack-md">
+<span class="text-label-sm font-label-sm text-secondary">Jindungo</span>
+<span class="material-symbols-outlined text-[12px] text-outline" data-icon="chevron_right">chevron_right</span>
+<span class="text-label-sm font-label-sm text-primary font-bold">Edição #142</span>
+</div>
+<!-- Article Header -->
+<header class="mb-stack-lg">
+<h1 class="font-headline-lg text-headline-lg text-on-background mb-stack-sm leading-tight">
+                    O Impacto do Café na Arquitetura de Caxito: Do Século XIX ao Modernismo
+                </h1>
+<div class="flex items-center gap-stack-md text-secondary mb-stack-lg">
+<span class="font-label-md text-label-md">Por Dr. Amílcar Silva</span>
+<span class="w-1 h-1 rounded-full bg-outline"></span>
+<span class="font-label-md text-label-md">12 de Outubro, 2024</span>
+<span class="w-1 h-1 rounded-full bg-outline"></span>
+<span class="flex items-center gap-1 font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]" data-icon="timer">timer</span> 8 min de leitura
+                    </span>
+</div>
+<div class="aspect-[21/9] w-full rounded-xl overflow-hidden mb-stack-lg relative">
+<img class="w-full h-full object-cover" data-alt="A cinematic, wide-angle photograph of an abandoned colonial coffee plantation in Angola. The architecture features weathered white stone walls and large arched windows reflecting the golden afternoon sun. Lush green vegetation and sprawling coffee plants are reclaiming the foreground, creating a mood of historical depth and nostalgic beauty in a high-contrast editorial style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdKL7a7SVGS3wS2xkHf5Xs96Qg2BsIV9_cQDWXY_9RFTofH_94fb-uz7MmOxgWWruDskq14W679eFFU7wA0WseKUKFhnva7sBcBUOUmQKbkzLHdV9x4OFXNN7fLvIIkpk9ZZNHz0zWUYQh9_sYMRbWd7KG82rhUsL1wl1wFA0JEbtbYZRVDNfotrJlriO6sQ7NXVmX5IsBx3qgZnykaRObCE0QUaJ3_MrtbbSvjVr_bjYOPReEplvSRGUvaGWVojwBOhYxjRFhBOyC">
+</div>
+</header>
+<!-- Restricted Content Container -->
+<div class="relative">
+<!-- Visible Content -->
+<div class="font-body-lg text-body-lg text-on-surface leading-relaxed mb-stack-md">
+<p class="">
+                        A história económica do Bengo não pode ser dissociada da cultura do café, que durante décadas moldou não apenas as relações laborais e sociais, mas também a própria fisionomia urbana de Caxito. O apogeu produtivo entre 1880 e 1960 trouxe consigo uma riqueza que se materializou em edifícios de traços ecléticos, fundindo a necessidade funcional do armazenamento com a ostentação estética das elites agrárias.
+                    </p>
+</div>
+<!-- Blurred Content -->
+<div class="space-y-stack-md">
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed">
+                        Este fenómeno arquitetónico é visível na estrutura das antigas moagens, onde o betão armado começou a substituir a alvenaria tradicional já no início do século XX. A transição para o modernismo angolano em Caxito é um exemplo único de como o fluxo de capital das exportações permitiu a experimentação formal, resultando em fachadas com brise-soleils adaptados ao clima tropical.
+                    </p>
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed">
+                        Ao analisarmos os registos alfandegários da época, percebemos que o investimento em infraestrutura superava o gasto com bens de consumo. Esta estratégia de longo prazo permitiu que a região se tornasse um hub logístico fundamental para o corredor norte, conectando as fazendas do interior ao Porto de Luanda através de uma malha ferroviária que hoje jaz sob o silêncio do tempo.
+                    </p>
+</div>
+<!-- Premium Overlay -->
+</div>
+</article>
+<!-- Footer Shell -->
+<footer class="w-full mt-auto bg-surface-container border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-margin-desktop py-stack-lg ml-sidebar-width">
+<div class="flex flex-col gap-1 mb-stack-md md:mb-0">
+<div class="font-headline-sm text-headline-sm font-bold text-primary">Economia com História</div>
+<p class="font-body-md text-body-md text-secondary">© 2026 Economia com História – Angola. Todos os direitos reservados.</p>
+</div>
+<div class="flex gap-stack-lg items-center">
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Sobre</a>
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Termos de Uso</a>
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Privacidade</a>
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Contacto</a>
+</div>
+</footer>
+</main>
+
+
+</body></html>

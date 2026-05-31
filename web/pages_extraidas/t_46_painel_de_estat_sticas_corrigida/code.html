@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html lang="pt"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Merriweather:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary": "#2f3131",
+                    "on-secondary-container": "#636563",
+                    "on-primary-fixed-variant": "#8a1a1a",
+                    "on-secondary-fixed": "#1a1c1b",
+                    "surface-bright": "#fcf9f8",
+                    "tertiary-container": "#454748",
+                    "on-background": "#1c1b1b",
+                    "primary-container": "#8b1a1a",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-container": "#ff9a91",
+                    "on-primary-fixed": "#410003",
+                    "on-primary": "#ffffff",
+                    "surface": "#fcf9f8",
+                    "inverse-primary": "#ffb3ac",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "on-error-container": "#93000a",
+                    "primary-fixed-dim": "#ffb3ac",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "secondary": "#5d5f5d",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed": "#e2e3e1",
+                    "on-surface": "#1c1b1b",
+                    "background": "#fcf9f8",
+                    "on-surface-variant": "#58413f",
+                    "primary": "#690008",
+                    "surface-container-highest": "#e5e2e1",
+                    "secondary-container": "#e2e3e1",
+                    "surface-variant": "#e5e2e1",
+                    "outline-variant": "#e0bfbc",
+                    "inverse-surface": "#313030",
+                    "primary-fixed": "#ffdad6",
+                    "on-error": "#ffffff",
+                    "surface-container-high": "#eae7e7",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed": "#e2e2e2",
+                    "surface-container-low": "#f6f3f2",
+                    "on-tertiary-container": "#b5b5b6",
+                    "surface-dim": "#dcd9d9",
+                    "surface-container": "#f0eded",
+                    "outline": "#8c716e",
+                    "surface-tint": "#ac322e",
+                    "secondary-fixed-dim": "#c6c7c5",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-secondary-fixed-variant": "#454746"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "8px",
+                    "stack-xl": "64px",
+                    "stack-lg": "32px",
+                    "stack-md": "16px",
+                    "margin-desktop": "40px",
+                    "sidebar-width": "280px",
+                    "max-content-width": "1160px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "label-md": ["Plus Jakarta Sans"],
+                    "body-md": ["Merriweather"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "body-lg": ["Merriweather"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "1.8", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #fcf9f8; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .editorial-shadow {
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.04);
+        }
+        .bordeaux-gradient {
+            background: linear-gradient(180deg, #690008 0%, #410003 100%);
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline-variant flex flex-col p-stack-md z-50">
+<div class="mb-stack-xl px-4">
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Economia com História</h1>
+<p class="font-label-sm text-label-sm text-secondary uppercase tracking-widest mt-1">Angola em Perspetiva</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 text-secondary pl-4 py-3 hover:bg-surface-container-low transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">home</span> Início
+        </a>
+<a class="flex items-center gap-3 text-secondary pl-4 py-3 hover:bg-surface-container-low transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">explore</span> Explorar
+        </a>
+<a class="flex items-center gap-3 text-primary font-bold border-l-4 border-primary pl-3 py-3 bg-surface-container-low transition-all duration-200 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">map</span> Mapa Económico
+        </a>
+<a class="flex items-center gap-3 text-secondary pl-4 py-3 hover:bg-surface-container-low transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">forum</span> Fórum
+        </a>
+<a class="flex items-center gap-3 text-secondary pl-4 py-3 hover:bg-surface-container-low transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">person</span> Perfil
+        </a>
+</nav>
+<div class="mt-auto border-t border-outline-variant pt-stack-md px-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold">
+            CT
+        </div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Carlos Tchípia</p>
+<p class="text-[10px] text-secondary uppercase tracking-tighter">Investigador</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-[280px] min-h-screen">
+<!-- TopNavBar Shell -->
+<header class="sticky top-0 w-full h-16 bg-background/80 backdrop-blur-md flex justify-between items-center px-margin-desktop z-40">
+<div class="flex items-center bg-surface-container-low rounded-full px-4 py-2 w-96">
+<span class="material-symbols-outlined text-secondary mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-full placeholder:text-on-surface-variant/50" placeholder="Pesquisar arquivos históricos..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-stack-lg border-r border-outline-variant pr-stack-lg">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Microtextos</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Jindungo</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Arquivo</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary hover:scale-95 transition-transform">notifications</button>
+<button class="material-symbols-outlined text-primary hover:scale-95 transition-transform">settings</button>
+</div>
+</div>
+</header>
+<!-- Canvas Area -->
+<section class="max-w-[1160px] mx-auto py-stack-lg px-margin-desktop">
+<!-- Dashboard Header -->
+<div class="mb-stack-xl flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary mb-2">Painel de Estatísticas Económicas</h2>
+<p class="font-body-lg text-body-lg text-secondary max-w-2xl italic">Uma análise profunda sobre a evolução macroeconómica de Angola através dos séculos, focada em ciclos de exportação e soberania monetária.</p>
+</div>
+<div class="flex gap-2">
+<span class="inline-flex items-center px-4 py-2 rounded-lg bg-surface-container-highest border border-outline-variant font-label-md text-label-md text-on-surface-variant">
+                    Período: 1960 — 1975
+                    <span class="material-symbols-outlined text-sm ml-2">calendar_month</span>
+</span>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">filter_list</span> Filtrar Dados
+                </button>
+</div>
+</div>
+<!-- Stats Grid (Bento Style) -->
+<div class="grid grid-cols-12 gap-6 mb-stack-lg">
+<!-- Main Chart: Ciclos de Exportação -->
+<div class="col-span-8 bg-surface-container-lowest rounded-[16px] p-stack-lg editorial-shadow border border-outline-variant/30">
+<div class="flex justify-between items-start mb-8">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Ciclos de Exportação (Café/Borracha)</h3>
+<p class="font-label-sm text-label-sm text-secondary uppercase mt-1">Tonelagem métrica anual</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-secondary">Café</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary-fixed-dim"></span>
+<span class="font-label-sm text-label-sm text-secondary">Borracha</span>
+</div>
+</div>
+</div>
+<!-- Line Chart Visual Simulation -->
+<div class="h-[320px] w-full flex items-end gap-1 relative pt-4">
+<!-- Y-Axis Mock -->
+<div class="absolute left-0 h-full flex flex-col justify-between text-[10px] text-secondary/50 font-label-sm border-r border-outline-variant/20 pr-2">
+<span>150k</span><span>100k</span><span>50k</span><span>0</span>
+</div>
+<div class="flex-1 h-full ml-10 flex items-end justify-between relative overflow-hidden">
+<!-- Background Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between opacity-10 pointer-events-none">
+<div class="border-t border-on-surface-variant w-full"></div>
+<div class="border-t border-on-surface-variant w-full"></div>
+<div class="border-t border-on-surface-variant w-full"></div>
+<div class="border-b border-on-surface-variant w-full"></div>
+</div>
+<!-- Mock Path for Cafe (Bordeaux) -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none" viewbox="0 0 800 300">
+<path d="M0,250 Q100,220 200,180 T400,140 T600,100 T800,40" fill="none" stroke="#690008" stroke-linecap="round" stroke-width="4"></path>
+<path d="M0,250 Q100,220 200,180 T400,140 T600,100 T800,40 V300 H0 Z" fill="url(#grad1)" opacity="0.1"></path>
+<defs>
+<lineargradient id="grad1" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#690008;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#690008;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- Mock Path for Borracha (Gray) -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none" viewbox="0 0 800 300">
+<path d="M0,150 Q150,160 300,190 T500,220 T800,240" fill="none" stroke="#c6c7c5" stroke-dasharray="8 4" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<div class="flex justify-between ml-10 mt-4 text-[10px] text-secondary font-label-sm uppercase tracking-widest">
+<span>1960</span><span>1964</span><span>1968</span><span>1972</span><span>1975</span>
+</div>
+</div>
+<!-- Right Card: Evolution Summary -->
+<div class="col-span-4 flex flex-col gap-6">
+<div class="bg-primary-container text-on-primary-container rounded-[16px] p-stack-lg editorial-shadow h-full flex flex-col justify-between">
+<div>
+<span class="material-symbols-outlined text-3xl mb-4">account_balance_wallet</span>
+<h3 class="font-headline-sm text-headline-sm">Evolução da Moeda Kwanza</h3>
+<p class="font-body-md text-body-md mt-2 opacity-80">Análise do poder de compra e transição de divisas coloniais para a soberania monetária nacional.</p>
+</div>
+<div class="mt-8">
+<div class="flex justify-between items-end border-b border-white/20 pb-2 mb-4">
+<span class="font-label-sm text-label-sm uppercase">Taxa de Conversão 1975</span>
+<span class="font-headline-md text-headline-md">1:1.2</span>
+</div>
+<button class="w-full bg-on-primary-container text-primary-container font-label-md text-label-md py-3 rounded-lg hover:bg-white transition-colors">
+                            Ver Documentação
+                        </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Row: Bar Chart and Data Table -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Bar Chart: Distribuição Regional -->
+<div class="col-span-5 bg-surface-container-lowest rounded-[16px] p-stack-lg editorial-shadow border border-outline-variant/30">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-6">Produção por Província (1970)</h3>
+<div class="space-y-4">
+<div class="space-y-1">
+<div class="flex justify-between font-label-md text-label-md">
+<span class="text-secondary">Uíge</span>
+<span class="text-primary font-bold">42%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 42%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between font-label-md text-label-md">
+<span class="text-secondary">Cuanza Norte</span>
+<span class="text-primary font-bold">31%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 31%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between font-label-md text-label-md">
+<span class="text-secondary">Benguela</span>
+<span class="text-primary font-bold">18%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 18%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between font-label-md text-label-md">
+<span class="text-secondary">Huambo</span>
+<span class="text-primary font-bold">9%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-secondary-fixed-dim h-full rounded-full" style="width: 9%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Insight Quote Block -->
+<div class="col-span-7 bg-white rounded-[16px] overflow-hidden editorial-shadow flex">
+<div class="w-1/3 relative h-full">
+<img alt="Historic Archive Document" class="absolute inset-0 w-full h-full object-cover" data-alt="A macro close-up of an aged, yellowed historical economic ledger from Angola with elegant handwritten Portuguese script and ink stamps. The lighting is dramatic and warm, emphasizing the texture of the antique paper and the heritage of the document. The style is professional documentary photography, clean and intellectual, reflecting a premium museum quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCC4iL-_ppkModFEJxrsI7aGF1h2Le4ZlszpEdoIMa4Uw7vsi-Wqwaw8Kn1M1bJycUWHKbclwhqpul4T_ynO0JTZYlwko-Jlt1Abmtji157DbIkytZiyxvo2gLhnFCd6qb9gBdFozK19il9G05k99PR4nDsBKIcfKaDLEd6uYJ0-0l4tjZeX78Hy9H8ZJhb4mGiWPi7HK8NMmUl0ZEG_DVx9uv3PhYbWxkScxS7cbZmW-g3T8RYcWfdWHHs5yXuxIkPcyxUu-eAZJ3H"/>
+</div>
+<div class="w-2/3 p-stack-lg flex flex-col justify-center">
+<span class="text-primary-container font-display-lg text-4xl mb-2">“</span>
+<blockquote class="font-body-lg text-body-lg italic text-on-surface-variant leading-relaxed">
+                        O café não foi apenas uma commodity; foi a espinha dorsal que financiou a infraestrutura ferroviária que ainda hoje tentamos reconstruir. Compreender 1960 é entender 2026.
+                    </blockquote>
+<cite class="mt-6 font-label-md text-label-md text-secondary block not-italic">— Nota do Curador, Carlos Tchípia</cite>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer Shell -->
+<footer class="w-full bg-surface-container-low border-t border-outline-variant py-stack-lg px-margin-desktop mt-stack-xl">
+<div class="max-w-[1160px] mx-auto flex flex-col md:flex-row justify-between items-center gap-stack-md">
+<div class="flex items-center gap-4">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Economia com História</span>
+<span class="text-outline text-sm">|</span>
+<p class="font-body-md text-body-md text-on-surface-variant">© 2026 Economia com História</p>
+</div>
+<nav class="flex gap-stack-lg">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all" href="#">Sobre</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all" href="#">Termos</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all" href="#">Privacidade</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all" href="#">Contactos</a>
+</nav>
+</div>
+</footer>
+</main>
+</body></html>

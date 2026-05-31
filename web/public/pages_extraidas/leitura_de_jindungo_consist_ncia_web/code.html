@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html lang="pt-AO"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>A Ilusão do Petróleo | Economia AO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Merriweather:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#fcf9f8",
+                    "on-secondary-fixed-variant": "#454746",
+                    "on-tertiary-container": "#b5b5b6",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#e0bfbc",
+                    "surface-variant": "#e5e2e1",
+                    "primary-fixed-dim": "#ffb3ac",
+                    "on-primary-container": "#ff9a91",
+                    "on-secondary": "#ffffff",
+                    "surface-container": "#f0eded",
+                    "secondary-fixed-dim": "#c6c7c5",
+                    "tertiary-container": "#454748",
+                    "error-container": "#ffdad6",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "on-background": "#1c1b1b",
+                    "surface-bright": "#fcf9f8",
+                    "secondary-container": "#e2e3e1",
+                    "surface-container-high": "#eae7e7",
+                    "background": "#fcf9f8",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#2f3131",
+                    "on-surface-variant": "#58413f",
+                    "surface-dim": "#dcd9d9",
+                    "primary-fixed": "#ffdad6",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "inverse-primary": "#ffb3ac",
+                    "primary": "#690008",
+                    "outline": "#8c716e",
+                    "surface-container-low": "#f6f3f2",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed": "#e2e2e2",
+                    "on-surface": "#1c1b1b",
+                    "on-secondary-fixed": "#1a1c1b",
+                    "on-primary-fixed": "#410003",
+                    "secondary-fixed": "#e2e3e1",
+                    "primary-container": "#8b1a1a",
+                    "on-primary-fixed-variant": "#8a1a1a",
+                    "inverse-surface": "#313030",
+                    "surface-tint": "#ac322e",
+                    "secondary": "#5d5f5d",
+                    "on-secondary-container": "#636563",
+                    "on-error": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#454747"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "32px",
+                    "stack-md": "16px",
+                    "sidebar-width": "280px",
+                    "max-content-width": "1160px",
+                    "gutter": "24px",
+                    "stack-sm": "8px",
+                    "margin-desktop": "40px",
+                    "stack-xl": "64px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "body-md": ["Merriweather"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "body-lg": ["Merriweather"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "1.8", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #fcf9f8;
+            color: #1c1b1b;
+            scroll-behavior: smooth;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .reading-progress-container {
+            position: fixed;
+            top: 64px;
+            left: 280px;
+            right: 0;
+            height: 4px;
+            z-index: 40;
+        }
+        .reading-progress-bar {
+            height: 100%;
+            background-color: #690008;
+            width: 0%;
+            transition: width 0.1s ease-out;
+        }
+        @media (max-width: 768px) {
+            .reading-progress-container {
+                left: 0;
+            }
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md">
+<!-- Progress Bar -->
+<div class="reading-progress-container bg-surface-container">
+<div class="reading-progress-bar" id="progress"></div>
+</div>
+<!-- Sidebar Navigation (JSON Mapping) -->
+<aside class="fixed h-screen w-sidebar-width left-0 top-0 border-r border-outline-variant bg-surface hidden md:flex flex-col py-stack-lg z-50">
+<div class="px-6 mb-stack-xl">
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary">Economia AO</h1>
+<p class="font-label-md text-label-md text-on-secondary-fixed-variant mt-1">História e Evolução</p>
+</div>
+<nav class="flex-grow space-y-3">
+<a class="flex items-center gap-3 py-3 px-6 text-on-secondary-fixed-variant hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md">Início</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-6 text-primary font-bold border-l-4 border-primary bg-primary-container/10 transition-transform translate-x-1" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-label-md text-label-md">Explorar</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-6 text-on-secondary-fixed-variant hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-label-md text-label-md">Mapa Económico</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-6 text-on-secondary-fixed-variant hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">forum</span>
+<span class="font-label-md text-label-md">Fórum</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-6 text-on-secondary-fixed-variant hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Perfil</span>
+</a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full py-3 bg-primary text-on-primary rounded-xl font-label-md hover:opacity-90 transition-opacity">
+                Contribuir
+            </button>
+</div>
+</aside>
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-0 left-0 md:left-sidebar-width z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant shadow-sm h-16">
+<div class="flex justify-between items-center h-full px-6 md:px-margin-desktop">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<span class="font-headline-sm text-headline-sm font-extrabold text-primary">Economia com História</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden md:block">
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full w-64 text-label-md focus:ring-2 focus:ring-primary/20" placeholder="Pesquisar..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-on-secondary-fixed-variant">search</span>
+</div>
+<button class="p-2 hover:bg-surface-container-high rounded-full">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+<button class="bg-primary px-6 py-2 rounded-full text-on-primary font-label-md hover:opacity-90 transition-all scale-95 md:scale-100">
+                    Entrar
+                </button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="md:ml-sidebar-width pt-16 min-h-screen">
+<article class="max-w-max-content-width mx-auto px-6 md:px-margin-desktop py-stack-lg">
+<!-- Article Header -->
+<div class="mb-stack-lg max-w-[800px]">
+<div class="flex items-center gap-4 mb-4">
+<span class="flex items-center gap-1 bg-primary text-on-primary px-3 py-1 rounded-full text-label-sm font-bold">
+<span class="material-symbols-outlined text-sm">local_fire_department</span> JINDUNGO
+                    </span>
+<span class="text-on-secondary-fixed-variant font-label-md">Leitura de 8 min</span>
+</div>
+<h1 class="font-display-lg text-[40px] md:text-display-lg text-on-surface mb-6 leading-tight">
+                    A Ilusão do Petróleo: Por que a Riqueza Não Chega ao Musseque?
+                </h1>
+<div class="flex items-center gap-3 mb-8">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A professional headshot of an economic researcher with a warm, authoritative expression, set against a blurred academic library background. The lighting is soft and flattering, emphasizing expertise and accessibility, matching the modern editorial aesthetic with clean lines and high contrast." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3tnwIOZrHgpejUFXmjbo7XriQT0tiKY0r5_ZRjJZT-1iolKFOzcGT3HqRZwDYTBUqB5r8UDme5POzcSRlWHb8DbHsoaSq0fcs6ddGPugwDWCflxkPgUX8T35Aul-GquLCrgdzz6Is-wmlUX89nsq5yYmddI6JrdKbG7VFdRdqB9IBSw2uXHd7xZ6UN8hnVLVY20i7_9-j8fG0Tiqr7seBmFkyt3VZyQF4rU5UG_lhtupN2_0lV4hPd0J4E00be65eYw55Lgp2qdDi"/>
+<div>
+<p class="font-label-md text-on-surface">Redação Economia AO</p>
+<p class="text-label-sm text-on-secondary-fixed-variant">Especialista em Macroeconomia</p>
+</div>
+</div>
+</div>
+<!-- Hero Image -->
+<figure class="mb-stack-xl relative group">
+<img class="w-full h-[500px] object-cover rounded-xl shadow-lg transition-transform duration-500 group-hover:scale-[1.01]" data-alt="A sweeping cinematic view of Luanda's skyline at golden hour, where towering modern skyscrapers of the CBD contrast sharply with the sun-drenched rooftops of traditional housing in the foreground. The lighting is dramatic and warm, with orange and purple hues filling the sky, creating a powerful visual metaphor for economic disparity in Angola. The style is documentary-editorial, with rich saturation and crisp details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDemO4I1vVTBrSg189cIaRVoHwnj7GT8z3LWtK2QD5i5KW-2co8q8Q4A6j5Z-NbYRU0nwmGr8wF__V0BVhq3mGxbdwsA6808dFwNXOzY6nFwzbORoLK1bBGfytib03PIJ35PIRdXoGv_BJQYOu1ELeFcYXSH-Ek1b6Ah0XXWJPDxa35zjwxHZQL4oVsi-tNdxuSRL_MjOzK7OcCWew7Jf8wxQ4qiCn_-10nHDy7cAW1hHJLZHRuoilTkLJhQ8ieNehAcIdoEmM3QVlm"/>
+<figcaption class="mt-4 text-label-sm text-on-secondary-fixed-variant italic text-center">
+                    Vista panorâmica da Baía de Luanda em contraste com os tecidos urbanos informais.
+                </figcaption>
+</figure>
+<!-- Article Content Container -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter max-w-max-content-width">
+<!-- Main Body -->
+<div class="md:col-span-8 space-y-stack-md text-on-surface leading-relaxed">
+<!-- Quote Section -->
+<div class="bg-primary px-10 py-12 rounded-xl text-on-primary shadow-xl my-stack-lg relative overflow-hidden">
+<div class="absolute top-0 left-0 w-2 h-full bg-white opacity-20"></div>
+<span class="material-symbols-outlined text-4xl opacity-30 mb-4 block">format_quote</span>
+<p class="font-body-lg text-[22px] italic leading-relaxed relative z-10">
+                            "O problema não é a falta de dinheiro, é a abundância de intermediários. Enquanto celebramos barris por dia, o preço do pão no Zango ignora as cotações de Brent. A economia angolana é um teatro de sombras onde o palco é de ouro e a plateia está às escuras."
+                        </p>
+</div>
+<p class="font-body-lg text-body-lg mb-8">
+                        Historicamente, a dependência do extrativismo moldou uma estrutura estatal que prioriza o fluxo de saída em detrimento da circulação interna. O que vemos hoje é a herança de uma economia de enclave, onde o petróleo é extraído sem nunca tocar a realidade produtiva local.
+                    </p>
+<p class="font-body-lg text-body-lg mb-8">
+                        A diversificação económica tornou-se um mantra vazio, repetido em fóruns internacionais enquanto as barreiras alfandegárias e a burocracia sufocam o pequeno produtor do Huambo. Sem infraestrutura básica, o custo de escoamento de uma saca de batata é superior ao lucro da venda, tornando a importação a única via — e o maior erro estratégico da nossa história recente.
+                    </p>
+<p class="font-body-lg text-body-lg mb-8">
+                        Precisamos encarar a realidade: a "ajuda" externa e os empréstimos colateralizados em crude são apenas remendos num tecido social que clama por transparência e educação financeira real.
+                    </p>
+<!-- Comments Section -->
+<section class="mt-stack-xl pt-stack-xl border-t border-outline-variant">
+<div class="flex items-center gap-3 mb-stack-lg">
+<span class="material-symbols-outlined text-primary">forum</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Comentários (2)</h2>
+</div>
+<div class="space-y-6">
+<!-- Comment 1 -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/30">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-secondary-fixed-variant font-bold">
+                                        AM
+                                    </div>
+<div>
+<p class="font-label-md text-on-surface">António Manuel</p>
+<p class="text-label-sm text-on-secondary-fixed-variant">Há 2 horas</p>
+</div>
+</div>
+<p class="text-on-surface-variant font-body-md">
+                                    Análise cirúrgica. O custo da logística interna é realmente o maior vilão da nossa produção nacional.
+                                </p>
+</div>
+<!-- Comment 2 -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/30">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="font-label-md text-on-surface">Sara Domingos</p>
+<p class="text-label-sm text-on-secondary-fixed-variant">Há 5 horas</p>
+</div>
+</div>
+<p class="text-on-surface-variant font-body-md">
+                                    Finalmente alguém falou sobre a burocracia sufocante. Como jovem empreendedora, sinto isso todos os dias.
+                                </p>
+</div>
+</div>
+<!-- Comment Input -->
+<div class="mt-8 flex gap-4">
+<div class="flex-grow relative">
+<input class="w-full bg-surface-container border border-outline-variant px-6 py-4 rounded-full font-body-md focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Adicionar um comentário crítico..." type="text"/>
+<button class="absolute right-2 top-2 w-10 h-10 bg-primary text-on-primary rounded-full flex items-center justify-center hover:opacity-90 transition-transform active:scale-90">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Side Info Cards (Asymmetric Layout) -->
+<aside class="md:col-span-4 space-y-stack-lg">
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/50">
+<h3 class="font-headline-sm text-headline-sm text-primary mb-4">Métricas Chave</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center border-b border-outline-variant pb-2">
+<span class="text-label-md text-on-secondary-fixed-variant">Dependência de Petróleo</span>
+<span class="font-bold text-primary">95% (Export)</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant pb-2">
+<span class="text-label-md text-on-secondary-fixed-variant">Crescimento PIB 2023</span>
+<span class="font-bold text-primary">0.9%</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-label-md text-on-secondary-fixed-variant">Inflação Alimentar</span>
+<span class="font-bold text-error">21.4%</span>
+</div>
+</div>
+</div>
+<div class="bg-primary/5 p-6 rounded-xl border-l-4 border-primary">
+<p class="font-label-md text-primary uppercase tracking-widest mb-2">Microtexto Relacionado</p>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-3 hover:text-primary transition-colors cursor-pointer">A Evolução da Moeda: Do Kwanza Real ao Digital</h4>
+<p class="text-label-sm text-on-secondary-fixed-variant leading-relaxed">
+                            Como a história inflacionária moldou a psicologia de poupança do angolano moderno.
+                        </p>
+<button class="mt-4 text-primary font-bold flex items-center gap-2 hover:translate-x-2 transition-transform">
+                            Ler mais <span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<div class="rounded-xl overflow-hidden shadow-md group">
+<img class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A sophisticated data visualization dashboard showing economic trends in Central Africa. The display features clean, minimalist line charts and bar graphs in shades of deep bordeaux and charcoal gray against a clean bone-white background. The lighting is studio-quality, emphasizing clarity and analytical rigor, consistent with the brand's authoritative and modern editorial style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJfJ52eWh1V-rCm1B8iSp_89hjz5_4jytFUkc4kP6LoVC5nqG0Rk87xOVZBVHktckS2orLQJdOW1_8L4VKFmYXDNlVtGNHJ2CvI-tUn23JQHdaAGJBfIR_uSocu4r32VQhJU0lnFl3C_ZEt484_oGjXq0y0i-pm96heHoh4tnroKZ0b7JhmCNX78LHUPqeyew_jLso2c_ij5VtfAYuqL2lR2PfsldgsqePi9XsR-aHBQrNx4bRah6GRj7BC3gmTAAxcZk5YbCuh7Ym"/>
+<div class="p-6 bg-surface-container-high">
+<h4 class="font-label-md text-on-surface font-bold">Relatório Trimestral</h4>
+<p class="text-label-sm text-on-secondary-fixed-variant mt-2">Dados completos sobre a balança comercial Angolana.</p>
+</div>
+</div>
+</aside>
+</div>
+</article>
+</main>
+<!-- Footer -->
+<footer class="md:ml-sidebar-width bg-surface-container-low border-t border-outline-variant mt-stack-xl">
+<div class="flex flex-col md:flex-row justify-between items-center py-stack-md px-6 md:px-margin-desktop max-w-max-content-width mx-auto">
+<div class="mb-4 md:mb-0">
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary">Economia AO</h2>
+<p class="font-label-sm text-label-sm text-on-secondary-fixed-variant">© 2024 Arquivo de História Económica de Angola. Todos os direitos reservados.</p>
+</div>
+<div class="flex gap-6">
+<a class="text-label-sm text-on-secondary-fixed-variant hover:text-primary hover:underline transition-all" href="#">Privacidade</a>
+<a class="text-label-sm text-on-secondary-fixed-variant hover:text-primary hover:underline transition-all" href="#">Termos</a>
+<a class="text-label-sm text-on-secondary-fixed-variant hover:text-primary hover:underline transition-all" href="#">Metodologia</a>
+<a class="text-label-sm text-on-secondary-fixed-variant hover:text-primary hover:underline transition-all" href="#">Arquivo</a>
+</div>
+</div>
+</footer>
+<script>
+        // Reading Progress Logic
+        window.addEventListener('scroll', () => {
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrolled = (window.scrollY / docHeight) * 100;
+            document.getElementById('progress').style.width = scrolled + '%';
+        });
+
+        // Search Bar Focus Effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput?.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('scale-105', 'transition-transform');
+        });
+        searchInput?.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('scale-105');
+        });
+
+        // Interaction Feedback
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => {
+                btn.style.transform = 'scale(0.95)';
+            });
+            btn.addEventListener('mouseup', () => {
+                btn.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

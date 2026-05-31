@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html lang="pt"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fcf9f8;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#fcf9f8",
+                        "inverse-primary": "#ffb3ac",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dcd9d9",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-container-high": "#eae7e7",
+                        "on-secondary-fixed": "#1a1c1b",
+                        "primary": "#690008",
+                        "primary-container": "#8b1a1a",
+                        "surface-tint": "#ac322e",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-surface-variant": "#58413f",
+                        "surface-bright": "#fcf9f8",
+                        "on-surface": "#1c1b1b",
+                        "on-primary-container": "#ff9a91",
+                        "outline-variant": "#e0bfbc",
+                        "primary-fixed": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#410003",
+                        "surface": "#fcf9f8",
+                        "on-primary-fixed-variant": "#8a1a1a",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#e2e3e1",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#313030",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#636563",
+                        "tertiary": "#2f3131",
+                        "surface-container-low": "#f6f3f2",
+                        "inverse-on-surface": "#f3f0ef",
+                        "outline": "#8c716e",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#e2e3e1",
+                        "on-tertiary-container": "#b5b5b6",
+                        "on-secondary-fixed-variant": "#454746",
+                        "secondary-fixed-dim": "#c6c7c5",
+                        "secondary": "#5d5f5d",
+                        "on-background": "#1c1b1b",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "primary-fixed-dim": "#ffb3ac",
+                        "surface-container": "#f0eded",
+                        "tertiary-container": "#454748"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "16px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-xl": "64px",
+                        "stack-sm": "8px",
+                        "sidebar-width": "280px",
+                        "gutter": "24px",
+                        "stack-md": "16px",
+                        "margin-desktop": "40px",
+                        "stack-lg": "32px",
+                        "max-content-width": "1160px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-lg": ["Merriweather"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "body-md": ["Merriweather"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.8", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline-variant flex flex-col p-stack-md z-50">
+<div class="mb-stack-xl">
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Economia com História</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-70">Angola em Perspetiva</p>
+</div>
+<nav class="flex-grow space-y-3">
+<a class="flex items-center gap-3 text-secondary pl-4 hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Início</span>
+</a>
+<a class="flex items-center gap-3 text-primary font-bold border-l-4 border-primary pl-3 transition-all duration-200 opacity-90" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Explorar</span>
+</a>
+<a class="flex items-center gap-3 text-secondary pl-4 hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-md text-label-md">Mapa Económico</span>
+</a>
+<a class="flex items-center gap-3 text-secondary pl-4 hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+<span class="font-label-md text-label-md">Fórum</span>
+</a>
+<a class="flex items-center gap-3 text-secondary pl-4 hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Perfil</span>
+</a>
+</nav>
+<div class="mt-auto pt-stack-md border-t border-outline-variant">
+<div class="flex items-center gap-3 px-4 py-2 hover:bg-surface-container-low transition-colors rounded-lg cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xs">CT</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Carlos Tchípia</span>
+<span class="text-[10px] text-on-surface-variant font-label-sm">Sessão Iniciada</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[280px] min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-40 bg-background/80 backdrop-blur-md h-16 px-margin-desktop flex justify-between items-center">
+<div class="flex items-center gap-stack-lg flex-1">
+<div class="relative w-full max-w-md group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-body-md focus:ring-2 focus:ring-primary focus:bg-white transition-all outline-none" placeholder="Pesquisar no arquivo..." type="text"/>
+</div>
+<nav class="hidden lg:flex items-center gap-stack-lg ml-stack-lg">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Microtextos</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Jindungo</a>
+<a class="font-label-md text-label-md text-primary border-b-2 border-primary pb-1 scale-95 transition-transform" href="#">Arquivo</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</header>
+<!-- Archive Content -->
+<section class="max-w-max-content-width mx-auto w-full px-margin-desktop py-stack-lg flex-grow">
+<!-- Page Header & Filters -->
+<div class="mb-stack-xl">
+<h2 class="font-display-lg text-display-lg text-on-surface mb-stack-md">Explorar Arquivo Digital</h2>
+<div class="flex flex-wrap gap-stack-sm items-center">
+<button class="px-6 py-2 rounded-full bg-primary text-white font-label-md text-label-md shadow-sm">Todos</button>
+<button class="px-6 py-2 rounded-full bg-white border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:border-primary hover:text-primary transition-all">Cartografia</button>
+<button class="px-6 py-2 rounded-full bg-white border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:border-primary hover:text-primary transition-all">Manuscritos</button>
+<button class="px-6 py-2 rounded-full bg-white border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:border-primary hover:text-primary transition-all">Relatórios Oficiais</button>
+<div class="ml-auto flex items-center gap-stack-sm text-on-surface-variant">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Ordenar por:</span>
+<select class="bg-transparent border-none font-label-md text-label-md text-primary focus:ring-0 cursor-pointer">
+<option>Mais recentes</option>
+<option>Mais antigos</option>
+<option>Relevância</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Bento Grid / Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Card 1 -->
+<div class="group bg-white rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:-translate-y-1 hover:shadow-[0px_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
+<div class="aspect-[4/3] overflow-hidden bg-surface-container-high relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A high-resolution photograph of an ancient, weathered map of the African coastline, specifically the Angolan region. The map features elegant calligraphic scripts, sepia-toned parchment, and intricate ink drawings of compass roses. The lighting is soft and warm, reminiscent of a historical museum display. The overall aesthetic is intellectual, scholarly, and premium, aligned with the Bordeaux and Bone brand colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqnwYV4VqFZBfPtwA3oZ7oHmT9NH27FVgNuXpRvKEXt29Uj1XsrPERY5PgVdf51vKp3rXjClEj4iSeRmoM-Yk-e3574cWWhlIRW8LETLNkokom6ozrw2tmGnxm5xK6AFJBHpXbxp15RHOQ4VwusIT3sEhni37jFyr-FWlY1gGLyiaCq0GtVDKr2_GweMvouQrXa7eifwXYD0Ti1PGpkdL2Tc1Qlftrefxhnsn19BdJ39ACiFmzcPilHCYrt-KWGfw4LVLO6zHTNhsC"/>
+<span class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full font-label-sm text-label-sm text-primary">Cartografia</span>
+</div>
+<div class="p-stack-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant">17 de Junho, 1845</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-1 group-hover:text-primary transition-colors line-clamp-2">Mapa Hidrográfico do Rio Cuanza</h3>
+<p class="font-body-md text-on-surface-variant mt-2 text-sm line-clamp-2">Detalhes técnicos das margens e profundidade, com anotações de exploração comercial.</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group bg-white rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:-translate-y-1 hover:shadow-[0px_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
+<div class="aspect-[4/3] overflow-hidden bg-surface-container-high relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A close-up shot of a 19th-century handwritten manuscript with elegant, fading cursive ink on textured, aged paper. The document is spread across a dark wooden table in a dimly lit library setting. Shallow depth of field emphasizes the texture of the ink and paper. The color palette is dominated by rich browns and creams, punctuated by deep bordeaux shadows, creating a scholarly atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdTKxlmWKCR4pVb7AlJm1U6OeSL5kW-A_JgDdQCZrOqEZN-IIltCLW7pKd1kci5rPpzLuGSy0Ac7d0NVfwxgFskH_sSJKUwYbqsauWeSxk79E7I2QxPRQZw338dJ_YXVPS8h_kN4OxpcQU_LQ39uYIDTbaKuW2wWxExBOoOCdeAZ87HXIanLuBmaRsQ06HXqSjFcCRi4XF8NAOBmLrplmP2znFB1rUBIohl-CZnPcZaVblXSpAS0CW-iYnqYPj57-BYN2YymjlMd53"/>
+<span class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full font-label-sm text-label-sm text-primary">Manuscritos</span>
+</div>
+<div class="p-stack-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant">02 de Janeiro, 1912</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-1 group-hover:text-primary transition-colors line-clamp-2">Correspondência de Silva Porto em Bié</h3>
+<p class="font-body-md text-on-surface-variant mt-2 text-sm line-clamp-2">Cartas originais descrevendo as rotas comerciais e acordos locais na região central.</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group bg-white rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:-translate-y-1 hover:shadow-[0px_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
+<div class="aspect-[4/3] overflow-hidden bg-surface-container-high relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A professional top-down view of a formal government ledger from the early 20th century. The heavy volume is bound in dark leather with embossed gold lettering. It is placed on a clean, ivory-colored surface. The lighting is bright and even, highlighting the authoritative and official nature of the document. The style is clean, editorial, and minimalist, using a soft cream and dark maroon color scheme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKMiSViq1jk_IBxB_PHHfrAxsor3GFsvbBSuSJVc_Qlv4N-2ChwTQb91u7uV1OTJ9D-NjRQEBDEaK7E2xveHIvgBL0DRlDR2M9m6r_iseeg3KvWIpd03511iLuw6xxyUwFG6ldPWXOCipW3_mRDXMQjnhK7rblcfG54UPuIEwka91N8i2Jk8mfuNx3oMOw0t4ifFHWDwHGn-1yd2fwNF_UF0qESh10JZvVukV1FxYvjb8M0p6xf1Ui6VvypBv6TwQloTS_qFAkNgD-"/>
+<span class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full font-label-sm text-label-sm text-primary">Relatórios Oficiais</span>
+</div>
+<div class="p-stack-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant">14 de Março, 1955</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-1 group-hover:text-primary transition-colors line-clamp-2">Relatório de Exportação de Café</h3>
+<p class="font-body-md text-on-surface-variant mt-2 text-sm line-clamp-2">Dados estatísticos detalhados sobre a produção e escoamento através do Porto de Luanda.</p>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group bg-white rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:-translate-y-1 hover:shadow-[0px_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
+<div class="aspect-[4/3] overflow-hidden bg-surface-container-high relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="An atmospheric photograph of a bundle of old, official documents tied with a red string. The papers are slightly yellowed and stacked neatly. The background is a clean, neutral wall in a historical archive. The light comes from the side, creating long, soft shadows and highlighting the tactile quality of the paper. The image evokes a sense of discovery and preserved history in a modern, elegant way." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCaibtKELUq9nruZWYybejFE2eyIByf3ZTlh4x-jxFk11YmXi_pbU8x-xYAKUyQoB8kEWFrYklnQl92UvmX0TGN--ZG5eXAg39HyOiE66__YnOYuw-tHYyueJFq5LEqC4HfXv7XA1NlEuvVUy6g7ye2pCzdHWgUGMJH3tg8RzOnnNQcp273SBN3mv_pLDZ3RutroZjeiuXvlTDIyN32reiq1fy6Zy4K6FOwfo7uRnKkyG7k6kGorVyqLNmJiw5o5m1N_rdy-ZmS-v9"/>
+<span class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full font-label-sm text-label-sm text-primary">Relatórios Oficiais</span>
+</div>
+<div class="p-stack-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant">22 de Maio, 1968</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-1 group-hover:text-primary transition-colors line-clamp-2">Plano de Infraestruturas: Luanda-Malange</h3>
+<p class="font-body-md text-on-surface-variant mt-2 text-sm line-clamp-2">Esboços originais e orçamentos para a expansão da rede ferroviária do norte.</p>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="group bg-white rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:-translate-y-1 hover:shadow-[0px_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
+<div class="aspect-[4/3] overflow-hidden bg-surface-container-high relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A detailed macro shot of a single page from a vintage journal. The text is printed in a classic serif font, and there are small, hand-drawn annotations in the margins. The paper has a warm, ivory tone. The lighting is bright and clear, emphasizing the intellectual depth of the content. The composition is modern and balanced, fitting a high-end editorial website for historical economic research." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5ZNk0oifC2rBRFfF9VBnvGdz3QNjm0o975i6CtnhHFykeOthWDZWORfCGoywiWp2bizNR9RtlAd54leep7X84ek1e-Ppx-JHgQIlWxY_a2x6DHNTCaiCsmhgWeQDWfbog9kZp5e_4fa1_pwrpA1ooFdcqpHBsU9FHBFSsomJ5slWtBoxv9C68YIuA4Hqm0oPvBZXNDj6PXuwp1OWRrroq1z_SimrQgx1jbVlRZMlVppnCiOxe_xcsKllk_4d3BrVzUhsxLEi9weiY"/>
+<span class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full font-label-sm text-label-sm text-primary">Manuscritos</span>
+</div>
+<div class="p-stack-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant">08 de Agosto, 1899</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-1 group-hover:text-primary transition-colors line-clamp-2">Diário de Expedição: Hinterland Angolano</h3>
+<p class="font-body-md text-on-surface-variant mt-2 text-sm line-clamp-2">Observações diárias sobre o comércio de borracha e marfim no interior de Benguela.</p>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="group bg-white rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:-translate-y-1 hover:shadow-[0px_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
+<div class="aspect-[4/3] overflow-hidden bg-surface-container-high relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="An expansive view of a large-scale historical map of Angola, displayed in a modern archive with glass and wood fixtures. The lighting is cool and professional, reflecting off the protective glass. The map itself is rich in color, showing various administrative boundaries from the mid-20th century. The photograph is shot from an angle, creating a sense of depth and scale within a high-end academic setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBveBqwWCt6-D4Fu_thBV5GeQEbr_kE2fVy1G4tL8W5SqjJBaRqOsNwYqbl9hPRgSsDaehc1i9azwEVEBnBezIcq2ijKWvtOl0kn3ry70v0KpHPcHt-tI-RgDCGnx-m2z095LTJGzVH_8A1DrWekz5-6qKw-AgNCdxFtXQWTQxu2cgIxFmj8xP8Ox0G6dRbKzcZhFPrbTojr1EEUDTLxd74Tpssbrt3QU4zMXFZsL0JTWatf_cxNlJJkXWcl_guqZJdKApWHlF2vhir"/>
+<span class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full font-label-sm text-label-sm text-primary">Cartografia</span>
+</div>
+<div class="p-stack-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant">11 de Fevereiro, 1940</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-1 group-hover:text-primary transition-colors line-clamp-2">Divisão Administrativa de Angola</h3>
+<p class="font-body-md text-on-surface-variant mt-2 text-sm line-clamp-2">Mapa de grandes dimensões detalhando os distritos e concelhos em 1940.</p>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="mt-stack-xl flex justify-center items-center gap-stack-md">
+<button class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:text-primary hover:border-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<div class="flex gap-2">
+<span class="w-10 h-10 flex items-center justify-center bg-primary text-white font-label-md rounded-lg">1</span>
+<span class="w-10 h-10 flex items-center justify-center border border-outline-variant text-on-surface-variant font-label-md rounded-lg hover:border-primary hover:text-primary cursor-pointer transition-colors">2</span>
+<span class="w-10 h-10 flex items-center justify-center border border-outline-variant text-on-surface-variant font-label-md rounded-lg hover:border-primary hover:text-primary cursor-pointer transition-colors">3</span>
+<span class="w-10 h-10 flex items-center justify-center text-on-surface-variant">...</span>
+<span class="w-10 h-10 flex items-center justify-center border border-outline-variant text-on-surface-variant font-label-md rounded-lg hover:border-primary hover:text-primary cursor-pointer transition-colors">12</span>
+</div>
+<button class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:text-primary hover:border-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-surface-container-low border-t border-outline-variant p-stack-lg flex flex-col md:flex-row justify-between items-center gap-stack-md">
+<div class="flex flex-col items-center md:items-start">
+<span class="font-headline-sm text-headline-sm text-primary">Economia com História</span>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">© 2026 Economia com História</p>
+</div>
+<div class="flex gap-stack-lg">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all" href="#">Sobre</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all" href="#">Termos</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all" href="#">Privacidade</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all" href="#">Contactos</a>
+</div>
+</footer>
+</main>
+</body></html>
