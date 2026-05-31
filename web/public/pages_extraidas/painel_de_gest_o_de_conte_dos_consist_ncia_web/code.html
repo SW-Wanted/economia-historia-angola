@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html lang="pt"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Painel Administrativo - Economia com História</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Merriweather:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed": "#1a1c1b",
+                    "primary-fixed": "#ffdad6",
+                    "primary-container": "#8b1a1a",
+                    "outline-variant": "#e0bfbc",
+                    "secondary-fixed-dim": "#c6c7c5",
+                    "tertiary": "#2f3131",
+                    "on-primary-container": "#ff9a91",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#fcf9f8",
+                    "primary": "#690008",
+                    "surface-variant": "#e5e2e1",
+                    "on-error-container": "#93000a",
+                    "surface-dim": "#dcd9d9",
+                    "outline": "#8c716e",
+                    "on-tertiary-container": "#b5b5b6",
+                    "on-primary-fixed": "#410003",
+                    "surface-container": "#f0eded",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#ac322e",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-secondary-container": "#636563",
+                    "inverse-primary": "#ffb3ac",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "on-primary": "#ffffff",
+                    "on-background": "#1c1b1b",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "primary-fixed-dim": "#ffb3ac",
+                    "background": "#fcf9f8",
+                    "on-surface-variant": "#58413f",
+                    "on-primary-fixed-variant": "#8a1a1a",
+                    "surface-container-high": "#eae7e7",
+                    "secondary": "#5d5f5d",
+                    "error-container": "#ffdad6",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed-variant": "#454746",
+                    "tertiary-container": "#454748",
+                    "on-surface": "#1c1b1b",
+                    "tertiary-fixed": "#e2e2e2",
+                    "secondary-fixed": "#e2e3e1",
+                    "inverse-surface": "#313030",
+                    "surface-container-low": "#f6f3f2",
+                    "secondary-container": "#e2e3e1",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "surface": "#fcf9f8"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sidebar-width": "280px",
+                    "margin-desktop": "40px",
+                    "stack-md": "16px",
+                    "stack-lg": "32px",
+                    "stack-xl": "64px",
+                    "stack-sm": "8px",
+                    "max-content-width": "1160px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "body-md": ["Merriweather"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "body-lg": ["Merriweather"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-lg": ["18px", {"lineHeight": "1.8", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-tab {
+            border-left: 4px solid #690008;
+            font-weight: 700;
+            color: #690008;
+            background-color: #f0eded;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.04);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen overflow-x-hidden">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 h-screen w-sidebar-width bg-surface dark:bg-surface-container border-r border-outline-variant dark:border-outline flex flex-col py-8 z-50">
+<div class="px-8 mb-10">
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary-fixed">EH</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-70">Painel Administrativo</p>
+</div>
+<div class="px-4 mb-8 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-primary/20">
+<img alt="Carlos Tchípia" class="w-full h-full object-cover" data-alt="A professional headshot of a middle-aged Angolan scholar with a friendly yet authoritative expression, wearing a refined charcoal grey suit. The lighting is soft and academic, set against a blurred background of a library with mahogany shelves. The overall style is high-end editorial photography with a sophisticated warm-toned light-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDB0avwAJ2bGr5WJs5N-A3Zs5j7umbydo3Uz7WSEhKV0ES69kTSEqrMGBawPrlg-TEzxwZQvG77QWCn3vTLUZLk9Y0okFEtTJOJf-uK_Fd20TVbkxX7QuQhTCxtBD0N7_fjm9nlzSMBGeIiu-ElEuOIMRfLukk_B9hxuOS1RWl5ElJ8_dPPXza72VktDLRkZwO3_rbwDvm28t7mFMtFPe_3cW-PZTfc9QYJNYCxMg816ijnFy7X4tivQ8xnzOW_yz05ZM7rUu4AWfM2"/>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-on-surface">Carlos Tchípia</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Investigador</p>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-8 py-3 text-on-surface-variant font-medium hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md">Início</span>
+</a>
+<a class="active-tab flex items-center gap-3 px-8 py-3 text-primary font-bold border-l-4 border-primary bg-surface-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="font-label-md text-label-md">Explorar</span>
+</a>
+<a class="flex items-center gap-3 px-8 py-3 text-on-surface-variant font-medium hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-label-md text-label-md">Mapa de Angola</span>
+</a>
+<a class="flex items-center gap-3 px-8 py-3 text-on-surface-variant font-medium hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">bookmark</span>
+<span class="font-label-md text-label-md">Favoritos</span>
+</a>
+<a class="flex items-center gap-3 px-8 py-3 text-on-surface-variant font-medium hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Definições</span>
+</a>
+</nav>
+<div class="px-8 mb-4">
+<button class="w-full py-4 bg-primary text-white rounded-xl font-label-md text-label-md flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                Nova Pesquisa
+            </button>
+</div>
+<div class="px-4 border-t border-outline-variant pt-6">
+<a class="flex items-center gap-3 px-8 py-2 text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Ajuda</span>
+</a>
+<a class="flex items-center gap-3 px-8 py-2 text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Sair</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-sidebar-width min-h-screen">
+<!-- TopAppBar -->
+<header class="sticky top-0 w-full h-20 px-margin-desktop bg-surface-container-lowest/80 backdrop-blur-md z-40 flex justify-between items-center shadow-sm">
+<div class="flex items-center gap-8">
+<h2 class="font-headline-sm text-headline-sm font-extrabold text-primary">Gestão de Conteúdos</h2>
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-12 pr-4 py-2 bg-surface-container-low border-none rounded-full focus:ring-2 focus:ring-primary/20 font-body-md text-body-md" placeholder="Pesquisar publicações..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">history_edu</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant mx-2"></div>
+<button class="bg-primary text-white px-6 py-2 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 shadow-md">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+                    Nova Publicação
+                </button>
+</div>
+</header>
+<!-- Page Content -->
+<div class="max-w-max-content-width mx-auto px-margin-desktop py-stack-lg">
+<!-- Statistics Bento Grid -->
+<section class="grid grid-cols-12 gap-gutter mb-stack-xl">
+<div class="col-span-4 glass-card p-8 rounded-xl border border-outline-variant/30 flex items-center gap-6 group hover:translate-y-[-4px] transition-all duration-300">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[32px]">visibility</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total de Leituras</p>
+<h4 class="font-headline-lg text-headline-lg">128.4k</h4>
+<p class="font-label-sm text-label-sm text-green-600 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> +12% este mês
+                        </p>
+</div>
+</div>
+<div class="col-span-4 glass-card p-8 rounded-xl border border-outline-variant/30 flex items-center gap-6 group hover:translate-y-[-4px] transition-all duration-300">
+<div class="w-16 h-16 rounded-full bg-secondary-container flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[32px]">article</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Artigos Publicados</p>
+<h4 class="font-headline-lg text-headline-lg">42</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-60">Meta anual: 70% atingida</p>
+</div>
+</div>
+<div class="col-span-4 glass-card p-8 rounded-xl border border-outline-variant/30 flex items-center gap-6 group hover:translate-y-[-4px] transition-all duration-300">
+<div class="w-16 h-16 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed group-hover:bg-primary-container group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[32px]">forum</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Comentários Ativos</p>
+<h4 class="font-headline-lg text-headline-lg">1.2k</h4>
+<p class="font-label-sm text-label-sm text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">pending</span> 24 pendentes
+                        </p>
+</div>
+</div>
+</section>
+<!-- Content Management Table -->
+<section class="glass-card rounded-xl border border-outline-variant/30 overflow-hidden">
+<div class="p-8 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-low/30">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Artigos Recentes</h3>
+<div class="flex gap-4">
+<div class="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-outline-variant/30 cursor-pointer hover:bg-surface-variant/20 transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+<span class="font-label-sm text-label-sm">Filtros</span>
+</div>
+<div class="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-outline-variant/30 cursor-pointer hover:bg-surface-variant/20 transition-colors">
+<span class="material-symbols-outlined text-[18px]">sort</span>
+<span class="font-label-sm text-label-sm">Ordenar</span>
+</div>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container-low/50">
+<tr>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant">Título</th>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant">Data</th>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant">Status</th>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant">Visualizações</th>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant text-right">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20">
+<!-- Table Row 1 -->
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-variant flex-shrink-0 overflow-hidden">
+<img alt="Thumbnail" class="w-full h-full object-cover" data-alt="A warm, golden-hour photograph of an industrial port in Luanda, Angola. Large merchant ships are docked, with massive yellow cranes silhouetted against a dusty orange sky. The atmosphere is bustling yet serene, captured in a high-contrast documentary photography style, perfectly matching a premium editorial layout." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgAUtYMKNI8try-KqWi1H93yTPl9rPn9I-Euayd27BzNFOTpqeZQfJFrOCN6weUouuTrVNKPsKadmUaDtAdnT_D1yantLzsMRt7vjhbqRgJKPiyCIvHjVsEwsqwCPwyT2w4JL0FhjsdwsfsZA3RjBouUYVdi0aV_14lyLQmxN0YiEKuWqahWLxCGSp5DC-uH6iYQ7vpUMH_7a_y9-xNgnK0O7jF7BBS6QDePsEzaGmYIxxa2vLjki197OSFWN5vAK0A9CscT6IN8GA"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">O Ciclo da Borracha no Planalto Central</p>
+<span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded uppercase font-bold tracking-tighter">Microtexto</span>
+</div>
+</div>
+</td>
+<td class="px-8 py-6 font-body-md text-body-md text-on-surface-variant">12 Mai 2024</td>
+<td class="px-8 py-6">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-green-600"></span> Publicado
+                                    </span>
+</td>
+<td class="px-8 py-6 font-body-md text-body-md text-on-surface-variant">15.2k</td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-primary/10 rounded-full text-primary transition-all"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-2 hover:bg-secondary/10 rounded-full text-secondary transition-all"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="p-2 hover:bg-error/10 rounded-full text-error transition-all"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Table Row 2 -->
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-variant flex-shrink-0 overflow-hidden">
+<img alt="Thumbnail" class="w-full h-full object-cover" data-alt="An artistic top-down shot of several stacks of old Portuguese colonial currency and Angolan Kwanzas, arranged neatly on a dark wooden surface. The lighting is focused and dramatic, highlighting the intricate details of the banknotes. The overall aesthetic is intellectual, scholarly, and high-end editorial, consistent with an economic history publication." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP1hUVUyZi5Fl2Kp4yz-ZKGR4l_b8dv2OQ7sWrH-QnRS4GVIHdW4Ha7wl-sOTTDIeB-KrH3gypnrhdHF8lNFIVb44sb72uvNO9VWP9ofG7JlmTewGdxfYM-s5NVIsxUT9tuowtBRUjOK9CRuCOWjbYwy9bHckd4f8V-pTXRjkIPCEnP_OUSTK7egflfibPLozayE6qWaikqM8wQfCDbJIMFrcCW2T5X23X3QGPIHI0V8bugbNXL52T-JOBRYrxpc8YxntA3fqd7nXs"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">As Reformas Monetárias do Kwanza (1990-1999)</p>
+<span class="px-2 py-0.5 bg-secondary-container text-secondary text-[10px] rounded uppercase font-bold tracking-tighter">Artigo Longo</span>
+</div>
+</div>
+</td>
+<td class="px-8 py-6 font-body-md text-body-md text-on-surface-variant">08 Mai 2024</td>
+<td class="px-8 py-6">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-green-600"></span> Publicado
+                                    </span>
+</td>
+<td class="px-8 py-6 font-body-md text-body-md text-on-surface-variant">8.7k</td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-primary/10 rounded-full text-primary transition-all"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-2 hover:bg-secondary/10 rounded-full text-secondary transition-all"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="p-2 hover:bg-error/10 rounded-full text-error transition-all"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Table Row 3 -->
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-variant flex-shrink-0 overflow-hidden">
+<img alt="Thumbnail" class="w-full h-full object-cover" data-alt="A moody, atmospheric photograph of a colonial-era train station in Angola. The architecture is European-influenced with intricate ironwork, bathed in a soft, misty morning light. The platform is empty, creating a sense of historical nostalgia. The image style is documentary, clean, and professional, using a sophisticated warm-toned color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGiCVSLREbvAOcOMR-jn_vqrzcqUdiXwvw7LrkUdmtzYGBeRUq9ONZTrsAiZn67tITKDP9tFiowD4p4YpTLiCtBzgd8H0zdsLWQId-STQT7oRpRtOcKGckfKQBEZuI9ndEK7c0ukoUuK7rL_kqpEdx33cvLq0qZdCFH95A2pkGeqtj6u-qEvmlkFvoTnI_y2sXvtgtSmQMQwFOU53ZfRLvy7JrWCrSC3af1KDi3c3dZqJu1Po2QiRHTjxDS3q5E_bblPutDDgCa9Sh"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Impacto das Ferrovias na Exportação Agrícola</p>
+<span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-[10px] rounded uppercase font-bold tracking-tighter">Jindungo</span>
+</div>
+</div>
+</td>
+<td class="px-8 py-6 font-body-md text-body-md text-on-surface-variant">05 Mai 2024</td>
+<td class="px-8 py-6">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-variant text-on-surface-variant font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span> Rascunho
+                                    </span>
+</td>
+<td class="px-8 py-6 font-body-md text-body-md text-on-surface-variant">—</td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-primary/10 rounded-full text-primary transition-all"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-2 hover:bg-secondary/10 rounded-full text-secondary transition-all"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="p-2 hover:bg-error/10 rounded-full text-error transition-all"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-6 bg-surface-container-low/30 border-t border-outline-variant/20 flex justify-between items-center">
+<p class="font-label-sm text-label-sm text-on-surface-variant">A mostrar 1-10 de 42 artigos</p>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant/30 hover:bg-white transition-all disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-label-md text-label-md shadow-sm">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant/30 hover:bg-white transition-all font-label-md text-label-md">2</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant/30 hover:bg-white transition-all font-label-md text-label-md">3</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant/30 hover:bg-white transition-all">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer -->
+<footer class="w-full bg-surface-container-low border-t border-outline-variant py-stack-lg px-margin-desktop flex justify-between items-center">
+<div class="flex items-center gap-6">
+<span class="font-label-md text-label-md font-bold text-on-surface">Economia com História</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-70">© 2026 Economia com História – Angola</p>
+</div>
+<nav class="flex gap-8">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Termos</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacidade</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Contacto</a>
+</nav>
+</footer>
+</main>
+<!-- Interactive Layer: Tooltip / Toast -->
+<div class="fixed bottom-10 right-10 translate-y-20 opacity-0 transition-all duration-500 glass-card border border-primary/20 px-6 py-4 rounded-xl flex items-center gap-4 z-[100]" id="toast">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Ação Concluída</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">O rascunho foi salvo com sucesso.</p>
+</div>
+</div>
+<script>
+        // Micro-interaction: Sidebar Hover Scaling
+        const navItems = document.querySelectorAll('nav a');
+        navItems.forEach(item => {
+            item.addEventListener('mousedown', () => {
+                item.classList.add('scale-95');
+                setTimeout(() => item.classList.remove('scale-95'), 150);
+            });
+        });
+
+        // Demo Toast Trigger
+        setTimeout(() => {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 5000);
+        }, 2000);
+    </script>
+</body></html>

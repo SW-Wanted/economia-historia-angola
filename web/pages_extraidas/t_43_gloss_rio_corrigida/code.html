@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html lang="pt"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Merriweather:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#fcf9f8",
+                        "inverse-primary": "#ffb3ac",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dcd9d9",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-container-high": "#eae7e7",
+                        "on-secondary-fixed": "#1a1c1b",
+                        "primary": "#690008",
+                        "primary-container": "#8b1a1a",
+                        "surface-tint": "#ac322e",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-surface-variant": "#58413f",
+                        "surface-bright": "#fcf9f8",
+                        "on-surface": "#1c1b1b",
+                        "on-primary-container": "#ff9a91",
+                        "outline-variant": "#e0bfbc",
+                        "primary-fixed": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#410003",
+                        "surface": "#fcf9f8",
+                        "on-primary-fixed-variant": "#8a1a1a",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#e2e3e1",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#313030",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#636563",
+                        "tertiary": "#2f3131",
+                        "surface-container-low": "#f6f3f2",
+                        "inverse-on-surface": "#f3f0ef",
+                        "outline": "#8c716e",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#e2e3e1",
+                        "on-tertiary-container": "#b5b5b6",
+                        "on-secondary-fixed-variant": "#454746",
+                        "secondary-fixed-dim": "#c6c7c5",
+                        "secondary": "#5d5f5d",
+                        "on-background": "#1c1b1b",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "primary-fixed-dim": "#ffb3ac",
+                        "surface-container": "#f0eded",
+                        "tertiary-container": "#454748"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-xl": "64px",
+                        "stack-sm": "8px",
+                        "sidebar-width": "280px",
+                        "gutter": "24px",
+                        "stack-md": "16px",
+                        "margin-desktop": "40px",
+                        "stack-lg": "32px",
+                        "max-content-width": "1160px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-lg": ["Merriweather"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "body-md": ["Merriweather"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.8", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        .glossary-card {
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .glossary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 8px 30px rgba(0,0,0,0.06);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-fixed">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface flex flex-col h-screen p-stack-md border-r border-outline-variant z-50">
+<div class="mb-stack-xl px-4">
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Economia com História</h1>
+<p class="font-label-sm text-label-sm text-secondary-fixed-dim">Angola em Perspetiva</p>
+</div>
+<nav class="flex-grow space-y-2">
+<a class="flex items-center gap-3 transition-colors hover:bg-surface-container-low text-secondary pl-4 py-2 rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Início</span>
+</a>
+<a class="flex items-center gap-3 transition-colors hover:bg-surface-container-low text-primary font-bold border-l-4 border-primary pl-3 py-2 rounded-lg bg-surface-container-low" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Explorar</span>
+</a>
+<a class="flex items-center gap-3 transition-colors hover:bg-surface-container-low text-secondary pl-4 py-2 rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-md text-label-md">Mapa Económico</span>
+</a>
+<a class="flex items-center gap-3 transition-colors hover:bg-surface-container-low text-secondary pl-4 py-2 rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+<span class="font-label-md text-label-md">Fórum</span>
+</a>
+<a class="flex items-center gap-3 transition-colors hover:bg-surface-container-low text-secondary pl-4 py-2 rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Perfil</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant pt-4 px-4">
+<div class="flex items-center gap-3 text-secondary">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold text-xs">CT</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Carlos Tchípia</span>
+<span class="text-[10px] uppercase tracking-wider text-secondary-fixed-dim">Membro Premium</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 left-[280px] right-0 h-16 bg-background/80 backdrop-blur-md flex justify-between items-center px-margin-desktop z-40">
+<div class="flex items-center bg-surface-container-low px-4 py-2 rounded-full w-96 border border-outline-variant/30">
+<span class="material-symbols-outlined text-secondary mr-2" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body-md text-body-md text-on-surface-variant" placeholder="Procurar termos..." type="text"/>
+</div>
+<div class="flex items-center gap-stack-lg">
+<nav class="flex gap-6">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors pb-1" href="#">Microtextos</a>
+<a class="font-label-md text-label-md text-primary border-b-2 border-primary pb-1 scale-95 transition-transform" href="#">Jindungo</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors pb-1" href="#">Arquivo</a>
+</nav>
+<div class="flex gap-4">
+<button class="material-symbols-outlined text-primary" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-primary" data-icon="settings">settings</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-[280px] pt-24 px-margin-desktop pb-stack-xl max-w-max-content-width mx-auto">
+<!-- Hero Header -->
+<section class="mb-stack-xl">
+<h2 class="font-display-lg text-display-lg text-on-surface mb-4">Glossário de Termos Económicos</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                Uma exploração enciclopédica dos conceitos que moldaram a economia de Angola, desde as moedas tradicionais às estruturas coloniais e contemporâneas.
+            </p>
+</section>
+<!-- A-Z Navigation Index -->
+<div class="sticky top-16 bg-background/90 backdrop-blur-sm py-4 mb-stack-lg z-30 flex flex-wrap gap-2 justify-center border-b border-outline-variant/20">
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md bg-primary text-on-primary">A</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">B</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">C</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">D</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">E</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">F</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">G</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">H</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">I</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">J</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md bg-primary-fixed/30 text-primary">L</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">M</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">N</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">O</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">P</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">Q</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">R</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">S</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">T</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">U</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">V</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">W</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">X</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md hover:bg-primary-fixed/30 text-on-surface-variant transition-colors">Y</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center font-label-md text-label-md bg-primary-fixed/30 text-primary font-bold">Z</button>
+</div>
+<!-- Bento Grid of Terms -->
+<div class="bento-grid">
+<!-- Highlight Term: Zimbo -->
+<div class="col-span-12 md:col-span-8 bg-white p-stack-lg rounded-2xl glossary-card flex flex-col md:flex-row gap-8 border border-outline-variant/10">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-4">
+<span class="bg-primary-fixed text-primary px-3 py-1 rounded-full font-label-sm text-label-sm">Moeda Histórica</span>
+<span class="text-secondary-fixed-dim font-label-sm text-label-sm">Período: Pré-Colonial</span>
+</div>
+<h3 class="font-display-lg text-headline-lg text-primary mb-4">Zimbo</h3>
+<p class="font-body-md text-body-md text-on-surface mb-6 leading-relaxed">
+                        Pequena concha de um molusco marinho (Olivancillaria nana), utilizada como moeda corrente em grande parte da bacia do Congo e no antigo Reino do Congo. A sua exploração era um monopólio real, recolhida principalmente nas águas da ilha de Luanda.
+                    </p>
+<div class="bg-surface-container-low p-4 rounded-xl italic font-body-md text-on-surface-variant border-l-4 border-primary">
+                        "O Zimbo não era apenas dinheiro; era o símbolo da soberania económica do Reino do Congo sobre a costa atlântica."
+                    </div>
+</div>
+<div class="w-full md:w-64 h-64 shrink-0 overflow-hidden rounded-xl bg-surface-dim">
+<img alt="Detailed close-up of cowrie shells" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPV8xcc4CJ3PQBjcOguf1ppJ2wHn9QaZOvMnSQjyvGQrACgwzvNdeBE6sFdIWgr2WQPteucPV10WowNJ6LkH_FKRH4V3YhUhfc3LhNHLgfZpYegWTvZQFvD9RCNDcpCSNT0hZZbFKjRSuXtP1ngrIzja3Laer3FkTnzMF8ies2tqK7aLeI0ykublfT9K5Rae-JE8dLLlLPM6rmwgu5oMF2gT89aPmV38H_wUwN2EkG7PTdDGlL_PJ1TC_SpWcdHHSqzv4Yt3qcNlsQ"/>
+</div>
+</div>
+<!-- Term: Libambo -->
+<div class="col-span-12 md:col-span-4 bg-white p-stack-lg rounded-2xl glossary-card border border-outline-variant/10">
+<div class="flex items-center justify-between mb-4">
+<span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-sm text-label-sm">Logística</span>
+<button class="material-symbols-outlined text-secondary hover:text-primary" data-icon="bookmark">bookmark</button>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Libambo</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4">
+                    Termo utilizado para designar as correntes ou grilhetas usadas no transporte forçado de pessoas escravizadas, mas também aplicado às caravanas comerciais no interior.
+                </p>
+<div class="mt-auto pt-4 border-t border-outline-variant/20 flex items-center gap-2 text-primary">
+<span class="font-label-md text-label-md">Ver Contexto Histórico</span>
+<span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Term: Macuta -->
+<div class="col-span-12 md:col-span-4 bg-white p-stack-lg rounded-2xl glossary-card border border-outline-variant/10">
+<div class="flex items-center justify-between mb-4">
+<span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-sm text-label-sm">Moeda Colonial</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Macuta</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    Antiga unidade monetária de cobre introduzida pela administração colonial portuguesa em Angola no século XVIII, subdividida em réis.
+                </p>
+<div class="mt-4 flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-white bg-surface-dim"></div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-primary-fixed"></div>
+</div>
+</div>
+<!-- Term: Panos -->
+<div class="col-span-12 md:col-span-4 bg-white p-stack-lg rounded-2xl glossary-card border border-outline-variant/10">
+<div class="flex items-center justify-between mb-4">
+<span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-sm text-label-sm">Escambo</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Panos</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    Tecidos de algodão ou ráfia utilizados como padrão de troca em Angola antes da monetarização total da economia. Frequentemente denominados 'libongos'.
+                </p>
+</div>
+<!-- Term: Quitanda -->
+<div class="col-span-12 md:col-span-4 bg-white p-stack-lg rounded-2xl glossary-card border border-outline-variant/10">
+<div class="flex items-center justify-between mb-4">
+<span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-sm text-label-sm">Comércio</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Quitanda</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    Mercado informal ou banca de venda ao ar livre. Origem Kimbundu, fundamental para entender a microeconomia urbana e a circulação de bens.
+                </p>
+</div>
+<!-- Full Width Insight Quote -->
+<div class="col-span-12 bg-primary text-on-primary p-stack-xl rounded-2xl flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-4xl mb-6 opacity-50" data-icon="format_quote" style="font-variation-settings: 'FILL' 1;">format_quote</span>
+<blockquote class="font-body-lg text-2xl md:text-3xl italic mb-8 max-w-4xl leading-snug">
+                    "A história económica de Angola não se escreve apenas com números, mas com a semântica das trocas que ligavam o litoral ao planalto."
+                </blockquote>
+<div class="font-label-md text-label-md uppercase tracking-widest opacity-80">Cadernos de História Económica, 1982</div>
+</div>
+<!-- Term: Sertanejo -->
+<div class="col-span-12 md:col-span-6 bg-white p-stack-lg rounded-2xl glossary-card border border-outline-variant/10">
+<div class="flex items-center justify-between mb-4">
+<span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-sm text-label-sm">Agente Social</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Sertanejo</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4">
+                    Comerciante itinerante que se aventurava pelo interior de Angola (o sertão) para realizar trocas comerciais, muitas vezes servindo de intermediário entre as potências costeiras e os reinos do interior.
+                </p>
+<div class="flex gap-2">
+<span class="text-primary font-label-sm text-label-sm hover:underline cursor-pointer">#ComércioTransariano</span>
+<span class="text-primary font-label-sm text-label-sm hover:underline cursor-pointer">#Intermediação</span>
+</div>
+</div>
+<!-- Term: Pumbeiro -->
+<div class="col-span-12 md:col-span-6 bg-white p-stack-lg rounded-2xl glossary-card border border-outline-variant/10">
+<div class="flex items-center justify-between mb-4">
+<span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-sm text-label-sm">Agente Económico</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Pumbeiro</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4">
+                    Agente comercial indígena ou mestiço que viajava para as feiras (pumbos) no interior. Eram os principais motores da rede capilar de comércio em Angola central.
+                </p>
+<div class="bg-surface-container-low rounded-lg p-3 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="info">info</span>
+<span class="font-label-sm text-label-sm italic text-secondary">Diferencia-se do Sertanejo pela sua base operacional em feiras fixas.</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Shell -->
+<footer class="ml-[280px] p-stack-lg flex flex-col md:flex-row justify-between items-center gap-stack-md bg-surface-container-low border-t border-outline-variant">
+<div class="flex flex-col md:flex-row items-center gap-stack-md">
+<span class="font-headline-sm text-headline-sm text-primary">Economia com História</span>
+<p class="font-body-md text-body-md text-on-surface-variant">© 2026 Economia com História</p>
+</div>
+<div class="flex gap-stack-lg">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all duration-200" href="#">Sobre</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all duration-200" href="#">Termos</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all duration-200" href="#">Privacidade</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline hover:text-primary transition-all duration-200" href="#">Contactos</a>
+</div>
+</footer>
+</body></html>

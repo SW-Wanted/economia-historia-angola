@@ -1,0 +1,367 @@
+<html lang="pt"><head></head><body class="font-body-md text-on-background">```html
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Merriweather:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#e2e2e2",
+                    "on-secondary-fixed-variant": "#454746",
+                    "background": "#fcf9f8",
+                    "primary-fixed": "#ffdad6",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed": "#410003",
+                    "primary-container": "#8b1a1a",
+                    "outline-variant": "#e0bfbc",
+                    "secondary-fixed": "#e2e3e1",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "surface-tint": "#ac322e",
+                    "secondary-fixed-dim": "#c6c7c5",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "on-primary": "#ffffff",
+                    "tertiary-container": "#454748",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-primary-container": "#ff9a91",
+                    "inverse-primary": "#ffb3ac",
+                    "secondary-container": "#e2e3e1",
+                    "surface-bright": "#fcf9f8",
+                    "on-background": "#1c1b1b",
+                    "on-secondary-container": "#636563",
+                    "on-secondary": "#ffffff",
+                    "outline": "#8c716e",
+                    "on-tertiary-container": "#b5b5b6",
+                    "on-secondary-fixed": "#1a1c1b",
+                    "on-error": "#ffffff",
+                    "surface": "#fcf9f8",
+                    "on-error-container": "#93000a",
+                    "primary": "#690008",
+                    "surface-container": "#f0eded",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "surface-container-high": "#eae7e7",
+                    "error": "#ba1a1a",
+                    "surface-container-highest": "#e5e2e1",
+                    "primary-fixed-dim": "#ffb3ac",
+                    "tertiary": "#2f3131",
+                    "secondary": "#5d5f5d",
+                    "on-surface": "#1c1b1b",
+                    "on-surface-variant": "#58413f",
+                    "surface-container-low": "#f6f3f2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-xl": "64px",
+                    "gutter": "24px",
+                    "max-content-width": "1160px",
+                    "margin-desktop": "40px",
+                    "stack-md": "16px",
+                    "stack-sm": "8px",
+                    "stack-lg": "32px",
+                    "sidebar-width": "280px"
+            },
+            "fontFamily": {
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "body-md": ["Merriweather"],
+                    "body-lg": ["Merriweather"]
+            },
+            "fontSize": {
+                    "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.8", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #fcf9f8; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bordeaux-border-active {
+            border-left: 4px solid #690008;
+        }
+    </style>
+<!-- Fixed SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-sidebar-width bg-surface border-r border-outline-variant flex flex-col p-margin-desktop gap-stack-lg z-50">
+<div class="flex flex-col gap-stack-sm mb-stack-lg">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Economia com História</span>
+<span class="font-label-md text-label-md text-secondary">Angola</span>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-stack-sm text-secondary hover:bg-surface-container-high transition-colors px-4 py-3 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Início</span>
+</a>
+<a class="flex items-center gap-stack-sm bg-primary text-on-primary rounded-lg px-4 py-3 font-bold scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Explorar</span>
+</a>
+<a class="flex items-center gap-stack-sm text-secondary hover:bg-surface-container-high transition-colors px-4 py-3 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-md text-label-md">Mapa Económico</span>
+</a>
+<a class="flex items-center gap-stack-sm text-secondary hover:bg-surface-container-high transition-colors px-4 py-3 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+<span class="font-label-md text-label-md">Fórum</span>
+</a>
+<a class="flex items-center gap-stack-sm text-secondary hover:bg-surface-container-high transition-colors px-4 py-3 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Perfil</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-2">
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-2 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Definições</span>
+</a>
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-2 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Sair</span>
+</a>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 left-sidebar-width right-0 h-20 bg-surface z-40 border-b border-outline-variant flex items-center px-margin-desktop justify-between max-w-max-content-width mx-auto">
+<div class="flex items-center gap-stack-lg">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-secondary" data-icon="search">search</span>
+<input class="bg-surface-container-low border-none rounded-lg pl-10 pr-4 py-2 w-64 focus:ring-1 focus:ring-primary font-label-md" placeholder="Pesquisar arquivos..." type="text"/>
+</div>
+<nav class="hidden md:flex gap-stack-lg">
+<a class="font-label-md text-label-md text-secondary hover:text-primary transition-all" href="#">Microtextos</a>
+<a class="font-label-md text-label-md text-secondary hover:text-primary transition-all" href="#">Jindungo</a>
+<a class="font-label-md text-label-md text-secondary hover:text-primary transition-all" href="#">Arquivo</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="text-secondary hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-stack-sm border-l border-outline-variant pl-stack-md">
+<span class="font-label-md text-label-md font-bold text-on-surface">Carlos Tchípia</span>
+<img alt="User profile photo" class="w-10 h-10 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZ9dDSuJswbW-qr4YR0ffz0Fh9D_Zrswe-bFzIAF8lcN0WfzSmWcdwqwsrtPBP9_6DOOwGY4IwNSVSAgTxRQWsMR7e01AYkYcVqLiwq0MwZO-q-GVQujEj241DzO9PrlCRlFyIQ20QTBzn5gy9BdjytzuscdPcsSPGVeq5v55alDqIYIpLTeu9ppwylEBkBVi_M45jY7wub0--MA_eeebVs0GS6wKNFjdVrKvjiEE2Q-Ce4RGmqJpcfRP0fc-D7_XYBaEVJ9iyXy3Q"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-sidebar-width pt-28 px-margin-desktop pb-stack-xl max-w-max-content-width mx-auto">
+<!-- Hero / Section Header -->
+<section class="mb-stack-xl">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest mb-2 block">Ferramenta de Análise</span>
+<h1 class="font-display-lg text-display-lg text-on-background mb-4">Comparador de Períodos Económicos</h1>
+<p class="font-body-lg text-body-lg text-secondary max-w-2xl">Analise as transformações estruturais da economia angolana através de uma comparação direta entre épocas históricas fundamentais.</p>
+</section>
+<!-- Selection Bar -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant mb-stack-lg flex flex-col md:flex-row gap-6 items-end">
+<div class="flex-1 w-full">
+<label class="font-label-md text-label-md text-secondary mb-2 block">Período de Origem</label>
+<select class="w-full bg-surface-container-low border-outline-variant rounded-lg p-3 font-body-md text-on-surface">
+<option>Século XIX (Ciclo da Borracha e Cera)</option>
+<option>Início do Século XX</option>
+<option>Era da Industrialização (1960-1974)</option>
+</select>
+</div>
+<div class="flex items-center justify-center h-12">
+<span class="material-symbols-outlined text-primary scale-125" data-icon="compare_arrows">compare_arrows</span>
+</div>
+<div class="flex-1 w-full">
+<label class="font-label-md text-label-md text-secondary mb-2 block">Período de Comparação</label>
+<select class="w-full bg-surface-container-low border-outline-variant rounded-lg p-3 font-body-md text-on-surface">
+<option>Início do Século XX (Consolidação Colonial)</option>
+<option selected="">Século XIX</option>
+<option>Pós-Independência (1975-1990)</option>
+</select>
+</div>
+<button class="bg-primary text-on-primary px-8 py-3 rounded-lg font-label-md text-label-md font-bold hover:bg-primary-container transition-all">Comparar Agora</button>
+</div>
+<!-- Comparison Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter items-start">
+<!-- Column 1: Século XIX -->
+<div class="space-y-stack-lg">
+<div class="bg-white rounded-xl overflow-hidden shadow-sm border border-outline-variant">
+<div class="h-48 relative">
+<img alt="Século XIX Comércio" class="w-full h-full object-cover" data-alt="A sepia-toned archival photograph representing 19th-century Angolan trade, showing wooden barrels and sacks of raw materials on a dusty port dock. The atmosphere is historical and scholarly, with soft morning light hitting the textures of wood and burlap. The visual style is premium editorial, emphasizing historical authenticity within a clean, modern layout using bordeaux and bone tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrZC5tAMMwgbAZMCtxMZ0WFrH0z3bMUM6OYdn3mDluQjvhY1UuOSTy_2QLPoszg9bz-mOt4Yk0AH_dYQHCTzZfzWvjVrrPMpPr2zk8o2ThmIHYPkV5QRbvCgxSfcrMSKjpap95vySFnYuc_gzsEDmSJebh6wTDv5eG2ZBKwPBgx-CU-7D3Y0KCxE2nGMy9CQYypwqUfgieNgCiIQGHliK29M1jipbMoBNFs04WjMqfsKph9XSUDmfDSb8LeDTdjCVfuUtGRvmCYgFG"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent flex items-end p-6">
+<h2 class="font-headline-md text-headline-md text-white">Século XIX</h2>
+</div>
+</div>
+<div class="p-6 space-y-6">
+<!-- Indicator: Exportações -->
+<div>
+<h3 class="font-label-md text-label-md text-primary mb-3 uppercase">Exportações Principais</h3>
+<div class="space-y-3">
+<div>
+<div class="flex justify-between font-label-sm mb-1">
+<span class="">Borracha</span>
+<span class="">65%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[65%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-sm mb-1">
+<span class="">Cera e Marfim</span>
+<span class="">20%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[20%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Indicator: Moeda -->
+<div class="pt-4 border-t border-outline-variant">
+<h3 class="font-label-md text-label-md text-primary mb-2 uppercase">Moeda em Circulação</h3>
+<p class="font-body-md text-on-surface">Real Português &amp; Permuta (Libongos, Sal, Tecidos). Economia fortemente baseada em trocas diretas no interior.</p>
+</div>
+<!-- Indicator: Infraestrutura -->
+<div class="pt-4 border-t border-outline-variant">
+<h3 class="font-label-md text-label-md text-primary mb-2 uppercase">Infraestruturas</h3>
+<p class="font-body-md text-on-surface">Portos naturais rudimentares, trilhos de caravanas e fortificações militares costeiras.</p>
+</div>
+</div>
+</div>
+<!-- Curator Note 1 -->
+<div class="bg-primary-container p-8 rounded-xl text-on-primary-container">
+<span class="material-symbols-outlined text-on-primary-container mb-4 block" data-icon="format_quote" style="font-variation-settings: 'FILL' 1;">format_quote</span>
+<p class="font-body-lg italic mb-4">"O Século XIX foi marcado por uma economia de transição, onde a exportação de produtos 'lícitos' começou a substituir o tráfico de pessoas, criando novas dinâmicas de poder no Planalto Central."</p>
+<span class="font-label-md font-bold">— Dr. Afonso Henriques, Curador</span>
+</div>
+</div>
+<!-- Column 2: Início Século XX -->
+<div class="space-y-stack-lg">
+<div class="bg-white rounded-xl overflow-hidden shadow-sm border border-outline-variant">
+<div class="h-48 relative">
+<img alt="Início Século XX Infraestrutura" class="w-full h-full object-cover" data-alt="A vintage early 20th-century scene of a newly constructed railway line cutting through the Angolan savannah. The image is styled with a warm, faded film aesthetic, capturing the dawn of industrial infrastructure. The color palette is dominated by earthy bone colors and deep bordeaux shadows, maintaining a high-end academic journal feel. The lighting is dramatic, highlighting the iron rails." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgpPj4Ctyjo4KQip2nXAjzejiSYa0rQywUcQtTlJagBqrLzvkkINeyDB7v9vn9lQC2gmpckZgKuw-dPBDaG2sa3oftKr-KMMQLu6kL8JXPQ27-tLewcgxRUwAMUIJNsonzeVKIzB739eM5ZRUxPzXjRbnCmpKPKR21bWvX07TbHAMy11mggOg8ap7p-0eEWE_CjGh5g618sHo7jyJ4MGhqCP3Zc0UlROiqhShtOPIgtjbgyMEG4i8qKY0kvIRD3LHB0szhaUJRTGG0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent flex items-end p-6">
+<h2 class="font-headline-md text-headline-md text-white">Início do Século XX</h2>
+</div>
+</div>
+<div class="p-6 space-y-6">
+<!-- Indicator: Exportações -->
+<div>
+<h3 class="font-label-md text-label-md text-primary mb-3 uppercase">Exportações Principais</h3>
+<div class="space-y-3">
+<div>
+<div class="flex justify-between font-label-sm mb-1">
+<span class="">Milho e Café</span>
+<span class="">45%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[45%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-sm mb-1">
+<span class="">Diamantes e Minérios</span>
+<span class="">30%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[30%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Indicator: Moeda -->
+<div class="pt-4 border-t border-outline-variant">
+<h3 class="font-label-md text-label-md text-primary mb-2 uppercase">Moeda em Circulação</h3>
+<p class="font-body-md text-on-surface">Escudo (a partir de 1911) e o Angolar. Introdução de impostos monetários para forçar a integração no mercado de trabalho.</p>
+</div>
+<!-- Indicator: Infraestrutura -->
+<div class="pt-4 border-t border-outline-variant">
+<h3 class="font-label-md text-label-md text-primary mb-2 uppercase">Infraestruturas</h3>
+<p class="font-body-md text-on-surface">Caminho de Ferro de Benguela (CFB), modernização do Porto de Luanda e expansão da rede telegráfica.</p>
+</div>
+</div>
+</div>
+<!-- Analysis Card -->
+<div class="bg-white p-6 rounded-xl border border-outline-variant shadow-sm">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-4">Ponto de Divergência</h3>
+<p class="font-body-md text-secondary mb-4">A grande transição entre estes períodos foi a **Mecanização do Transporte**. Enquanto o Séc. XIX dependia de carregadores humanos, o início do Séc. XX viu o CFB reduzir os custos de transporte em 80%, viabilizando a exportação de minérios pesados.</p>
+<div class="flex gap-4">
+<button class="flex-1 border border-primary text-primary py-2 rounded-lg font-label-md hover:bg-primary-fixed transition-colors">Ver Mapa de Rotas</button>
+<button class="flex-1 border border-primary text-primary py-2 rounded-lg font-label-md hover:bg-primary-fixed transition-colors">Baixar Relatório</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Insights: Asymmetric Layout -->
+<section class="mt-stack-xl grid grid-cols-12 gap-gutter">
+<div class="col-span-12 md:col-span-4 bg-surface-container rounded-xl p-8">
+<h4 class="font-headline-sm text-headline-sm mb-4">Dados de População</h4>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary" data-icon="groups">groups</span>
+</div>
+<div>
+<p class="font-label-sm text-secondary uppercase">Urbana (1880)</p>
+<p class="font-headline-sm">~4%</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary" data-icon="groups" style="font-variation-settings: 'FILL' 1;">groups</span>
+</div>
+<div>
+<p class="font-label-sm text-secondary uppercase">Urbana (1920)</p>
+<p class="font-headline-sm">~12%</p>
+</div>
+</div>
+</div>
+</div>
+<div class="col-span-12 md:col-span-8 bg-white border border-outline-variant rounded-xl p-8 relative overflow-hidden">
+<div class="relative z-10">
+<h4 class="font-headline-sm text-headline-sm mb-4">Notas Comparativas do Arquivo</h4>
+<p class="font-body-md text-secondary mb-6 leading-relaxed">
+                        Ao comparar estes dois blocos, notamos que o Século XIX era uma economia de "enclave costeiro" com incursões comerciais pontuais, enquanto o início do Século XX marcou o início da "Economia de Território". A introdução do Angolar em 1928 foi o último prego no caixão da economia de troca direta que dominou o interior durante séculos.
+                    </p>
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="font-label-md">Explorar arquivos relacionados</span>
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Abstract visual element -->
+<div class="absolute -bottom-10 -right-10 w-48 h-48 bg-primary/5 rounded-full blur-3xl"></div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="ml-sidebar-width bg-surface-container-low border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-margin-desktop py-stack-lg">
+<div class="flex flex-col gap-2 mb-4 md:mb-0">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Economia com História</span>
+<p class="font-label-sm text-label-sm text-secondary">© 2024 Economia com História – Angola. Todos os direitos reservados.</p>
+</div>
+<div class="flex gap-stack-lg">
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Sobre</a>
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Termos de Uso</a>
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Privacidade</a>
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Contacto</a>
+</div>
+</footer>
+```</body></html>

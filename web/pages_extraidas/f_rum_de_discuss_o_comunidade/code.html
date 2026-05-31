@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html lang="pt-ao"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Merriweather:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#fcf9f8",
+                    "inverse-primary": "#ffb3ac",
+                    "error-container": "#ffdad6",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed": "#410003",
+                    "on-primary-container": "#ff9a91",
+                    "on-tertiary": "#ffffff",
+                    "primary-container": "#8b1a1a",
+                    "tertiary-container": "#454748",
+                    "on-background": "#1c1b1b",
+                    "surface-bright": "#fcf9f8",
+                    "on-secondary-fixed": "#1a1c1b",
+                    "tertiary": "#2f3131",
+                    "on-secondary-container": "#636563",
+                    "on-primary-fixed-variant": "#8a1a1a",
+                    "background": "#fcf9f8",
+                    "on-surface": "#1c1b1b",
+                    "secondary-fixed": "#e2e3e1",
+                    "on-secondary": "#ffffff",
+                    "secondary": "#5d5f5d",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "primary-fixed-dim": "#ffb3ac",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#eae7e7",
+                    "primary-fixed": "#ffdad6",
+                    "on-error": "#ffffff",
+                    "outline-variant": "#e0bfbc",
+                    "inverse-surface": "#313030",
+                    "surface-variant": "#e5e2e1",
+                    "surface-container-highest": "#e5e2e1",
+                    "secondary-container": "#e2e3e1",
+                    "primary": "#690008",
+                    "on-surface-variant": "#58413f",
+                    "on-secondary-fixed-variant": "#454746",
+                    "surface-tint": "#ac322e",
+                    "secondary-fixed-dim": "#c6c7c5",
+                    "inverse-on-surface": "#f3f0ef",
+                    "surface-container": "#f0eded",
+                    "outline": "#8c716e",
+                    "surface-dim": "#dcd9d9",
+                    "tertiary-fixed": "#e2e2e2",
+                    "surface-container-low": "#f6f3f2",
+                    "on-tertiary-container": "#b5b5b6",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "error": "#ba1a1a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "1rem", // 16px
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-xl": "64px",
+                    "stack-lg": "32px",
+                    "stack-sm": "8px",
+                    "stack-md": "16px",
+                    "margin-desktop": "40px",
+                    "sidebar-width": "280px",
+                    "max-content-width": "1160px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "label-md": ["Plus Jakarta Sans"],
+                    "body-md": ["Merriweather"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "body-lg": ["Merriweather"]
+            },
+            "fontSize": {
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "1.8", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #F2F2F0; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-active-indicator {
+            position: absolute;
+            left: 0;
+            width: 4px;
+            height: 24px;
+            background-color: #690008;
+            border-radius: 0 4px 4px 0;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-background">
+<!-- Fixed SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-sidebar-width bg-surface border-r border-outline-variant flex flex-col p-margin-desktop gap-stack-lg z-50">
+<!-- Logo -->
+<div class="flex flex-col gap-1">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Economia com História</span>
+<span class="font-label-md text-label-md text-secondary">Angola</span>
+</div>
+<!-- Decorative Map of Angola (Minimalist) -->
+<div class="w-full h-32 bg-surface-container-low rounded-xl border border-outline-variant flex items-center justify-center overflow-hidden">
+<svg class="w-20 h-20 fill-primary/10 stroke-primary/30 stroke-1" viewbox="0 0 100 100">
+<path d="M45,10 L55,15 L65,12 L75,20 L80,35 L70,55 L65,75 L55,90 L40,85 L25,75 L20,60 L15,45 L20,25 L35,15 Z"></path>
+</svg>
+</div>
+<!-- Navigation -->
+<nav class="flex flex-col gap-stack-sm flex-grow">
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Início</span>
+</a>
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Explorar</span>
+</a>
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-md text-label-md">Mapa Económico</span>
+</a>
+<a class="relative flex items-center gap-stack-sm bg-primary text-on-primary rounded-lg px-4 py-3 font-bold" href="#">
+<div class="sidebar-active-indicator"></div>
+<span class="material-symbols-outlined" data-icon="forum" style="font-variation-settings: 'FILL' 1;">forum</span>
+<span class="font-label-md text-label-md">Fórum</span>
+</a>
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Perfil</span>
+</a>
+</nav>
+<!-- User Profile (Carlos Tchípia) -->
+<div class="mt-auto flex flex-col gap-4">
+<div class="pt-stack-md border-t border-outline-variant flex items-center gap-3">
+<img alt="Carlos Tchípia" class="w-10 h-10 rounded-full bg-surface-variant border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwfv8z52ki9chDGRJzXgNkHfZ8E535wqi0NrQF1MDV_wUF4nxhAizItAZmgsRuijtK3DYgtzDGP-DUGt6Xu4KAsNlEeZelIcNB2AmHx6BBs2a9LwYZCrx4w4jMny0Hy_suvWd64MXnDNy5p1T464E8Nf3wBaBBHspZlDWi_93cUiLo5kxp2srexYOKv9XOmJ8WnnlHg6kE2Ej6LalkTG0UZMN4eLJCQhedZHp_1C9S_fBRlmCPcekPKrrcmvWsSc-ohGn_PdNiHjTP"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Carlos Tchípia</span>
+<span class="text-xs text-secondary">Membro Senior</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-2 hover:bg-surface-container-high transition-colors rounded-lg text-sm" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="settings">settings</span>
+                    Definições
+                </a>
+<a class="flex items-center gap-stack-sm text-error px-4 py-2 hover:bg-error-container transition-colors rounded-lg text-sm" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="logout">logout</span>
+                    Sair
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-sidebar-width min-h-screen">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant px-margin-desktop py-stack-md flex justify-between items-center">
+<div class="flex items-center gap-stack-lg flex-1">
+<h1 class="font-headline-md text-headline-md text-primary whitespace-nowrap">Fórum de Discussão</h1>
+<!-- Search Bar -->
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none font-label-md" placeholder="Pesquisar tópicos ou autores..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-sm">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                    Novo Tópico
+                </button>
+</div>
+</header>
+<!-- Content Area -->
+<div class="max-w-max-content-width mx-auto p-margin-desktop space-y-stack-md">
+<!-- Category Filter Chips -->
+<div class="flex gap-stack-sm overflow-x-auto pb-2">
+<span class="px-4 py-1.5 bg-primary text-on-primary rounded-full text-label-sm font-medium cursor-pointer">Todos os Tópicos</span>
+<span class="px-4 py-1.5 bg-white border border-outline-variant text-secondary rounded-full text-label-sm font-medium hover:border-primary hover:text-primary transition-colors cursor-pointer">Microtextos</span>
+<span class="px-4 py-1.5 bg-white border border-outline-variant text-secondary rounded-full text-label-sm font-medium hover:border-primary hover:text-primary transition-colors cursor-pointer">Economia Colonial</span>
+<span class="px-4 py-1.5 bg-white border border-outline-variant text-secondary rounded-full text-label-sm font-medium hover:border-primary hover:text-primary transition-colors cursor-pointer">Pós-Independência</span>
+<span class="px-4 py-1.5 bg-white border border-outline-variant text-secondary rounded-full text-label-sm font-medium hover:border-primary hover:text-primary transition-colors cursor-pointer">Arquivos Históricos</span>
+</div>
+<!-- Discussion Cards List -->
+<div class="flex flex-col gap-gutter mt-stack-md">
+<!-- Card 1 -->
+<div class="bg-white p-stack-md rounded-xl border border-outline-variant hover:shadow-lg transition-all flex flex-col md:flex-row gap-6 items-start group">
+<div class="flex-shrink-0">
+<img alt="Emanuel dos Santos" class="w-12 h-12 rounded-lg bg-surface-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAX8hmn2IN1l6N9wSn1cZUStDJuK89WpCCnTkC0flz-9WfdDyw6EPDby87fMdEHyVdUOmQN9gQUUdgXGfsSoBmFKxj73rwrf9XWpJ59JG871gNTEwVTbUUEc0WrSRp9EpqqGipMrKGtAR4MSkbQj2JpQnf_DgUB8JrC1CyiBPaaMkVA7aaoON6z6GP0a937GSEamrjyypW_cBNtYfE1wqB3H_CH1AEL-Of4vwqObmWVbyAw-sjE4veE8cqrj4PBy3C6HHA9EvP4nvB3"/>
+</div>
+<div class="flex-grow space-y-2">
+<div class="flex items-center gap-3">
+<span class="px-2 py-0.5 bg-primary/10 text-primary rounded text-[10px] font-bold uppercase tracking-wider">Microtextos</span>
+<span class="text-secondary text-label-sm">Há 2 horas</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors cursor-pointer">O impacto da moeda Kwanza na transição econômica de 1977</h3>
+<p class="text-secondary font-body-md text-body-md line-clamp-2">Uma análise profunda sobre a substituição do Escudo pelo Kwanza e como isso moldou as primeiras relações comerciais internacionais da Angola independente.</p>
+<div class="pt-2 flex items-center gap-4 text-secondary">
+<span class="font-label-md text-label-md text-on-surface">Emanuel dos Santos</span>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="forum">forum</span>
+<span class="text-label-sm">24 respostas</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
+<span class="text-label-sm">1.2k visualizações</span>
+</div>
+</div>
+</div>
+<button class="self-center p-2 rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-secondary" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<!-- Card 2 -->
+<div class="bg-white p-stack-md rounded-xl border border-outline-variant hover:shadow-lg transition-all flex flex-col md:flex-row gap-6 items-start group">
+<div class="flex-shrink-0">
+<img alt="José Tala" class="w-12 h-12 rounded-lg bg-surface-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfk3XU2dGxwrb84GwQN-aRg_NjWNHb9K5X05_VJnfUc7Np1x5NFolHAZ27-_aR4SCJJ1rvY6W82fs3u3Z1RxdOBy68alR3zB0J3E4UOsEf-7IR7blitGwP23YWwyuCLyweD5fpYo7u8fzZtcWoApdU2Y05pC5qVE0LGQqzj37oGwV9P7-pdUY3_wrrp81k4tzx1lXrkpgAsw28uAgOHkzxuqqiZXO6g8JYaMM3MxioOvyJkP0GrEtiJUlAPdbmSE2LgydhgmpU1Tl7"/>
+</div>
+<div class="flex-grow space-y-2">
+<div class="flex items-center gap-3">
+<span class="px-2 py-0.5 bg-primary/10 text-primary rounded text-[10px] font-bold uppercase tracking-wider">Arquivo</span>
+<span class="text-secondary text-label-sm">Há 5 horas</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors cursor-pointer">Registos inéditos da Companhia de Diamantes de Angola (DIAMANG)</h3>
+<p class="text-secondary font-body-md text-body-md line-clamp-2">Descobri recentemente uma série de documentos contabilisticos de 1950 que detalham a infraestrutura logística no Nordeste de Angola.</p>
+<div class="pt-2 flex items-center gap-4 text-secondary">
+<span class="font-label-md text-label-md text-on-surface">José Tala</span>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="forum">forum</span>
+<span class="text-label-sm">12 respostas</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
+<span class="text-label-sm">850 visualizações</span>
+</div>
+</div>
+</div>
+<button class="self-center p-2 rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-secondary" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<!-- Card 3 -->
+<div class="bg-white p-stack-md rounded-xl border border-outline-variant hover:shadow-lg transition-all flex flex-col md:flex-row gap-6 items-start group">
+<div class="flex-shrink-0">
+<img alt="Líria Bá" class="w-12 h-12 rounded-lg bg-surface-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDl43RlBSAONAwI_V-rhtLGpenr8UGgngnZ2mEClQKirPf8b3DI3ozdF3yW595Es7NlIWgfx9uJ4yb0EBf84pd29USXc0XOygtbReY7HMQvXr5fUSBku916jD-RA9NlYbqA7A6LrU4iELErTGog5wWpVVE9S8JBAGhYpLI9YDGABJjHKhSuQmFLXty5TaYQ57LdgrFSfAX3aaDR_irKXUisugWz4fQI518B4z6Ijv96hI4x4xsIH-mPR1woXzb31iM3ttyaFQUlw1sx"/>
+</div>
+<div class="flex-grow space-y-2">
+<div class="flex items-center gap-3">
+<span class="px-2 py-0.5 bg-primary/10 text-primary rounded text-[10px] font-bold uppercase tracking-wider">Jindungo</span>
+<span class="text-secondary text-label-sm">Há 1 dia</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors cursor-pointer">A evolução dos mercados informais: De Roque Santeiro ao presente</h3>
+<p class="text-secondary font-body-md text-body-md line-clamp-2">Como a resiliência do comércio informal em Luanda reflete as falhas e sucessos das políticas fiscais ao longo das décadas.</p>
+<div class="pt-2 flex items-center gap-4 text-secondary">
+<span class="font-label-md text-label-md text-on-surface">Líria Bá</span>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="forum">forum</span>
+<span class="text-label-sm">45 respostas</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
+<span class="text-label-sm">2.5k visualizações</span>
+</div>
+</div>
+</div>
+<button class="self-center p-2 rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-secondary" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex justify-center items-center gap-stack-sm pt-stack-lg">
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant bg-white text-secondary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-on-primary font-bold">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant bg-white text-secondary hover:bg-surface-container transition-colors font-bold">2</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant bg-white text-secondary hover:bg-surface-container transition-colors font-bold">3</button>
+<span class="text-secondary px-2">...</span>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant bg-white text-secondary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Footer -->
+<footer class="w-full mt-stack-xl bg-surface-container border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-margin-desktop py-stack-lg">
+<div class="flex flex-col gap-1 mb-6 md:mb-0">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Economia com História</span>
+<p class="font-label-sm text-label-sm text-secondary">© 2026 Economia com História – Angola. Todos os direitos reservados.</p>
+</div>
+<div class="flex gap-stack-lg">
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Sobre</a>
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Termos de Uso</a>
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Privacidade</a>
+<a class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors" href="#">Contacto</a>
+</div>
+</footer>
+</main>
+</body></html>

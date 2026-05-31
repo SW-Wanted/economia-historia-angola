@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html lang="pt"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Merriweather:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#ffb3ac",
+                        "inverse-surface": "#313030",
+                        "on-secondary": "#ffffff",
+                        "surface": "#fcf9f8",
+                        "secondary": "#5d5f5d",
+                        "secondary-container": "#e2e3e1",
+                        "surface-container-high": "#eae7e7",
+                        "on-primary-container": "#ff9a91",
+                        "surface-container-highest": "#e5e2e1",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#454746",
+                        "secondary-fixed": "#e2e3e1",
+                        "on-secondary-fixed": "#1a1c1b",
+                        "surface-tint": "#ac322e",
+                        "primary-fixed": "#ffdad6",
+                        "tertiary-fixed": "#e2e2e2",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "on-surface-variant": "#58413f",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-surface": "#1c1b1b",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#8a1a1a",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-bright": "#fcf9f8",
+                        "tertiary": "#2f3131",
+                        "on-error": "#ffffff",
+                        "on-background": "#1c1b1b",
+                        "outline": "#8c716e",
+                        "on-primary-fixed": "#410003",
+                        "on-secondary-container": "#636563",
+                        "surface-dim": "#dcd9d9",
+                        "background": "#fcf9f8",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#ffb3ac",
+                        "on-tertiary-container": "#b5b5b6",
+                        "secondary-fixed-dim": "#c6c7c5",
+                        "outline-variant": "#e0bfbc",
+                        "tertiary-container": "#454748",
+                        "surface-variant": "#e5e2e1",
+                        "primary-container": "#8b1a1a",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "primary": "#690008",
+                        "surface-container": "#f0eded",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-xl": "64px",
+                        "stack-sm": "8px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px",
+                        "stack-md": "16px",
+                        "sidebar-width": "280px",
+                        "max-content-width": "1160px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "body-lg": ["Merriweather"],
+                        "body-md": ["Merriweather"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "body-lg": ["18px", {"lineHeight": "1.8", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F2F2F0;
+            color: #1c1b1b;
+            font-family: 'Merriweather', serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .editorial-shadow {
+            box-shadow: 0px 4px 40px rgba(0, 0, 0, 0.08);
+        }
+        .image-overlay {
+            background: linear-gradient(180deg, rgba(105, 0, 8, 0.05) 0%, rgba(105, 0, 8, 0.4) 100%);
+        }
+        .font-sans-custom {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .slider-dot-active {
+            width: 32px;
+            background-color: #690008;
+            transition: all 0.3s ease;
+        }
+        .slider-dot-inactive {
+            width: 8px;
+            background-color: #e2e3e1;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6 bg-[#F2F2F0]">
+<!-- Top Bar -->
+<header class="fixed top-0 left-0 w-full p-6 flex justify-between items-center z-50">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-primary flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<span class="font-sans-custom font-bold text-primary tracking-tight">Economia com História</span>
+</div>
+<button class="font-sans-custom text-sm font-semibold text-secondary hover:text-primary transition-colors flex items-center gap-1">
+            Pular
+            <span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</header>
+<!-- Main Onboarding Slider -->
+<main class="w-full max-w-[1100px] h-[640px] bg-white rounded-2xl overflow-hidden flex editorial-shadow">
+<!-- Content Column (Left) -->
+<div class="w-[55%] flex flex-col justify-center px-16 relative">
+<div class="max-w-[420px]">
+<span class="font-sans-custom text-[10px] uppercase tracking-widest text-primary font-bold mb-4 block">A Nossa Missão</span>
+<!-- Title: Serif as per guidelines -->
+<h1 class="text-[44px] leading-[1.1] text-primary mb-6 font-bold">
+                    Rigor Académico e <br/>Memória Histórica
+                </h1>
+<!-- Body: Sans as per guidelines/mobile version -->
+<p class="font-sans-custom text-secondary text-lg leading-relaxed mb-10">
+                    Fontes verificadas e análises fundamentadas por especialistas, resgatando a herança económica de Angola com profundidade e precisão.
+                </p>
+<!-- Modern Horizontal Slider Progress -->
+<div class="flex items-center gap-2 mb-12">
+<div class="h-1.5 slider-dot-active rounded-full"></div>
+<div class="h-1.5 slider-dot-inactive rounded-full"></div>
+<div class="h-1.5 slider-dot-inactive rounded-full"></div>
+</div>
+<!-- Action Button -->
+<div class="flex items-center gap-6">
+<button class="bg-primary text-white px-10 py-4 rounded-full font-sans-custom font-bold text-sm hover:opacity-90 active:scale-95 transition-all flex items-center gap-2">
+                        Próximo Passo
+                        <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+<span class="font-sans-custom text-xs font-medium text-secondary/60">Passo 1 de 3</span>
+</div>
+</div>
+</div>
+<!-- Aesthetic Visual Column (Right) -->
+<div class="w-[45%] relative bg-surface-container-highest overflow-hidden">
+<!-- Using editorial aesthetic inspired by IMAGE_37 -->
+<img alt="Estética Editorial Economia" class="absolute inset-0 w-full h-full object-cover grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMXKXJoWA0F0cY6kqiVkkvWBv0Zn_c0RQlX3R0dS0Hn3IuszKHio1zE7sP0G0qM3EoPaoFe0RVs4nrOGKHNObMfZz1oEwYOBs5BTQ_VawApzOH2TtWw0ClVCdLxOVHjYets7xW0h3czd47mzXoeVf40GoynR9xOE1sRXkNEa2XWeLbuC63c84mn40mQ8f-u2xk9fb0rVh7YuV3fdKEelZ1jOj2LZALHce_LmqIHBC9UQn5XorhsxWr9U4uhz_Dz6zNGsD0VLQGzg2_"/>
+<div class="absolute inset-0 image-overlay opacity-50"></div>
+<!-- Detail Floating Card -->
+<div class="absolute bottom-10 left-10 right-10 bg-white/10 backdrop-blur-xl p-6 border border-white/20 rounded-xl">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-white">menu_book</span>
+</div>
+<div>
+<p class="font-sans-custom font-bold text-white text-sm">Arquivo Digital de Angola</p>
+<p class="font-sans-custom text-white/70 text-xs leading-relaxed mt-1">Preservamos documentos históricos digitalizados para consulta académica rigorosa.</p>
+</div>
+</div>
+</div>
+<!-- Subtle texture overlay -->
+<div class="absolute inset-0 pointer-events-none opacity-10 mix-blend-overlay bg-[url('https://www.transparenttextures.com/patterns/paper.png')]"></div>
+</div>
+</main>
+<!-- Footer Decoration -->
+<footer class="mt-8 text-center">
+<p class="font-sans-custom text-[10px] text-secondary/40 tracking-[0.2em] uppercase">© 2024 Economia com História — Luanda, Angola</p>
+</footer>
+<!-- Background Icon Decoration -->
+<div class="fixed bottom-[-50px] right-[-50px] opacity-[0.03] pointer-events-none">
+<span class="material-symbols-outlined text-[400px]" style="font-variation-settings: 'wght' 100;">history_edu</span>
+</div>
+</body></html>

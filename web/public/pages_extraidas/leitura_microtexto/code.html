@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-PT"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#1c1b1b",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "primary-fixed-dim": "#ffb3ac",
+                        "on-secondary-container": "#636563",
+                        "tertiary-container": "#454748",
+                        "on-primary-container": "#ff9a91",
+                        "secondary-fixed-dim": "#c6c7c5",
+                        "outline-variant": "#e0bfbc",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#ffb3ac",
+                        "on-tertiary-container": "#b5b5b6",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#fcf9f8",
+                        "primary": "#690008",
+                        "surface-container": "#f0eded",
+                        "on-surface": "#1c1b1b",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e5e2e1",
+                        "primary-container": "#8b1a1a",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#fcf9f8",
+                        "secondary-fixed": "#e2e3e1",
+                        "on-surface-variant": "#58413f",
+                        "inverse-surface": "#313030",
+                        "surface-container-high": "#eae7e7",
+                        "secondary": "#5d5f5d",
+                        "surface-variant": "#e5e2e1",
+                        "primary-fixed": "#ffdad6",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "tertiary": "#2f3131",
+                        "on-secondary-fixed": "#1a1c1b",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-container-low": "#f6f3f2",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#454746",
+                        "surface-dim": "#dcd9d9",
+                        "surface-tint": "#ac322e",
+                        "background": "#fcf9f8",
+                        "on-primary-fixed": "#410003",
+                        "outline": "#8c716e",
+                        "on-primary-fixed-variant": "#8a1a1a",
+                        "secondary-container": "#e2e3e1",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#f3f0ef"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "max-content-width": "1160px",
+                        "stack-sm": "8px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px",
+                        "stack-md": "16px",
+                        "stack-xl": "64px",
+                        "sidebar-width": "280px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Merriweather"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Merriweather"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.8", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .reading-progress-bar {
+            height: 3px;
+            background: #690008;
+            position: fixed;
+            top: 0;
+            left: 280px;
+            width: 35%;
+            z-index: 50;
+        }
+        @media (max-width: 768px) {
+            .reading-progress-bar {
+                left: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased">
+<!-- Reading Progress Indicator -->
+<div class="reading-progress-bar"></div>
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-screen w-sidebar-width bg-surface border-r border-outline-variant flex flex-col p-margin-desktop gap-stack-lg hidden md:flex">
+<div class="flex flex-col gap-1">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Economia com História</span>
+<span class="font-label-md text-label-md text-secondary">Angola</span>
+</div>
+<nav class="flex flex-col gap-stack-sm mt-stack-md">
+<!-- Navigation Items from JSON -->
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md">Início</span>
+</a>
+<a class="flex items-center gap-stack-sm bg-primary text-on-primary rounded-lg px-4 py-3 font-bold" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-label-md text-label-md">Explorar</span>
+</a>
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-label-md text-label-md">Mapa Económico</span>
+</a>
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">forum</span>
+<span class="font-label-md text-label-md">Fórum</span>
+</a>
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-3 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Perfil</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-stack-sm">
+<button class="bg-primary text-on-primary py-3 rounded-xl font-label-md hover:opacity-90 transition-all">
+                Assinar Premium
+            </button>
+<div class="pt-stack-md border-t border-outline-variant flex flex-col gap-1">
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-2 text-label-md hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span> Definições
+                </a>
+<a class="flex items-center gap-stack-sm text-secondary px-4 py-2 text-label-md hover:bg-surface-container-high rounded-lg text-error" href="#">
+<span class="material-symbols-outlined">logout</span> Sair
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-0 md:ml-sidebar-width flex-1 min-h-screen relative flex flex-col items-center">
+<!-- Sticky Header Action Bar -->
+<header class="w-full sticky top-0 bg-surface/80 backdrop-blur-md z-40 border-b border-outline-variant px-margin-desktop py-stack-md flex justify-between items-center">
+<button class="flex items-center gap-2 text-primary hover:translate-x-[-4px] transition-transform font-label-md">
+<span class="material-symbols-outlined">arrow_back</span>
+                Voltar para Arquivo
+            </button>
+<div class="flex items-center gap-4">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined">share</span></button>
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined">bookmark</span></button>
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined">text_fields</span></button>
+</div>
+</header>
+<!-- Article Container -->
+<article class="max-w-[720px] w-full px-6 md:px-0 py-stack-xl flex flex-col">
+<!-- Hero Header Section -->
+<header class="flex flex-col gap-stack-lg mb-stack-xl">
+<div class="flex gap-2 items-center">
+<span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-label-sm uppercase tracking-wider font-bold">Microtextos</span>
+<span class="text-secondary text-label-sm">• 8 min de leitura</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-background leading-tight">A Reconfiguração do Comércio Trans-Saariano no Século XIX</h1>
+<div class="flex items-center gap-4 py-stack-md border-y border-outline-variant">
+<img alt="Autor" class="w-12 h-12 rounded-full object-cover" data-alt="A professional, close-up portrait of a scholarly man with a warm expression, wearing spectacles and a neutral-toned academic blazer. The background is a softly blurred library with warm, amber lighting that emphasizes a modern editorial aesthetic. The lighting is high-quality and soft, creating a dignified and authoritative mood consistent with a premium academic journal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQ9u6xA-BOXUNKxMCZj9W8CaJSf3R7QOqwd2YIJ2KFAg2xLgkce_ECd7SQJo5hzrhfGhyak38O89ziJW_9AZ16KMl9I9u6JdmKc1SbK6LAiDXn3Li4TIM83-1vAMB6rRIcDd6bOaw1AtWOsBtcmEXUuC6m2F_CnIQ-6lc--io8ACZ7DQjBpa_Ur8pjfLwiaotx-7hI1DIBOTPSn3gOCcr9-UYdvY9IoGDrg1lzybZ2gX_f-fCKwtQBK3u1dM0ylvTGyhYSCRx6IYgt"/>
+<div>
+<p class="font-headline-sm text-headline-sm text-on-background">Dr. Mateus Cambundo</p>
+<p class="font-label-md text-label-md text-secondary italic">Especialista em História Económica Africana</p>
+</div>
+</div>
+<div class="w-full aspect-[16/9] rounded-xl overflow-hidden shadow-sm">
+<img alt="Historic Market" class="w-full h-full object-cover" data-alt="A wide-angle, cinematic historical reconstruction of a vibrant 19th-century open-air market in Southern Africa, featuring wooden carts, woven baskets filled with diverse grains, and people in traditional yet historically accurate attire. The lighting is the golden hour of sunset, casting long, soft shadows across the earthy ground. The style is documentary-focused with high contrast and a rich, warm bordeaux and sepia-toned color palette, evoking a sense of deep historical narrative." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTbXjIUjiNE3ubZWTZaFIEXOCL_pFxu32U34dSDXtTkGOJEA8WeEvfQrmcMeUNIl2USDh_hVFgUUCVXgd773Z8FSPn8Rx5XMEviTzLEuZaINJKfNYpG3onRY22N-kIa61oOU_sL66mI_nG1CG6lqUrnDCmP8fO5sy5PqCLXpC7rIILoM4JG1ROb4xnKI1-2uhixhmloPm9GH8rGAu13zsO-C_xJxBfrWNhZ80E8_wHgi9C-1Jd3z6uK7ndCIAIrWqocFBx84YKPvWY"/>
+</div>
+</header>
+<!-- Reading Content (Serif Typography) -->
+<section class="font-body-lg text-body-lg text-on-surface-variant flex flex-col gap-stack-lg leading-relaxed">
+<p>
+                    O século XIX representou uma era de transformações sem precedentes para as rotas comerciais que interligavam o interior do continente africano aos portos litorâneos. Longe de ser um sistema estático, a economia regional adaptou-se com agilidade às flutuações da demanda global e às mudanças geopolíticas internas.
+                </p>
+<p>
+                    A transição do comércio de exportação focado em bens tangíveis para uma integração mais complexa exigiu uma reestruturação das caravanas. Os registros históricos indicam que a logística dessas rotas não era apenas uma questão de transporte, mas um intrincado tecido de diplomacia entre chefias locais e mercadores itinerantes.
+                </p>
+<!-- Quote Block -->
+<blockquote class="my-stack-lg p-stack-lg bg-primary text-on-primary rounded-xl italic font-body-lg relative overflow-hidden">
+<span class="material-symbols-outlined absolute -top-4 -left-2 text-white/10 text-[120px] pointer-events-none">format_quote</span>
+                    "A riqueza de uma nação em formação não se media apenas pelo ouro em seus cofres, mas pela fluidez com que suas rotas internas pulsavam com o ritmo da inovação e da troca cultural."
+                    <footer class="mt-4 not-italic font-label-md">— Fragmento do Diário de Viagem, 1874</footer>
+</blockquote>
+<h2 class="font-headline-lg text-headline-lg text-on-background mt-stack-md">A Emergência dos Mercados Locais</h2>
+<p>
+                    Com o declínio de certas rotas transatlânticas, observou-se o fortalecimento dos mercados regionais. O fluxo de têxteis, ferramentas de ferro e produtos agrícolas criou uma microeconomia resiliente que serviu de base para o que viria a ser a estrutura produtiva moderna de Angola.
+                </p>
+<p>
+                    Este fenômeno, frequentemente subestimado em narrativas históricas eurocêntricas, revela uma agência econômica local vibrante. Os mercadores não eram meros intermediários, mas arquitetos de um sistema de crédito e confiança que atravessava desertos e savanas.
+                </p>
+<div class="bg-surface-container p-stack-lg rounded-xl border border-outline-variant flex flex-col gap-stack-md">
+<h3 class="font-headline-sm text-headline-sm text-primary flex items-center gap-2">
+<span class="material-symbols-outlined">insights</span> Nota Económica
+                    </h3>
+<p class="font-body-md text-body-md italic text-on-surface">
+                        A análise estatística retrospectiva sugere que o volume de trocas internas cresceu cerca de 14% ao ano entre 1860 e 1885, um ritmo superior ao crescimento demográfico da época.
+                    </p>
+</div>
+<p>
+                    Em conclusão, o Microtexto de hoje convida-nos a olhar para o passado não como um museu de intenções perdidas, mas como um laboratório de resiliência. A história económica de Angola é, acima de tudo, uma história de movimento e adaptação constante.
+                </p>
+</section>
+<!-- Tags & Actions -->
+<footer class="mt-stack-xl pt-stack-lg border-t border-outline-variant flex flex-wrap gap-2">
+<span class="bg-surface-container-high px-4 py-2 rounded-full font-label-sm text-secondary">#SéculoXIX</span>
+<span class="bg-surface-container-high px-4 py-2 rounded-full font-label-sm text-secondary">#Comércio</span>
+<span class="bg-surface-container-high px-4 py-2 rounded-full font-label-sm text-secondary">#HistóriaAngolana</span>
+<span class="bg-surface-container-high px-4 py-2 rounded-full font-label-sm text-secondary">#AnáliseEconómica</span>
+</footer>
+<!-- Comments Section -->
+<section class="mt-stack-xl">
+<div class="flex items-center justify-between mb-stack-lg">
+<h3 class="font-headline-md text-headline-md text-on-background">Comentários (4)</h3>
+<button class="text-primary font-label-md hover:underline flex items-center gap-1">
+                        Ordenar por Recentes <span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+</div>
+<!-- Input Box -->
+<div class="bg-white p-stack-md rounded-xl border border-outline-variant shadow-sm mb-stack-xl">
+<textarea class="w-full bg-surface border-none focus:ring-0 font-body-md text-on-surface-variant placeholder:text-outline p-4 min-h-[100px] resize-none" placeholder="Partilhe a sua reflexão académica..."></textarea>
+<div class="flex justify-between items-center mt-stack-sm pt-stack-sm border-t border-outline-variant/30">
+<div class="flex gap-2">
+<button class="text-secondary hover:text-primary"><span class="material-symbols-outlined">format_bold</span></button>
+<button class="text-secondary hover:text-primary"><span class="material-symbols-outlined">format_italic</span></button>
+<button class="text-secondary hover:text-primary"><span class="material-symbols-outlined">attach_file</span></button>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full font-label-md">Publicar</button>
+</div>
+</div>
+<!-- Comments List -->
+<div class="flex flex-col gap-stack-lg">
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-secondary font-bold">AL</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h4 class="font-label-md text-on-background">Ana Lúcia Santos</h4>
+<span class="text-label-sm text-outline">Há 2 horas</span>
+</div>
+<p class="font-body-md text-on-surface-variant mt-1">Excelente análise sobre a agência local. Seria interessante cruzar estes dados com os registros alfandegários de Benguela da mesma época.</p>
+<div class="flex gap-4 mt-2">
+<button class="flex items-center gap-1 text-label-sm text-secondary hover:text-primary"><span class="material-symbols-outlined text-[16px]">thumb_up</span> 12</button>
+<button class="text-label-sm text-secondary hover:text-primary">Responder</button>
+</div>
+</div>
+</div>
+<div class="flex gap-4 ml-14">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xs">MC</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h4 class="font-label-md text-on-background">Mateus Cambundo <span class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] ml-2">Autor</span></h4>
+<span class="text-label-sm text-outline">Há 45 min</span>
+</div>
+<p class="font-body-md text-on-surface-variant mt-1">Concordo plenamente, Ana. Estou a preparar um anexo justamente sobre o impacto de Benguela para o próximo mês.</p>
+</div>
+</div>
+</div>
+</section>
+</article>
+<!-- Footer -->
+<footer class="w-full mt-stack-xl bg-surface-container border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-margin-desktop py-stack-lg">
+<div class="flex flex-col gap-2">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Economia com História</span>
+<p class="font-label-sm text-label-sm text-secondary">© 2024 Economia com História – Angola. Todos os direitos reservados.</p>
+</div>
+<div class="flex gap-stack-md mt-stack-md md:mt-0">
+<a class="font-label-sm text-secondary hover:text-primary transition-colors" href="#">Sobre</a>
+<a class="font-label-sm text-secondary hover:text-primary transition-colors" href="#">Termos de Uso</a>
+<a class="font-label-sm text-secondary hover:text-primary transition-colors" href="#">Privacidade</a>
+<a class="font-label-sm text-secondary hover:text-primary transition-colors" href="#">Contacto</a>
+</div>
+</footer>
+</main>
+</body></html>

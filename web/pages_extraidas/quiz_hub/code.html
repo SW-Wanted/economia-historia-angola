@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html lang="pt"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Merriweather:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #fcf9f8; /* Bone Background from theme */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#ffdad6",
+                    "on-primary-container": "#ff9a91",
+                    "surface-tint": "#ac322e",
+                    "tertiary-container": "#454748",
+                    "surface-container": "#f0eded",
+                    "outline": "#8c716e",
+                    "surface-dim": "#dcd9d9",
+                    "surface-bright": "#fcf9f8",
+                    "secondary": "#5d5f5d",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed-dim": "#c6c7c5",
+                    "surface-variant": "#e5e2e1",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "on-secondary-fixed": "#1a1c1b",
+                    "tertiary-fixed": "#e2e2e2",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed": "#410003",
+                    "on-background": "#1c1b1b",
+                    "on-error-container": "#93000a",
+                    "surface-container-highest": "#e5e2e1",
+                    "background": "#fcf9f8",
+                    "outline-variant": "#e0bfbc",
+                    "on-error": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed": "#ffdad6",
+                    "primary-container": "#8b1a1a",
+                    "primary": "#690008",
+                    "on-surface-variant": "#58413f",
+                    "secondary-container": "#e2e3e1",
+                    "on-tertiary-container": "#b5b5b6",
+                    "on-primary-fixed-variant": "#8a1a1a",
+                    "on-tertiary": "#ffffff",
+                    "inverse-surface": "#313030",
+                    "on-secondary-container": "#636563",
+                    "inverse-primary": "#ffb3ac",
+                    "on-secondary-fixed-variant": "#454746",
+                    "surface": "#fcf9f8",
+                    "primary-fixed-dim": "#ffb3ac",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "tertiary": "#2f3131",
+                    "surface-container-low": "#f6f3f2",
+                    "surface-container-high": "#eae7e7",
+                    "on-surface": "#1c1b1b",
+                    "secondary-fixed": "#e2e3e1",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed": "#1a1c1c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "8px",
+                    "max-content-width": "1160px",
+                    "margin-desktop": "40px",
+                    "stack-xl": "64px",
+                    "stack-md": "16px",
+                    "stack-lg": "32px",
+                    "sidebar-width": "280px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "body-lg": ["Merriweather"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "body-md": ["Merriweather"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-lg": ["18px", {"lineHeight": "1.8", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SIDEBAR NAV (Fixed Left) -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline-variant flex flex-col py-8 z-50">
+<div class="px-6 mb-10">
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary">Economia com História</h1>
+</div>
+<div class="px-6 mb-8 flex items-center gap-3">
+<img alt="Carlos Tchípia" class="w-12 h-12 rounded-full object-cover border-2 border-primary-fixed" data-alt="A professional portrait of an Angolan academic man with a warm expression, wearing spectacles and a smart blazer. The lighting is soft and editorial, reflecting an intellectual and authoritative persona. The background is a blurred university library setting with warm wood tones, consistent with a high-end academic journal aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBiZKfsGHC5KDNOwL-uMlfDv4V_1d-vFhVQ6Kfqhk3FcNMlA8QonK3pioFAVMvo9rVYbTYqTh7wFuRaafkziEk7qTjZ6g7gP1zkZlIIDdlgncPB4G6CsbwasYEfYB5LUrgFjGoaUKA3TXKkHmuybeCfe3buA0zZrYwI5CN5BiB2plW_PjATvY5n85s6e3YlUphIjJ5_LlT5UsOiLZuxzAwVNEBpfm_zMIBDcKpHgl3QsmwM1roTtIiL-bJkya87aiBsBUwD7m1uCgR"/>
+<div>
+<p class="font-headline-sm text-headline-sm text-on-surface">Carlos Tchípia</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Investigador</p>
+</div>
+</div>
+<nav class="flex-grow">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant font-medium hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Início</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-primary font-bold border-l-4 border-primary bg-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Explorar</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant font-medium hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-md text-label-md">Mapa de Angola</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant font-medium hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+<span class="font-label-md text-label-md">Favoritos</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant font-medium hover:bg-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Definições</span>
+</a>
+</li>
+</ul>
+<div class="px-6 mt-8">
+<button class="w-full bg-primary text-on-primary py-3 rounded-xl font-label-md text-label-md flex items-center justify-center gap-2 hover:opacity-90 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+                    Nova Pesquisa
+                </button>
+</div>
+</nav>
+<div class="px-6 pt-6 border-t border-outline-variant space-y-1">
+<a class="flex items-center gap-3 py-2 text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Ajuda</span>
+</a>
+<a class="flex items-center gap-3 py-2 text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Sair</span>
+</a>
+</div>
+</aside>
+<!-- MAIN CANVAS -->
+<main class="ml-[280px] min-h-screen flex flex-col">
+<!-- TOP BAR -->
+<header class="flex justify-between items-center w-full px-10 h-20 bg-surface-container-lowest shadow-sm">
+<div class="flex items-center gap-10">
+<div class="relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 font-body-md text-body-md focus:ring-1 focus:ring-primary" placeholder="Pesquisar arquivo histórico..." type="text"/>
+</div>
+<nav class="flex gap-8">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Microtextos</a>
+<a class="font-label-md text-label-md text-primary font-bold border-b-2 border-primary" href="#">Jindungo</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Arquivo</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+</button>
+</div>
+</header>
+<!-- CONTENT AREA -->
+<div class="max-w-[1160px] w-full mx-auto px-margin-desktop py-stack-lg flex-grow">
+<!-- QUIZ DA SEMANA BANNER (FEATURED) -->
+<section class="relative bg-primary-container rounded-[24px] overflow-hidden mb-stack-xl flex items-center min-h-[380px] shadow-xl">
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuARksNkZISPkLJmODJKjnqtrOeRcqiimWXOnJoMW50_5wzaz6GIgypg7ZuqYaYGY7cWHQ_KKFBDv7aztiOTA35GQlvF1Kbp1NfYNw7Nv5yHVdbfncIj5ikcCl9plNAaFvpHaMHeSCajaWZ31MngfR6_ADVsU1Hd7gznAokzQfYNczeM1OYH3htlMQaHFoYSoQPe8xEeKmE-xNraztOOPgtSNaD41L-Tx45DvF2BulX1x9s72CNgYq7a_DSmrDv5tC1dbAgRii2Rh4CX');"></div>
+<div class="w-1/2 p-12 relative z-10">
+<span class="inline-block bg-primary text-on-primary px-4 py-1 rounded-full font-label-sm text-label-sm mb-6 uppercase tracking-widest">Quiz da Semana</span>
+<h2 class="font-display-lg text-display-lg text-white mb-6">A Evolução da Moeda Colonial no Século XIX</h2>
+<p class="font-body-lg text-body-lg text-white/90 mb-8 max-w-md italic">
+                        "Entender o passado comercial de Angola através dos seus símbolos de troca e valor."
+                    </p>
+<div class="flex items-center gap-6">
+<button class="bg-white text-primary px-8 py-4 rounded-full font-label-md text-label-md font-bold flex items-center gap-2 hover:scale-105 transition-transform">
+                            Começar Agora
+                            <span class="material-symbols-outlined" data-icon="play_arrow">play_arrow</span>
+</button>
+<div class="flex items-center gap-2 text-white font-label-md text-label-md">
+<span class="material-symbols-outlined" data-icon="timer">timer</span>
+                            12 Minutos
+                        </div>
+</div>
+</div>
+<div class="w-1/2 h-full absolute right-0 top-0 overflow-hidden">
+<img alt="Historical African Coins" class="w-full h-full object-cover" data-alt="A high-contrast close-up shot of weathered historical coins from 19th-century Angola, showing intricate engravings and copper textures. The lighting is cinematic with deep shadows and warm amber highlights, suggesting a premium museum exhibit. The aesthetic is documentary-style, clean, and highly detailed, perfectly complementing the intellectual bordeaux and bone palette of the UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMEVgzvIdk-q-TeFvAJDvmgyxpRYgHPFu9a2s7SkQKZoOfSDlAmwhNqnJVqh1zY32i8mU-7HLocFxKRAhzp2jOdwweNDUuOT9atasF6YRYlvaqbgK5jyvkWJZb1StlIsp4ZIpx6E8VfGfWkR19gmx_RVEmNpl1nGvBr9u8Mi0gsmFCnZKs6pPekUEmuMjIYy-gCZoOg9FXQoqQ4lnP5cj57ONBNven-4kgWrE4yXtHJ00qPWB9l5KEhq4QN4Meyji0UMw2NL8tHwcb"/>
+</div>
+</section>
+<!-- FILTERS & CATEGORIES -->
+<section class="mb-stack-lg">
+<div class="flex items-end justify-between mb-8">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Explorar Quizzes Temáticos</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Aprofunde os seus conhecimentos por período histórico ou tema económico.</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-primary text-on-primary rounded-full font-label-sm text-label-sm">Todos</button>
+<button class="px-4 py-2 bg-surface-container-high text-on-surface-variant rounded-full font-label-sm text-label-sm hover:bg-surface-variant">Colonialismo</button>
+<button class="px-4 py-2 bg-surface-container-high text-on-surface-variant rounded-full font-label-sm text-label-sm hover:bg-surface-variant">Pós-Independência</button>
+<button class="px-4 py-2 bg-surface-container-high text-on-surface-variant rounded-full font-label-sm text-label-sm hover:bg-surface-variant">Comércio Atlântico</button>
+</div>
+</div>
+<!-- BENTO GRID FOR THEMATIC QUIZZES -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Easy Quiz Card -->
+<div class="col-span-12 md:col-span-4 bg-white rounded-xl overflow-hidden border border-outline-variant hover:-translate-y-1 transition-all shadow-sm flex flex-col group">
+<div class="h-40 overflow-hidden relative">
+<img alt="Trade Routes" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A detailed antique map of the African coastline showing old maritime trade routes. The map features elegant cursive calligraphy and sepia tones, evoking a sense of historical discovery and academic study. The image is crisp and professional, fitting into the modern editorial style of the digital journal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu4yWkyUV2V7p67XsmPn72CxVHt-GyLfXA7qndXxWw9dgugG7_9rGfhnGr4-14U_T0T31cUK-BUfWLm5wpK0dRDN7mB5UdVHPBpTu6-fdasSiLzYihZm3XafsisYn1GJp1vUJYke27k-gOyAqLdbXif8TfNrto4a0uVhGp8FMjTnfjGDGrBB1Eh4t_G0oiC1LVY30MYJEe7tP3_RSiDW0P0ZQ_zyRMZk9aVtgFSOgrpjbCp5S4NNfVoHBOCKCGVq1bGgzCn8L8mIvb"/>
+<span class="absolute top-4 left-4 bg-green-100 text-green-800 px-3 py-1 rounded-full font-label-sm text-label-sm font-bold border border-green-200">Iniciante</span>
+</div>
+<div class="p-6 flex-grow flex flex-col">
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-2">Fundamentos do Comércio em Luanda</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 flex-grow">Conheça as primeiras rotas comerciais e os principais produtos de exportação do século XVIII.</p>
+<div class="flex items-center justify-between mt-auto">
+<span class="font-label-sm text-label-sm text-on-surface-variant">10 Questões</span>
+<a class="text-primary font-bold font-label-md text-label-md flex items-center gap-1" href="#">Participar <span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span></a>
+</div>
+</div>
+</div>
+<!-- Medium Quiz Card (Double Height or Spacing) -->
+<div class="col-span-12 md:col-span-8 bg-white rounded-xl overflow-hidden border border-outline-variant hover:-translate-y-1 transition-all shadow-sm flex group">
+<div class="w-2/5 overflow-hidden">
+<img alt="Industrial History" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A vintage industrial blueprint showing complex machinery designs from early 20th-century development projects in Angola. The technical drawing is presented in a clean, minimalist style with blueprint blue and off-white tones, emphasizing historical industrial innovation and structured planning." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQzRH7w9E27KGHMUA4qT_N3Zn8pd3x3gLshL2FqLeWLE9QoQ-wi1oLSAHz09FEuzRHecN_isWE-Z-NTBNBEO55ODnHP0YX4dohC-ezcTW9J_GI-NdyU57TN1wYSrNViZi-CGXzGA5dtBYHvmiktiAhG8UERfJazsEGGtdo4CMkuHwAxcLc6VNOMiAjfmS7wqlIiFwRO8Vtm4tIkSMLv9-r0KRH7bMjUruHVvidkhhU2LlTy_3bl2V4uQRkeeluR5kNEZIqC_sNFjz2"/>
+</div>
+<div class="w-3/5 p-8 flex flex-col">
+<div class="flex items-center gap-3 mb-4">
+<span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-label-sm text-label-sm font-bold border border-amber-200">Intermédio</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" data-icon="history">history</span> Expira em 2 dias</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-4">A Industrialização e os Caminhos de Ferro</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-8">Um mergulho técnico sobre como o CFB (Caminho de Ferro de Benguela) transformou o interior de Angola e impulsionou as exportações de minério durante o boom industrial.</p>
+<div class="mt-auto flex items-center justify-between">
+<div class="flex -space-x-2">
+<img alt="User 1" class="w-8 h-8 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQGjI1iGCIUWDeFm9usQKT4ArBJYQUI-XJz-pcGX8m0oZCGVuBxC8U-VAeWUAYU6Ykwrbho3Kpqsz27iY_G4_TgeNSI_5VZZd0XDVXeJ2xi205MqL9wWrLtG3h7RLXwiN9yRjiTPVUKFwmycXVFLKriMBkw4uTg46jiwGkOBLHPFrwgIoZKaF5Z_oC_GgG3ZrYTNPa7_YRQuaPkZEmHe5tma_D3nmqnWZVU3xdy_bTT3hn-SlDDRMKvjRUNbr6fxEoRLLY3JIZshRg"/>
+<img alt="User 2" class="w-8 h-8 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuKwf4GtNgVJ_4dy4Gwjyi-kbnbg8QKx-0nF5hy-4Xb_n2uCIyOs0_wvxt_NDB5s1g3tA5kFuP_ywOFcGl9HEB7d4M0TmXu3aYArJttuwmc7DZxJOZNuVf8xkQYjHbn6YpstKV1Yg15gy8F2pUBbMXNkvlfJvwGCPp3wYHNKxMcBzYQEfZuEdor6WrmSmh56_A8T-8W59LCs_W1kjA1_x8Hwa_voe32jgrpCkMkgpxlr7UNDY9qf5vCUolZuXOAOuIYfrMK36jJTDH"/>
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-[10px] font-bold border-2 border-white">+42</div>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-xl font-label-md text-label-md font-bold">Abrir Quiz</button>
+</div>
+</div>
+</div>
+<!-- Hard Quiz Card -->
+<div class="col-span-12 md:col-span-4 bg-white rounded-xl overflow-hidden border border-outline-variant hover:-translate-y-1 transition-all shadow-sm flex flex-col group">
+<div class="h-40 overflow-hidden relative">
+<img alt="Archives" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A stack of ancient leather-bound ledgers and manuscripts in a dimly lit archive. The papers are yellowed with age, showing beautiful handwritten ink notes on economic data. The mood is respectful and scholarly, with soft dust motes dancing in a single shaft of light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAT-XOIV2oT981DtAVKBFUL-iz9RnjVK0qsv7rbl_d3POlHnfmQE0IrGpCqhThMW7tXUijq6anM1FZtJIh2UVNFTuAbdRZgtGU5ExItbxAiyR90jnsPUIclPa-TEe251rYR2FhxPlYBi2gFH_2o3lRWF6azgBlgg81-5Qqpv9cV9zmaVo4qVOii3tbrS_cq32KkJ6GwbuleZeu_L_XvOIWyXfZEWFWKO90sNk8EYbjiBTTgx-gOuJH40gBpioh8Je5kTUZx47L_mrsz"/>
+<span class="absolute top-4 left-4 bg-red-100 text-red-800 px-3 py-1 rounded-full font-label-sm text-label-sm font-bold border border-red-200">Especialista</span>
+</div>
+<div class="p-6 flex-grow flex flex-col">
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-2">Macroeconomia da Transição (1975-1980)</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 flex-grow">Analise os desafios da transição para uma economia planificada nos primeiros anos da República.</p>
+<div class="flex items-center justify-between mt-auto">
+<span class="font-label-sm text-label-sm text-on-surface-variant">15 Questões</span>
+<a class="text-primary font-bold font-label-md text-label-md flex items-center gap-1" href="#">Participar <span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span></a>
+</div>
+</div>
+</div>
+<!-- Medium Quiz Card -->
+<div class="col-span-12 md:col-span-4 bg-white rounded-xl overflow-hidden border border-outline-variant hover:-translate-y-1 transition-all shadow-sm flex flex-col group">
+<div class="h-40 overflow-hidden relative">
+<img alt="Agriculture" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A wide panoramic view of an Angolan coffee plantation at sunrise. The landscape is lush green with terraced hills, bathed in golden morning light. The visual style is documentary and serene, capturing the natural beauty and agricultural history of the region in a sophisticated light-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuApNsKvQNaXSoZjNzbcg203983g9fkivkhLtASHXQXeOYroKQIRLdF1g7d5Y8_tV3KC4-GKDK9jCmJzbSQzP-StOrdfN3GTkyC3eMh4pThX_gm52Y9dmB0LItfiZ09NJ95L38JWTt-LJk0b2F8_QW5Phm66vnWGO_4dJgXvWDP21O5AvmN4UjOCZpgtpVn-GMguHAIE0EyycXeAm8wg8QEvvcumqZUtTFi_3qpHxMlkQRhBXGIYNMI5reyOji23U4UkBTGgXkl1FJYW"/>
+<span class="absolute top-4 left-4 bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-label-sm text-label-sm font-bold border border-amber-200">Intermédio</span>
+</div>
+<div class="p-6 flex-grow flex flex-col">
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-2">O Ciclo do Café no Planalto Central</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 flex-grow">Identifique os fatores que tornaram Angola o terceiro maior produtor mundial de café.</p>
+<div class="flex items-center justify-between mt-auto">
+<span class="font-label-sm text-label-sm text-on-surface-variant">8 Questões</span>
+<a class="text-primary font-bold font-label-md text-label-md flex items-center gap-1" href="#">Participar <span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span></a>
+</div>
+</div>
+</div>
+<!-- Medium Quiz Card -->
+<div class="col-span-12 md:col-span-4 bg-white rounded-xl overflow-hidden border border-outline-variant hover:-translate-y-1 transition-all shadow-sm flex flex-col group">
+<div class="h-40 overflow-hidden relative">
+<img alt="Currency Evolution" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A stylized overhead view of Angolan Kwanza banknotes and historical currency spread across a clean desk. The lighting is bright and modern, emphasizing the evolution of currency design through a contemporary lens. The composition is structured and clean, aligned with the modern editorial brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaR34jur0C5DzVtA_5QZydVlYjaGzZI-WQPTGEtuCfhOgvdeeM8anRSZQzKFwwhfxt7_YHn96FZscvygRsPd-fPX_td1tyla0IsjNiC_mG4sYO6q9vOAXFWgenmAoTKaHfYljxIA_nuxg-_7VWa0UDZlW3GEjiYNUKDCjx0LgK56YaBp2hN_KpPKQ9iTm0T2892qDsK958Kg1-WvFRZSj2lmCVvUYH9jJewlR3Mc3BBOI5GAyNmvwvCq0LLN_jfUStiD9PIq9U9Xx4"/>
+<span class="absolute top-4 left-4 bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-label-sm text-label-sm font-bold border border-amber-200">Intermédio</span>
+</div>
+<div class="p-6 flex-grow flex flex-col">
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-2">História Bancária e do BNA</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 flex-grow">Desde a fundação do Banco Nacional de Angola até à modernização do sistema financeiro.</p>
+<div class="flex items-center justify-between mt-auto">
+<span class="font-label-sm text-label-sm text-on-surface-variant">12 Questões</span>
+<a class="text-primary font-bold font-label-md text-label-md flex items-center gap-1" href="#">Participar <span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span></a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- STATS SECTION -->
+<section class="mt-stack-xl bg-surface-container-low rounded-[24px] p-10 flex gap-12 items-center">
+<div class="w-1/3">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">A Sua Jornada</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Carlos, o seu progresso como Investigador continua a crescer.</p>
+</div>
+<div class="flex flex-grow justify-between border-l border-outline-variant pl-12">
+<div class="text-center">
+<p class="font-display-lg text-[40px] text-primary font-extrabold">24</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Quizzes Concluídos</p>
+</div>
+<div class="text-center">
+<p class="font-display-lg text-[40px] text-primary font-extrabold">88%</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Precisão Média</p>
+</div>
+<div class="text-center">
+<p class="font-display-lg text-[40px] text-primary font-extrabold">05</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Temas Dominados</p>
+</div>
+<div class="text-center">
+<p class="font-display-lg text-[40px] text-primary font-extrabold">12</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Ranking Geral</p>
+</div>
+</div>
+</section>
+</div>
+<!-- FOOTER -->
+<footer class="mt-auto bg-surface-container-low border-t border-outline-variant py-stack-lg px-margin-desktop flex justify-between items-center">
+<div class="flex flex-col gap-2">
+<p class="font-label-md text-label-md font-bold text-on-surface">Economia com História</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">© 2026 Economia com História – Angola</p>
+</div>
+<div class="flex gap-8">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-all underline" href="#">Termos</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-all underline" href="#">Privacidade</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-all underline" href="#">Contacto</a>
+</div>
+</footer>
+</main>
+</body></html>
