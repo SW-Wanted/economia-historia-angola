@@ -16,9 +16,35 @@ class MockDataService {
       ];
 
   List<ForumTopic> topics() => const [
-        ForumTopic(title: 'O impacto das ferrovias no sec. XX?', author: 'Joao Domingos', comments: 12, tag: 'Infraestrutura'),
-        ForumTopic(title: 'Como explicar inflacao aos alunos do ensino medio?', author: 'Elisa Kiala', comments: 8, tag: 'Educacao'),
-        ForumTopic(title: 'Debate privado: fontes sobre politica cambial', author: 'Nucleo Jindungo', comments: 21, tag: 'Premium', private: true),
+        ForumTopic(
+          title: 'Impacto da Inflação na História de Angola',
+          author: 'Prof. Dr. Silva',
+          authorRole: 'Professor',
+          timeAgo: 'há 2 horas',
+          tag: 'Economia',
+          comments: 48,
+          isPinned: true,
+          description: 'Uma análise profunda sobre os ciclos económicos pós-independência e as lições para o futuro...',
+        ),
+        ForumTopic(
+          title: 'Grupo de Estudo: Plano Real vs Kwanza',
+          author: 'Elisa Kiala',
+          authorRole: 'Estudante',
+          timeAgo: 'há 5 horas',
+          tag: 'Estudo Privado',
+          comments: 12,
+          private: true,
+          description: 'Tópico reservado para os membros do grupo de pesquisa de macroeconomia comparada.',
+        ),
+        ForumTopic(
+          title: 'O Comércio no Reino do Kongo',
+          author: 'Joao Domingos',
+          authorRole: 'Estudante',
+          timeAgo: 'há 1 dia',
+          tag: 'Ancestralidade',
+          comments: 34,
+          description: 'Como as rotas comerciais influenciaram as estruturas de poder na região no século XVI?',
+        ),
       ];
 
   List<QuizQuestion> questions() => const [

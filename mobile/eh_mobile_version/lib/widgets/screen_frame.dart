@@ -12,6 +12,7 @@ class ScreenFrame extends StatelessWidget {
     this.showBack = false,
     this.paddingBottom = 28,
     this.floatingActionButton,
+    this.maxWidth,
   });
 
   final List<Widget> children;
@@ -19,6 +20,7 @@ class ScreenFrame extends StatelessWidget {
   final bool showBack;
   final double paddingBottom;
   final Widget? floatingActionButton;
+  final double? maxWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,7 @@ class ScreenFrame extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: Responsive.maxWidth(context)),
+            constraints: BoxConstraints(maxWidth: maxWidth ?? Responsive.maxWidth(context)),
             child: ListView(
               padding: EdgeInsets.fromLTRB(AppSpacing.margin, title == null ? 20 : 16, AppSpacing.margin, paddingBottom),
               children: children,

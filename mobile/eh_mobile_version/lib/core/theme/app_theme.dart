@@ -6,12 +6,35 @@ class AppTheme {
   const AppTheme._();
 
   static ThemeData light() {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
+    final scheme = const ColorScheme(
       brightness: Brightness.light,
       primary: AppColors.primary,
-      surface: AppColors.surface,
+      onPrimary: AppColors.onPrimary,
+      primaryContainer: AppColors.primaryContainer,
+      onPrimaryContainer: AppColors.onPrimaryContainer,
+      secondary: AppColors.secondary,
+      onSecondary: AppColors.onSecondary,
+      secondaryContainer: AppColors.secondaryContainer,
+      onSecondaryContainer: AppColors.onSecondaryContainer,
+      tertiary: AppColors.tertiary,
+      onTertiary: AppColors.onTertiary,
+      tertiaryContainer: AppColors.tertiaryContainer,
+      onTertiaryContainer: AppColors.onTertiaryContainer,
       error: AppColors.error,
+      onError: AppColors.onError,
+      errorContainer: AppColors.errorContainer,
+      onErrorContainer: AppColors.onErrorContainer,
+      background: AppColors.background,
+      onBackground: AppColors.onBackground,
+      surface: AppColors.surface,
+      onSurface: AppColors.onSurface,
+      surfaceVariant: AppColors.surfaceVariant,
+      onSurfaceVariant: AppColors.onSurfaceVariant,
+      outline: AppColors.outline,
+      outlineVariant: AppColors.outlineVariant,
+      inverseSurface: AppColors.inverseSurface,
+      onInverseSurface: AppColors.inverseOnSurface,
+      inversePrimary: AppColors.inversePrimary,
     );
 
     return ThemeData(
@@ -20,16 +43,16 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.background,
       fontFamily: 'Lexend',
       textTheme: const TextTheme(
-        displayLarge: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 30, height: 1.26, fontWeight: FontWeight.w800, color: AppColors.text),
-        headlineMedium: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 22, height: 1.27, fontWeight: FontWeight.w700, color: AppColors.text),
-        titleLarge: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 18, height: 1.33, fontWeight: FontWeight.w700, color: AppColors.text),
-        bodyLarge: TextStyle(fontSize: 16, height: 1.5, color: AppColors.text),
-        bodyMedium: TextStyle(fontSize: 14, height: 1.42, color: AppColors.text),
-        labelMedium: TextStyle(fontSize: 12, height: 1.33, fontWeight: FontWeight.w600, color: AppColors.text),
+        displayLarge: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 30, height: 1.26, fontWeight: FontWeight.w800, color: AppColors.onSurface),
+        headlineMedium: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 22, height: 1.27, fontWeight: FontWeight.w700, color: AppColors.onSurface),
+        titleLarge: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 18, height: 1.33, fontWeight: FontWeight.w700, color: AppColors.onSurface),
+        bodyLarge: TextStyle(fontSize: 16, height: 1.5, color: AppColors.onSurface),
+        bodyMedium: TextStyle(fontSize: 14, height: 1.42, color: AppColors.onSurface),
+        labelMedium: TextStyle(fontSize: 12, height: 1.33, fontWeight: FontWeight.w600, color: AppColors.onSurface),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.text,
+        foregroundColor: AppColors.onSurface,
         centerTitle: true,
         elevation: 0,
         surfaceTintColor: Colors.transparent,

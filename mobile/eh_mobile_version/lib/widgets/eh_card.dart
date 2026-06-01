@@ -8,12 +8,14 @@ class EhCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.color = AppColors.surface,
+    this.border,
     this.onTap,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final Color color;
+  final Border? border;
   final VoidCallback? onTap;
 
   @override
@@ -29,7 +31,7 @@ class EhCard extends StatelessWidget {
           padding: padding,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: .45)),
+            border: border ?? Border.all(color: AppColors.outlineVariant.withValues(alpha: .45)),
             boxShadow: [
               BoxShadow(color: Colors.black.withValues(alpha: .04), blurRadius: 14, offset: const Offset(0, 6)),
             ],

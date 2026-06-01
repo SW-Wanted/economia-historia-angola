@@ -16,21 +16,28 @@ class BottomNavShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        height: 70,
-        backgroundColor: AppColors.surface.withValues(alpha: .96),
-        indicatorColor: AppColors.primary.withValues(alpha: .12),
-        onDestinationSelected: (value) {
-          AppStateScope.of(context, listen: false).setNavIndex(value);
-          if (value != index) Navigator.pushReplacementNamed(context, _routes[value]);
-        },
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Inicio'),
-          NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore), label: 'Explorar'),
-          NavigationDestination(icon: Icon(Icons.forum_outlined), selectedIcon: Icon(Icons.forum), label: 'Forum'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Perfil'),
-        ],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: AppColors.outlineVariant, width: 1.0)),
+        ),
+        child: NavigationBar(
+          selectedIndex: index,
+          height: 64,
+          backgroundColor: AppColors.surface,
+          elevation: 0,
+          indicatorColor: AppColors.primaryContainer.withValues(alpha: 0.2),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          onDestinationSelected: (value) {
+            AppStateScope.of(context, listen: false).setNavIndex(value);
+            if (value != index) Navigator.pushReplacementNamed(context, _routes[value]);
+          },
+          destinations: const [
+            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: AppColors.primary), label: 'Início'),
+            NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore, color: AppColors.primary), label: 'Explorar'),
+            NavigationDestination(icon: Icon(Icons.forum_outlined), selectedIcon: Icon(Icons.forum, color: AppColors.primary), label: 'Fórum'),
+            NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: AppColors.primary), label: 'Perfil'),
+          ],
+        ),
       ),
     );
   }

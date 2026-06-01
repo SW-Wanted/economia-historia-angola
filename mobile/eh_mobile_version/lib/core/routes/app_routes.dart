@@ -10,6 +10,7 @@ import '../../screens/forgot_password_screen.dart';
 import '../../screens/forum_screen.dart';
 import '../../screens/forum_topic_screen.dart';
 import '../../screens/help_center_screen.dart';
+import '../../screens/history_event_screen.dart';
 import '../../screens/landing_screen.dart';
 import '../../screens/library_screen.dart';
 import '../../screens/login_screen.dart';
@@ -83,6 +84,7 @@ class AppRoutes {
   static const subscription = '/subscription';
   static const manageForums = '/manage-forums';
   static const adminUsers = '/admin-users';
+  static const historyEvent = '/history-event';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = switch (settings.name) {
@@ -111,7 +113,7 @@ class AppRoutes {
       ranking => const RankingScreen(),
       rankingDetail => const RankingDetailScreen(),
       forum => const ForumScreen(),
-      forumTopic => const ForumTopicScreen(),
+      forumTopic => ForumTopicScreen(),
       createTopic => const CreateTopicScreen(),
       privateForumAccess => const PrivateForumAccessScreen(),
       profile => const ProfileScreen(),
@@ -128,6 +130,7 @@ class AppRoutes {
       subscription => const SubscriptionScreen(),
       manageForums => const ManageForumsScreen(),
       adminUsers => const AdminUsersScreen(),
+      historyEvent => const HistoryEventScreen(),
       _ => const SplashScreen(),
     };
 
