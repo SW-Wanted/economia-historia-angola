@@ -53,6 +53,7 @@ import { ReportsModule } from './modules/reports/reports.module';
             port: Number(redisUrl.port || 6379),
             username: redisUrl.username || undefined,
             password: redisUrl.password || undefined,
+            tls: redisUrl.protocol === 'rediss:' ? {} : undefined,
           },
         };
       },
