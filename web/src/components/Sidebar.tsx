@@ -34,52 +34,56 @@ export default function Sidebar({ userName = 'Carlos Tchípia', userRole = 'Inve
   const navigate = useNavigate()
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[280px] bg-[#fcf9f8] border-r border-[#e0bfbc] flex flex-col z-50 overflow-y-auto">
-      <div className="flex flex-col gap-6 p-6 flex-grow">
+    <aside className="fixed left-0 top-0 h-screen w-[280px] bg-[#fcf9f8] border-r border-[#ebe5e4] flex flex-col z-50 overflow-y-auto">
+      <div className="flex flex-col gap-5 p-5 flex-grow">
         {/* Brand */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 px-1 pt-1">
           <button
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity text-left"
+            className="flex items-center gap-2.5 hover:opacity-75 transition-opacity duration-150 text-left"
           >
-            <Icon name="account_balance" className="text-[#8B1A1A] text-3xl" filled />
-            <span className="font-bold text-[#8B1A1A] text-lg leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <Icon name="account_balance" className="text-[#8B1A1A] text-3xl flex-shrink-0" filled />
+            <span className="font-bold text-[#8B1A1A] text-base leading-tight font-sans tracking-tight">
               Economia com História
             </span>
           </button>
-          <span className="text-xs text-[#5d5f5d] ml-9 uppercase tracking-widest" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Angola</span>
+          <span className="text-[10px] font-sans text-[#8c716e] ml-9 uppercase tracking-[0.12em]">Angola</span>
         </div>
 
         {/* User chip */}
         <button
           onClick={() => navigate('/perfil')}
-          className="flex items-center gap-3 border-t border-[#e0bfbc] pt-4 hover:bg-[#eae7e7] rounded-xl px-2 py-2 transition-colors -mx-2"
+          className="flex items-center gap-3 border-t border-[#ebe5e4] pt-4 mt-1 hover:bg-[#f0eded] rounded-xl px-2 py-2 transition-all duration-150 -mx-2 group"
         >
-          <div className="w-9 h-9 rounded-full bg-[#eae7e7] border border-[#e0bfbc] flex items-center justify-center flex-shrink-0">
-            <Icon name="person" className="text-[#5d5f5d] text-[18px]" />
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#8B1A1A]/15 to-[#8B1A1A]/5 border border-[#e0bfbc] flex items-center justify-center flex-shrink-0">
+            <span className="text-[11px] font-bold text-[#8B1A1A] font-sans leading-none">
+              {userName.split(' ').map(n => n[0]).slice(0, 2).join('')}
+            </span>
           </div>
-          <div className="flex flex-col overflow-hidden text-left">
-            <span className="font-bold text-sm text-[#1c1b1b] truncate" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{userName}</span>
-            <span className="text-[10px] uppercase tracking-wider text-[#5d5f5d] font-bold" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{userRole}</span>
+          <div className="flex flex-col overflow-hidden text-left min-w-0">
+            <span className="font-semibold text-sm text-[#1c1b1b] truncate font-sans leading-snug">{userName}</span>
+            <span className="text-[10px] uppercase tracking-[0.08em] text-[#8c716e] font-sans font-semibold">{userRole}</span>
           </div>
+          <Icon name="chevron_right" className="text-[#c4b5b3] text-[18px] ml-auto flex-shrink-0 group-hover:text-[#8B1A1A] transition-colors duration-150" />
         </button>
 
         {/* Primary navigation */}
-        <nav className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-0.5">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-sm font-semibold ${
-                  isActive ? 'bg-[#8B1A1A] text-white' : 'text-[#5d5f5d] hover:bg-[#eae7e7]'
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 text-sm font-semibold font-sans ${
+                  isActive
+                    ? 'bg-[#8B1A1A] text-white shadow-xs'
+                    : 'text-[#4a4a4a] hover:bg-[#f0eded] hover:text-[#1c1b1b]'
                 }`
               }
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
               {({ isActive }) => (
                 <>
-                  <Icon name={item.icon} filled={isActive} />
+                  <Icon name={item.icon} filled={isActive} className="flex-shrink-0" />
                   {item.label}
                 </>
               )}
@@ -89,24 +93,25 @@ export default function Sidebar({ userName = 'Carlos Tchípia', userRole = 'Inve
 
         {/* Secondary navigation */}
         <div>
-          <p className="text-[10px] font-bold text-[#5d5f5d] uppercase tracking-widest px-3 mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <p className="text-[10px] font-bold text-[#b8a5a3] uppercase tracking-[0.1em] px-3 mb-1.5 font-sans">
             Conteúdos
           </p>
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col gap-0.5">
             {secondaryItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-xl transition-colors text-xs font-semibold ${
-                    isActive ? 'bg-[#8B1A1A]/10 text-[#8B1A1A]' : 'text-[#5d5f5d] hover:bg-[#eae7e7]'
+                  `flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-xs font-semibold font-sans ${
+                    isActive
+                      ? 'bg-[#8B1A1A]/8 text-[#8B1A1A]'
+                      : 'text-[#5d5f5d] hover:bg-[#f0eded] hover:text-[#1c1b1b]'
                   }`
                 }
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 {({ isActive }) => (
                   <>
-                    <Icon name={item.icon} filled={isActive} className="text-[18px]" />
+                    <Icon name={item.icon} filled={isActive} className="text-[18px] flex-shrink-0" />
                     {item.label}
                   </>
                 )}
@@ -117,21 +122,22 @@ export default function Sidebar({ userName = 'Carlos Tchípia', userRole = 'Inve
       </div>
 
       {/* Bottom section */}
-      <div className="border-t border-[#e0bfbc] p-4 flex flex-col gap-1">
+      <div className="border-t border-[#ebe5e4] p-4 flex flex-col gap-0.5">
         {bottomItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-xs font-semibold ${
-                isActive ? 'bg-[#8B1A1A]/10 text-[#8B1A1A]' : 'text-[#5d5f5d] hover:bg-[#eae7e7]'
+              `flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-xs font-semibold font-sans ${
+                isActive
+                  ? 'bg-[#8B1A1A]/8 text-[#8B1A1A]'
+                  : 'text-[#5d5f5d] hover:bg-[#f0eded] hover:text-[#1c1b1b]'
               }`
             }
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
             {({ isActive }) => (
               <>
-                <Icon name={item.icon} filled={isActive} className="text-[18px]" />
+                <Icon name={item.icon} filled={isActive} className="text-[18px] flex-shrink-0" />
                 {item.label}
               </>
             )}
@@ -139,10 +145,9 @@ export default function Sidebar({ userName = 'Carlos Tchípia', userRole = 'Inve
         ))}
         <button
           onClick={() => navigate('/confirmacao/saida')}
-          className="flex items-center gap-3 text-[#5d5f5d] px-3 py-2.5 hover:bg-[#eae7e7] transition-colors rounded-xl text-xs font-semibold w-full text-left"
-          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          className="flex items-center gap-3 text-[#5d5f5d] px-3 py-2 hover:bg-[#f0eded] hover:text-[#ba1a1a] transition-all duration-150 rounded-lg text-xs font-semibold font-sans w-full text-left mt-1"
         >
-          <Icon name="logout" className="text-[18px]" />
+          <Icon name="logout" className="text-[18px] flex-shrink-0" />
           Sair
         </button>
       </div>

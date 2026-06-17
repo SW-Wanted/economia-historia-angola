@@ -7,7 +7,7 @@ export default {
     extend: {
       colors: {
         primary: '#8B1A1A',
-        'primary-container': '#8b1a1a',
+        'primary-container': '#ffdad6',
         'primary-fixed': '#ffdad6',
         'primary-fixed-dim': '#ffb3ac',
         'on-primary': '#ffffff',
@@ -55,10 +55,24 @@ export default {
         'on-error-container': '#93000a',
       },
       borderRadius: {
-        DEFAULT: '0.25rem',
-        lg: '0.5rem',
+        DEFAULT: '0.375rem',
+        sm: '0.25rem',
+        lg: '0.625rem',
         xl: '1rem',
+        '2xl': '1.25rem',
         full: '9999px',
+      },
+      boxShadow: {
+        xs: '0 1px 2px 0 rgb(0 0 0 / 0.04)',
+        sm: '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04)',
+        DEFAULT: '0 2px 8px 0 rgb(0 0 0 / 0.07), 0 1px 3px -1px rgb(0 0 0 / 0.04)',
+        md: '0 4px 12px -2px rgb(0 0 0 / 0.09), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
+        lg: '0 8px 24px -4px rgb(0 0 0 / 0.11), 0 4px 8px -4px rgb(0 0 0 / 0.06)',
+        xl: '0 16px 40px -8px rgb(0 0 0 / 0.13), 0 8px 16px -8px rgb(0 0 0 / 0.07)',
+        card: '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.03)',
+        'card-hover': '0 4px 16px -2px rgb(0 0 0 / 0.10), 0 2px 6px -2px rgb(0 0 0 / 0.05)',
+        inner: 'inset 0 1px 2px 0 rgb(0 0 0 / 0.05)',
+        none: 'none',
       },
       spacing: {
         'stack-xl': '64px',
@@ -91,6 +105,9 @@ export default {
         'label-sm': ['12px', { lineHeight: '1.2', fontWeight: '500' }],
         'body-lg': ['18px', { lineHeight: '1.8', fontWeight: '400' }],
         'body-md': ['16px', { lineHeight: '1.6', fontWeight: '400' }],
+      },
+      transitionTimingFunction: {
+        smooth: 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
     },
   },

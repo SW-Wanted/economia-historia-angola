@@ -1,72 +1,73 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 export default function Cadastro1() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ backgroundColor: '#F2F2F0', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-      <div className="mb-8 flex flex-col items-center text-center">
-        <h2 className="text-2xl font-bold text-[#8B1A1A] mb-1">Economia com História</h2>
-        <p className="text-xs text-[#5d5f5d] tracking-widest uppercase">Angola</p>
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 font-sans" style={{ backgroundColor: '#F2F2F0' }}>
+      <div className="mb-7 flex flex-col items-center text-center">
+        <div className="w-10 h-10 rounded-xl bg-[#fff5f4] flex items-center justify-center mb-3">
+          <span className="material-symbols-outlined text-[#8B1A1A]" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>account_balance</span>
+        </div>
+        <h2 className="text-base font-bold text-[#8B1A1A] font-sans tracking-tight">Economia com História</h2>
+        <p className="text-[10px] text-[#8c716e] tracking-[0.12em] uppercase font-sans mt-0.5">Angola</p>
       </div>
 
-      <main className="w-full max-w-[480px] bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] border border-[#e0bfbc]/30 overflow-hidden">
+      <main className="w-full max-w-[440px] bg-white rounded-2xl shadow-lg border border-[#ebe5e4] overflow-hidden">
         {/* Progress bar */}
-        <div className="h-1.5 w-full bg-[#f0eded] flex">
+        <div className="h-1 w-full bg-[#f0eded]">
           <div className="h-full bg-[#8B1A1A] transition-all duration-500" style={{ width: '33.33%' }} />
         </div>
 
-        <div className="p-10 flex flex-col gap-8">
-          <header className="flex flex-col gap-2">
-            <span className="text-xs font-bold text-[#8B1A1A]">Passo 1 de 3</span>
-            <h1 className="text-[32px] font-bold text-[#1c1b1b]">Criar Conta</h1>
-            <p className="text-base text-[#5d5f5d]" style={{ fontFamily: 'Merriweather, serif' }}>
+        <div className="px-8 py-8 flex flex-col gap-6">
+          <header className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold text-[#8B1A1A] uppercase tracking-[0.1em] font-sans">Passo 1 de 3</span>
+            <h1 className="text-2xl font-bold text-[#1c1b1b] font-sans tracking-tight">Criar Conta</h1>
+            <p className="text-sm text-[#5d5f5d] font-serif leading-relaxed">
               Comece a sua jornada pela história económica de Angola registando os seus dados.
             </p>
           </header>
 
           <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); navigate('/cadastro/2') }}>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-[#58413f]">Nome Completo</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-[#58413f] font-sans uppercase tracking-[0.05em]">Nome Completo</label>
               <input
                 type="text"
                 placeholder="Ex: Manuel dos Santos"
-                className="w-full bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg p-4 focus:ring-1 focus:ring-[#8B1A1A] focus:border-[#8B1A1A] outline-none transition-all"
-                style={{ fontFamily: 'Merriweather, serif' }}
+                className="w-full bg-[#f8f5f4] border border-[#e8e0de] rounded-lg px-4 py-2.5 focus:bg-white focus:border-[#8B1A1A] focus:ring-2 focus:ring-[#8B1A1A]/10 outline-none transition-all duration-150 text-sm font-serif placeholder:text-[#c4b5b3]"
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-[#58413f]">Email</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-[#58413f] font-sans uppercase tracking-[0.05em]">Email</label>
               <input
                 type="email"
                 placeholder="nome@exemplo.ao"
-                className="w-full bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg p-4 focus:ring-1 focus:ring-[#8B1A1A] focus:border-[#8B1A1A] outline-none transition-all"
-                style={{ fontFamily: 'Merriweather, serif' }}
+                className="w-full bg-[#f8f5f4] border border-[#e8e0de] rounded-lg px-4 py-2.5 focus:bg-white focus:border-[#8B1A1A] focus:ring-2 focus:ring-[#8B1A1A]/10 outline-none transition-all duration-150 text-sm font-serif placeholder:text-[#c4b5b3]"
               />
             </div>
 
-            <div className="mt-2 flex flex-col gap-4">
+            <div className="mt-1 flex flex-col gap-3">
               <button
                 type="submit"
-                className="w-full bg-[#8B1A1A] text-white text-sm font-semibold py-4 rounded-full hover:opacity-90 transition-colors active:scale-95 transform"
+                className="w-full bg-[#8B1A1A] text-white text-sm font-semibold font-sans py-3 rounded-full hover:bg-[#7a1616] hover:shadow-md active:scale-[0.98] transition-all duration-150"
               >
                 Continuar
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                className="w-full flex items-center justify-center gap-3 border border-[#e0bfbc] text-[#1c1b1b] py-3.5 rounded-full text-sm font-semibold hover:bg-[#f6f3f2] transition-all"
+                className="w-full flex items-center justify-center gap-2.5 border border-[#e8e0de] text-[#1c1b1b] py-3 rounded-full text-sm font-semibold font-sans hover:bg-[#f8f5f4] hover:border-[#d4c5c3] transition-all duration-150"
               >
-                <span className="material-symbols-outlined text-[18px]">language</span>
+                <span className="material-symbols-outlined text-[18px] text-[#5d5f5d]">language</span>
                 Registar com Google
               </button>
             </div>
           </form>
 
-          <footer className="pt-4 border-t border-[#e0bfbc] text-center">
-            <p className="text-base text-[#5d5f5d]" style={{ fontFamily: 'Merriweather, serif' }}>
+          <footer className="pt-5 border-t border-[#ebe5e4] text-center">
+            <p className="text-sm text-[#5d5f5d] font-serif">
               Já tem conta?{' '}
-              <button onClick={() => navigate('/login')} className="text-[#8B1A1A] font-bold hover:underline">
+              <button onClick={() => navigate('/login')} className="text-[#8B1A1A] font-bold hover:text-[#7a1616] font-sans transition-colors duration-150">
                 Iniciar Sessão
               </button>
             </p>
