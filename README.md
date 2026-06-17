@@ -60,7 +60,7 @@ flowchart TB
 
 ```text
 economia-historia-angola/
-├── web/          → Frontend Web (Next.js 14 + TailwindCSS)
+├── web/          → Frontend Web (React.js 14 + TailwindCSS)
 ├── mobile/       → App Mobile (Flutter 3 — Android e iOS)
 ├── backend/      → API REST (Node.js + Fastify + Prisma)
 └── docs/         → Artefactos académicos (requisitos, diagramas, protótipos)

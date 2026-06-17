@@ -1,7 +1,21 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 export default function Cadastro1() {
   const navigate = useNavigate()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [error, setError] = useState('')
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    if (!name.trim()) { setError('Por favor, introduza o seu nome.'); return }
+    if (!email.trim()) { setError('Por favor, introduza o seu email.'); return }
+    sessionStorage.setItem('reg_name', name.trim())
+    sessionStorage.setItem('reg_email', email.trim())
+    navigate('/cadastro/2')
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 font-sans" style={{ backgroundColor: '#F2F2F0' }}>
@@ -14,7 +28,6 @@ export default function Cadastro1() {
       </div>
 
       <main className="w-full max-w-[440px] bg-white rounded-2xl shadow-lg border border-[#ebe5e4] overflow-hidden">
-        {/* Progress bar */}
         <div className="h-1 w-full bg-[#f0eded]">
           <div className="h-full bg-[#8B1A1A] transition-all duration-500" style={{ width: '33.33%' }} />
         </div>
@@ -28,12 +41,15 @@ export default function Cadastro1() {
             </p>
           </header>
 
-          <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); navigate('/cadastro/2') }}>
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-[#58413f] font-sans uppercase tracking-[0.05em]">Nome Completo</label>
               <input
                 type="text"
                 placeholder="Ex: Manuel dos Santos"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
                 className="w-full bg-[#f8f5f4] border border-[#e8e0de] rounded-lg px-4 py-2.5 focus:bg-white focus:border-[#8B1A1A] focus:ring-2 focus:ring-[#8B1A1A]/10 outline-none transition-all duration-150 text-sm font-serif placeholder:text-[#c4b5b3]"
               />
             </div>
@@ -42,9 +58,16 @@ export default function Cadastro1() {
               <input
                 type="email"
                 placeholder="nome@exemplo.ao"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="w-full bg-[#f8f5f4] border border-[#e8e0de] rounded-lg px-4 py-2.5 focus:bg-white focus:border-[#8B1A1A] focus:ring-2 focus:ring-[#8B1A1A]/10 outline-none transition-all duration-150 text-sm font-serif placeholder:text-[#c4b5b3]"
               />
             </div>
+
+            {error && (
+              <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 font-sans">{error}</p>
+            )}
 
             <div className="mt-1 flex flex-col gap-3">
               <button

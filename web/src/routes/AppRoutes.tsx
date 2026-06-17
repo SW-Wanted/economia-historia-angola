@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import ProtectedRoute from '../components/ProtectedRoute'
 
 // Auth / Public
 import SplashScreen from '../pages/SplashScreen'
@@ -45,84 +46,86 @@ import ComparadorPeriodos from '../pages/ComparadorPeriodos'
 import DetalheDocumento from '../pages/DetalheDocumento'
 import CentroAjuda from '../pages/CentroAjuda'
 
+function Protected({ children }: { children: React.ReactNode }) {
+  return <ProtectedRoute>{children}</ProtectedRoute>
+}
+
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Splash → auto-redirects to /onboarding/1 */}
+      {/* Public — splash & onboarding */}
       <Route path="/" element={<SplashScreen />} />
       <Route path="/splash" element={<SplashScreen />} />
-
-      {/* Onboarding */}
       <Route path="/onboarding/1" element={<Onboarding1 />} />
       <Route path="/onboarding/2" element={<Onboarding2 />} />
       <Route path="/onboarding/3" element={<Onboarding3 />} />
 
-      {/* Auth */}
+      {/* Public — auth */}
       <Route path="/login" element={<Login />} />
       <Route path="/cadastro" element={<Cadastro1 />} />
       <Route path="/cadastro/2" element={<Cadastro2 />} />
       <Route path="/cadastro/3" element={<Cadastro3 />} />
       <Route path="/recuperar-senha" element={<RecuperarSenha />} />
 
-      {/* Public landing */}
+      {/* Public — landing */}
       <Route path="/home-publica" element={<HomeLanding />} />
       <Route path="/home-landing" element={<HomeLanding />} />
       <Route path="/home" element={<HomeLanding />} />
 
-      {/* Main app */}
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/explorar" element={<Explorar />} />
-      <Route path="/explorar-arquivo" element={<Explorar />} />
+      {/* Protected — main app */}
+      <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
+      <Route path="/explorar" element={<Protected><Explorar /></Protected>} />
+      <Route path="/explorar-arquivo" element={<Protected><Explorar /></Protected>} />
 
-      {/* Forum */}
-      <Route path="/forum" element={<Forum />} />
-      <Route path="/forum/detalhe" element={<ForumDetalhe />} />
-      <Route path="/forum/novo-topico" element={<SubmeterTopico />} />
+      {/* Protected — forum */}
+      <Route path="/forum" element={<Protected><Forum /></Protected>} />
+      <Route path="/forum/detalhe" element={<Protected><ForumDetalhe /></Protected>} />
+      <Route path="/forum/novo-topico" element={<Protected><SubmeterTopico /></Protected>} />
 
-      {/* Profile */}
-      <Route path="/perfil" element={<Perfil />} />
+      {/* Protected — profile */}
+      <Route path="/perfil" element={<Protected><Perfil /></Protected>} />
 
-      {/* Quiz */}
-      <Route path="/quiz" element={<QuizHub />} />
-      <Route path="/quiz/em-curso" element={<QuizEmCurso />} />
-      <Route path="/quiz/resultado" element={<ResultadoQuiz />} />
+      {/* Protected — quiz */}
+      <Route path="/quiz" element={<Protected><QuizHub /></Protected>} />
+      <Route path="/quiz/em-curso" element={<Protected><QuizEmCurso /></Protected>} />
+      <Route path="/quiz/resultado" element={<Protected><ResultadoQuiz /></Protected>} />
 
-      {/* Map */}
-      <Route path="/mapa" element={<MapaInterativo />} />
-      <Route path="/mapa/caminhos-ferro" element={<MapaCaminhosHist />} />
+      {/* Protected — map */}
+      <Route path="/mapa" element={<Protected><MapaInterativo /></Protected>} />
+      <Route path="/mapa/caminhos-ferro" element={<Protected><MapaCaminhosHist /></Protected>} />
 
-      {/* Reading */}
-      <Route path="/leitura/microtexto" element={<LeituraMicrotexto />} />
-      <Route path="/leitura/jindungo" element={<LeituraJindungo />} />
+      {/* Protected — reading */}
+      <Route path="/leitura/microtexto" element={<Protected><LeituraMicrotexto /></Protected>} />
+      <Route path="/leitura/jindungo" element={<Protected><LeituraJindungo /></Protected>} />
 
-      {/* Library & Favorites */}
-      <Route path="/biblioteca" element={<MinhasBiblioteca />} />
-      <Route path="/favoritos" element={<MeusFavoritos />} />
+      {/* Protected — library */}
+      <Route path="/biblioteca" element={<Protected><MinhasBiblioteca /></Protected>} />
+      <Route path="/favoritos" element={<Protected><MeusFavoritos /></Protected>} />
 
-      {/* Reference */}
-      <Route path="/glossario" element={<Glossario />} />
-      <Route path="/guia-rapido" element={<GuiaRapido />} />
-      <Route path="/guia-investigacao" element={<GuiaInvestigacao />} />
-      <Route path="/comparador" element={<ComparadorPeriodos />} />
+      {/* Protected — reference */}
+      <Route path="/glossario" element={<Protected><Glossario /></Protected>} />
+      <Route path="/guia-rapido" element={<Protected><GuiaRapido /></Protected>} />
+      <Route path="/guia-investigacao" element={<Protected><GuiaInvestigacao /></Protected>} />
+      <Route path="/comparador" element={<Protected><ComparadorPeriodos /></Protected>} />
 
-      {/* Stats */}
-      <Route path="/estatisticas" element={<PainelEstatisticas />} />
+      {/* Protected — stats */}
+      <Route path="/estatisticas" element={<Protected><PainelEstatisticas /></Protected>} />
 
-      {/* Management */}
-      <Route path="/gestao/conteudos" element={<PainelGestaoConteudos />} />
-      <Route path="/gestao/utilizadores" element={<GestaoUtilizadores />} />
-      <Route path="/gestao/submeter-artigo" element={<SubmeterArtigo />} />
+      {/* Protected — management */}
+      <Route path="/gestao/conteudos" element={<Protected><PainelGestaoConteudos /></Protected>} />
+      <Route path="/gestao/utilizadores" element={<Protected><GestaoUtilizadores /></Protected>} />
+      <Route path="/gestao/submeter-artigo" element={<Protected><SubmeterArtigo /></Protected>} />
 
-      {/* Confirmations */}
-      <Route path="/confirmacao/publicacao" element={<ConfirmacaoPublicacao />} />
-      <Route path="/confirmacao/saida" element={<ConfirmacaoSaida />} />
+      {/* Protected — confirmations */}
+      <Route path="/confirmacao/publicacao" element={<Protected><ConfirmacaoPublicacao /></Protected>} />
+      <Route path="/confirmacao/saida" element={<Protected><ConfirmacaoSaida /></Protected>} />
 
-      {/* Utility */}
-      <Route path="/notificacoes" element={<Notificacoes />} />
-      <Route path="/pesquisa" element={<ResultadosPesquisa />} />
-      <Route path="/conteudos/provincia" element={<ConteudosProvincia />} />
-      <Route path="/aula-video" element={<AulaVideo />} />
-      <Route path="/documento/detalhe" element={<DetalheDocumento />} />
+      {/* Protected — utility */}
+      <Route path="/notificacoes" element={<Protected><Notificacoes /></Protected>} />
+      <Route path="/pesquisa" element={<Protected><ResultadosPesquisa /></Protected>} />
+      <Route path="/conteudos/provincia" element={<Protected><ConteudosProvincia /></Protected>} />
+      <Route path="/aula-video" element={<Protected><AulaVideo /></Protected>} />
+      <Route path="/documento/detalhe" element={<Protected><DetalheDocumento /></Protected>} />
       <Route path="/ajuda" element={<CentroAjuda />} />
 
       {/* Catch-all */}
