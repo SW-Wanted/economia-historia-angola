@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 
 const notifications = [
@@ -14,32 +14,34 @@ export default function Notificacoes() {
 
   return (
     <AppShell title="Notificações" showSearch={false}>
-      <div className="px-10 py-16 max-w-[800px] mx-auto">
+      <div className="px-10 py-10 max-w-[760px] mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-[32px] font-bold text-[#1c1b1b]">Notificações</h2>
-          <button className="text-sm font-semibold text-[#8B1A1A] hover:underline">Marcar todas como lidas</button>
+          <h2 className="text-[32px] font-bold text-[#1c1b1b] font-sans tracking-tight">Notificações</h2>
+          <button className="text-sm font-semibold text-[#8B1A1A] hover:text-[#7a1616] transition-colors duration-150 font-sans">
+            Marcar todas como lidas
+          </button>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
           {notifications.map((n) => (
             <div
               key={n.title}
               onClick={() => navigate(n.route)}
-              className={`bg-white rounded-xl p-5 border transition-all cursor-pointer flex items-start gap-4 group hover:shadow-md ${
-                n.unread ? 'border-[#8B1A1A]/30 bg-[#8B1A1A]/5' : 'border-[#e0bfbc]'
+              className={`bg-white rounded-xl p-4 border transition-all duration-200 cursor-pointer flex items-start gap-3.5 group hover:shadow-card-hover hover:-translate-y-0.5 ${
+                n.unread ? 'border-[#8B1A1A]/20 bg-[#fff8f7]' : 'border-[#ebe5e4]'
               }`}
             >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${n.unread ? 'bg-[#8B1A1A] text-white' : 'bg-[#eae7e7] text-[#5d5f5d]'}`}>
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${n.unread ? 'bg-[#8B1A1A] text-white' : 'bg-[#f0eded] text-[#5d5f5d]'}`}>
                 <span className="material-symbols-outlined text-[18px]">{n.icon}</span>
               </div>
-              <div className="flex-grow">
+              <div className="flex-grow min-w-0">
                 <div className="flex items-start justify-between gap-4">
-                  <h3 className={`text-sm font-bold ${n.unread ? 'text-[#8B1A1A]' : 'text-[#1c1b1b]'}`}>{n.title}</h3>
-                  <span className="text-xs text-[#5d5f5d] whitespace-nowrap">{n.time}</span>
+                  <h3 className={`text-sm font-bold font-sans ${n.unread ? 'text-[#8B1A1A]' : 'text-[#1c1b1b]'}`}>{n.title}</h3>
+                  <span className="text-[10px] text-[#b8a5a3] whitespace-nowrap font-sans">{n.time}</span>
                 </div>
-                <p className="text-sm text-[#5d5f5d] mt-1" style={{ fontFamily: 'Merriweather, serif' }}>{n.desc}</p>
+                <p className="text-xs text-[#5d5f5d] mt-1 font-serif leading-relaxed">{n.desc}</p>
               </div>
-              {n.unread && <div className="w-2 h-2 bg-[#8B1A1A] rounded-full mt-2 flex-shrink-0" />}
+              {n.unread && <div className="w-1.5 h-1.5 bg-[#8B1A1A] rounded-full mt-2 flex-shrink-0" />}
             </div>
           ))}
         </div>

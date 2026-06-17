@@ -1,10 +1,10 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 
 const replies = [
-  { author: 'Dr. Paulo Vunge', role: 'Historiador Sénior', time: 'Há 1 hora', text: 'Excelente análise. A transição monetária de 1977 foi de facto um momento crucial. O Kwanza substituiu o Escudo numa altura em que a economia estava a ser reestruturada segundo um modelo socialista, o que criou tensões significativas nas relações comerciais internacionais.', likes: 12 },
-  { author: 'Maria Conceição', role: 'Investigadora', time: 'Há 3 horas', text: 'Concordo com os pontos levantados. Gostaria de acrescentar que a desvalorização progressiva do Kwanza nos anos seguintes teve impactos profundos na capacidade de importação do país, especialmente de bens essenciais.', likes: 8 },
-  { author: 'Carlos Tchípia', role: 'Investigador Sénior', time: 'Há 5 horas', text: 'Tenho documentos primários sobre este período que podem enriquecer esta discussão. Vou partilhar na secção de arquivo em breve.', likes: 15 },
+  { author: 'Dr. Paulo Vunge', role: 'Historiador Sénior', initials: 'PV', time: 'Há 1 hora', text: 'Excelente análise. A transição monetária de 1977 foi de facto um momento crucial. O Kwanza substituiu o Escudo numa altura em que a economia estava a ser reestruturada segundo um modelo socialista, o que criou tensões significativas nas relações comerciais internacionais.', likes: 12 },
+  { author: 'Maria Conceição', role: 'Investigadora', initials: 'MC', time: 'Há 3 horas', text: 'Concordo com os pontos levantados. Gostaria de acrescentar que a desvalorização progressiva do Kwanza nos anos seguintes teve impactos profundos na capacidade de importação do país, especialmente de bens essenciais.', likes: 8 },
+  { author: 'Carlos Tchípia', role: 'Investigador Sénior', initials: 'CT', time: 'Há 5 horas', text: 'Tenho documentos primários sobre este período que podem enriquecer esta discussão. Vou partilhar na secção de arquivo em breve.', likes: 15 },
 ]
 
 export default function ForumDetalhe() {
@@ -12,76 +12,76 @@ export default function ForumDetalhe() {
 
   return (
     <AppShell title="Fórum" searchPlaceholder="Pesquisar no fórum...">
-      <div className="px-10 py-16 max-w-[1160px] mx-auto">
+      <div className="px-10 py-10 max-w-[1160px] mx-auto">
         {/* Back */}
         <button
           onClick={() => navigate('/forum')}
-          className="flex items-center gap-2 text-[#5d5f5d] hover:text-[#8B1A1A] transition-colors mb-8 text-sm font-semibold"
+          className="flex items-center gap-2 text-[#5d5f5d] hover:text-[#8B1A1A] transition-colors duration-150 mb-8 text-sm font-semibold font-sans"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Voltar ao Fórum
         </button>
 
         {/* Topic header */}
-        <div className="bg-white rounded-xl p-8 border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)] mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="px-2 py-0.5 bg-[#8B1A1A]/10 text-[#8B1A1A] rounded text-[10px] font-bold uppercase tracking-wider">Microtextos</span>
-            <span className="text-[#5d5f5d] text-xs">Há 2 horas</span>
+        <div className="bg-white rounded-xl p-7 border border-[#ebe5e4] shadow-card mb-6">
+          <div className="flex items-center gap-2.5 mb-4">
+            <span className="px-2 py-0.5 bg-[#fff5f4] text-[#8B1A1A] rounded text-[10px] font-bold uppercase tracking-[0.06em] font-sans">Microtextos</span>
+            <span className="text-[#b8a5a3] text-xs">Há 2 horas</span>
           </div>
-          <h1 className="text-[32px] font-bold text-[#1c1b1b] mb-4">O impacto da moeda Kwanza na transição econômica de 1977</h1>
-          <p className="text-lg text-[#5d5f5d] leading-relaxed mb-6" style={{ fontFamily: 'Merriweather, serif' }}>
+          <h1 className="text-[28px] font-bold text-[#1c1b1b] mb-4 font-sans tracking-tight leading-tight">O impacto da moeda Kwanza na transição econômica de 1977</h1>
+          <p className="text-sm text-[#5d5f5d] leading-relaxed mb-6 font-serif">
             Uma análise profunda sobre a substituição do Escudo pelo Kwanza e como isso moldou as primeiras relações comerciais internacionais da Angola independente. A decisão de criar uma moeda nacional própria foi simultaneamente um ato de soberania e um desafio económico de enorme magnitude.
           </p>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#eae7e7] flex items-center justify-center">
-                <span className="material-symbols-outlined text-[#5d5f5d]">person</span>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#f0eded] to-[#e5e2e1] border border-[#ebe5e4] flex items-center justify-center flex-shrink-0">
+                <span className="text-[10px] font-bold text-[#8B1A1A] font-sans">ES</span>
               </div>
               <div>
-                <span className="text-sm font-bold text-[#1c1b1b]">Emanuel dos Santos</span>
-                <p className="text-xs text-[#5d5f5d]">Investigador</p>
+                <span className="text-sm font-bold text-[#1c1b1b] font-sans">Emanuel dos Santos</span>
+                <p className="text-[10px] text-[#8c716e] font-sans">Investigador</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 ml-auto text-[#5d5f5d]">
-              <button className="flex items-center gap-1 hover:text-[#8B1A1A] transition-colors">
-                <span className="material-symbols-outlined text-sm">thumb_up</span>
-                <span className="text-xs">24</span>
+            <div className="flex items-center gap-3 ml-auto text-[#5d5f5d]">
+              <button className="flex items-center gap-1.5 hover:text-[#8B1A1A] hover:bg-[#f0eded] px-2.5 py-1.5 rounded-lg transition-all duration-150 text-sm">
+                <span className="material-symbols-outlined text-[16px]">thumb_up</span>
+                <span className="text-xs font-sans font-semibold">24</span>
               </button>
-              <button className="flex items-center gap-1 hover:text-[#8B1A1A] transition-colors">
-                <span className="material-symbols-outlined text-sm">share</span>
-                <span className="text-xs">Partilhar</span>
+              <button className="flex items-center gap-1.5 hover:text-[#8B1A1A] hover:bg-[#f0eded] px-2.5 py-1.5 rounded-lg transition-all duration-150 text-sm">
+                <span className="material-symbols-outlined text-[16px]">share</span>
+                <span className="text-xs font-sans font-semibold">Partilhar</span>
               </button>
-              <button className="flex items-center gap-1 hover:text-[#8B1A1A] transition-colors">
-                <span className="material-symbols-outlined text-sm">bookmark</span>
-                <span className="text-xs">Guardar</span>
+              <button className="flex items-center gap-1.5 hover:text-[#8B1A1A] hover:bg-[#f0eded] px-2.5 py-1.5 rounded-lg transition-all duration-150 text-sm">
+                <span className="material-symbols-outlined text-[16px]">bookmark</span>
+                <span className="text-xs font-sans font-semibold">Guardar</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* Replies */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-[#1c1b1b] mb-6">24 Respostas</h2>
-          <div className="flex flex-col gap-4">
+        <div className="mb-6">
+          <h2 className="text-lg font-bold text-[#1c1b1b] mb-4 font-sans">24 Respostas</h2>
+          <div className="flex flex-col gap-3">
             {replies.map((reply) => (
-              <div key={reply.author} className="bg-white rounded-xl p-6 border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#eae7e7] flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-[#5d5f5d]">person</span>
+              <div key={reply.author} className="bg-white rounded-xl p-5 border border-[#ebe5e4] shadow-card">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#f0eded] to-[#e5e2e1] border border-[#ebe5e4] flex items-center justify-center flex-shrink-0">
+                    <span className="text-[10px] font-bold text-[#8B1A1A] font-sans">{reply.initials}</span>
                   </div>
-                  <div className="flex-grow">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-sm font-bold text-[#1c1b1b]">{reply.author}</span>
-                      <span className="text-xs text-[#5d5f5d]">{reply.role}</span>
-                      <span className="text-xs text-[#5d5f5d] ml-auto">{reply.time}</span>
+                  <div className="flex-grow min-w-0">
+                    <div className="flex items-center gap-2.5 mb-2 flex-wrap">
+                      <span className="text-sm font-bold text-[#1c1b1b] font-sans">{reply.author}</span>
+                      <span className="text-xs text-[#8c716e] font-sans">{reply.role}</span>
+                      <span className="text-[10px] text-[#b8a5a3] font-sans ml-auto">{reply.time}</span>
                     </div>
-                    <p className="text-base text-[#5d5f5d] leading-relaxed" style={{ fontFamily: 'Merriweather, serif' }}>{reply.text}</p>
+                    <p className="text-sm text-[#5d5f5d] leading-relaxed font-serif">{reply.text}</p>
                     <div className="flex items-center gap-4 mt-3">
-                      <button className="flex items-center gap-1 text-[#5d5f5d] hover:text-[#8B1A1A] transition-colors text-xs">
-                        <span className="material-symbols-outlined text-sm">thumb_up</span>
+                      <button className="flex items-center gap-1.5 text-[#5d5f5d] hover:text-[#8B1A1A] hover:bg-[#f0eded] px-2 py-1 rounded-lg transition-all duration-150 text-xs font-sans font-semibold">
+                        <span className="material-symbols-outlined text-[15px]">thumb_up</span>
                         {reply.likes}
                       </button>
-                      <button className="text-xs text-[#5d5f5d] hover:text-[#8B1A1A] transition-colors">Responder</button>
+                      <button className="text-xs text-[#5d5f5d] hover:text-[#8B1A1A] transition-colors duration-150 font-sans font-semibold">Responder</button>
                     </div>
                   </div>
                 </div>
@@ -91,18 +91,17 @@ export default function ForumDetalhe() {
         </div>
 
         {/* Reply box */}
-        <div className="bg-white rounded-xl p-6 border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-          <h3 className="text-xl font-bold text-[#1c1b1b] mb-4">Adicionar Resposta</h3>
+        <div className="bg-white rounded-xl p-6 border border-[#ebe5e4] shadow-card">
+          <h3 className="text-base font-bold text-[#1c1b1b] mb-4 font-sans">Adicionar Resposta</h3>
           <textarea
             rows={4}
             placeholder="Partilhe a sua perspectiva sobre este tema..."
-            className="w-full bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg p-4 focus:ring-1 focus:ring-[#8B1A1A] outline-none transition-all resize-none text-base"
-            style={{ fontFamily: 'Merriweather, serif' }}
+            className="w-full bg-[#f8f5f4] border border-[#ebe5e4] rounded-lg p-3.5 focus:bg-white focus:border-[#8B1A1A]/40 focus:ring-2 focus:ring-[#8B1A1A]/10 outline-none transition-all duration-150 resize-none text-sm font-serif placeholder:text-[#c4b5b3]"
           />
-          <div className="flex justify-end mt-4">
+          <div className="flex justify-end mt-3">
             <button
               onClick={() => navigate('/forum')}
-              className="bg-[#8B1A1A] text-white px-8 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-all"
+              className="bg-[#8B1A1A] text-white px-6 py-2.5 rounded-full text-sm font-semibold font-sans hover:bg-[#7a1616] hover:shadow-md active:scale-[0.98] transition-all duration-150"
             >
               Publicar Resposta
             </button>

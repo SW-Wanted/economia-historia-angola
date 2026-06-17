@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 
@@ -18,32 +18,32 @@ export default function Forum() {
 
   return (
     <AppShell title="Fórum de Discussão" searchPlaceholder="Pesquisar tópicos ou autores...">
-      <div className="px-10 py-16 max-w-[1160px] mx-auto space-y-6">
+      <div className="px-10 py-14 max-w-[1160px] mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-[48px] font-extrabold text-[#8B1A1A] leading-tight">Comunidade</h2>
-            <p className="text-base text-[#5d5f5d]" style={{ fontFamily: 'Merriweather, serif' }}>Debate, partilha e aprende com outros investigadores.</p>
+            <h2 className="text-[44px] font-extrabold text-[#8B1A1A] leading-tight tracking-tight font-sans">Comunidade</h2>
+            <p className="text-sm text-[#5d5f5d] mt-1 font-serif">Debate, partilha e aprende com outros investigadores.</p>
           </div>
           <button
             onClick={() => navigate('/forum/novo-topico')}
-            className="bg-[#8B1A1A] text-white px-6 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-sm"
+            className="bg-[#8B1A1A] text-white px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 hover:bg-[#7a1616] hover:shadow-md active:scale-[0.98] transition-all duration-150 font-sans"
           >
-            <span className="material-symbols-outlined">add</span>
+            <span className="material-symbols-outlined text-[18px]">add</span>
             Novo Tópico
           </button>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {filters.map((f) => (
             <button
               key={f}
               onClick={() => setActiveFilter(f)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 font-sans ${
                 activeFilter === f
-                  ? 'bg-[#8B1A1A] text-white'
-                  : 'bg-white border border-[#e0bfbc] text-[#5d5f5d] hover:border-[#8B1A1A] hover:text-[#8B1A1A]'
+                  ? 'bg-[#8B1A1A] text-white shadow-xs'
+                  : 'bg-white border border-[#e8e0de] text-[#5d5f5d] hover:border-[#8B1A1A]/40 hover:text-[#8B1A1A]'
               }`}
             >
               {f}
@@ -52,53 +52,64 @@ export default function Forum() {
         </div>
 
         {/* Topics */}
-        <div className="flex flex-col gap-6 mt-4">
+        <div className="flex flex-col gap-3 mt-2">
           {topics.map((topic) => (
             <div
               key={topic.id}
               onClick={() => navigate('/forum/detalhe')}
-              className="bg-white p-4 rounded-xl border border-[#e0bfbc] hover:shadow-lg transition-all flex flex-col md:flex-row gap-6 items-start group cursor-pointer"
+              className="bg-white px-5 py-4 rounded-xl border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 flex flex-col md:flex-row gap-4 items-start group cursor-pointer"
             >
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-[#eae7e7] flex items-center justify-center">
-                <span className="material-symbols-outlined text-[#8B1A1A]">person</span>
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-[#f0eded] to-[#e8e0de] flex items-center justify-center">
+                <span className="text-xs font-bold text-[#8B1A1A] font-sans leading-none">
+                  {topic.author.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                </span>
               </div>
-              <div className="flex-grow space-y-2">
-                <div className="flex items-center gap-3">
-                  <span className="px-2 py-0.5 bg-[#8B1A1A]/10 text-[#8B1A1A] rounded text-[10px] font-bold uppercase tracking-wider">{topic.category}</span>
-                  <span className="text-[#5d5f5d] text-xs">{topic.time}</span>
+              <div className="flex-grow space-y-1.5 min-w-0">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <span className="px-2 py-0.5 bg-[#fff5f4] text-[#8B1A1A] rounded text-[10px] font-bold uppercase tracking-[0.06em] font-sans">{topic.category}</span>
+                  <span className="text-[#b8a5a3] text-xs">{topic.time}</span>
                 </div>
-                <h3 className="text-xl font-semibold text-[#1c1b1b] group-hover:text-[#8B1A1A] transition-colors">{topic.title}</h3>
-                <p className="text-[#5d5f5d] text-base line-clamp-2" style={{ fontFamily: 'Merriweather, serif' }}>{topic.excerpt}</p>
-                <div className="pt-2 flex items-center gap-4 text-[#5d5f5d]">
-                  <span className="text-sm font-semibold text-[#1c1b1b]">{topic.author}</span>
+                <h3 className="text-base font-semibold text-[#1c1b1b] group-hover:text-[#8B1A1A] transition-colors duration-150 leading-snug font-sans">{topic.title}</h3>
+                <p className="text-sm text-[#5d5f5d] line-clamp-2 font-serif leading-relaxed">{topic.excerpt}</p>
+                <div className="pt-1 flex items-center gap-4 text-[#8c716e] flex-wrap">
+                  <span className="text-sm font-semibold text-[#1c1b1b] font-sans">{topic.author}</span>
                   <div className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">forum</span>
+                    <span className="material-symbols-outlined text-[15px]">forum</span>
                     <span className="text-xs">{topic.replies} respostas</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">visibility</span>
+                    <span className="material-symbols-outlined text-[15px]">visibility</span>
                     <span className="text-xs">{topic.views} visualizações</span>
                   </div>
                 </div>
               </div>
-              <button className="self-center p-2 rounded-full hover:bg-[#f0eded] transition-colors">
-                <span className="material-symbols-outlined text-[#5d5f5d]">chevron_right</span>
-              </button>
+              <div className="self-center p-1.5 rounded-full text-[#c4b5b3] group-hover:text-[#8B1A1A] group-hover:bg-[#fff5f4] transition-all duration-150 flex-shrink-0">
+                <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+              </div>
             </div>
           ))}
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-center items-center gap-2 pt-8">
-          <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e0bfbc] bg-white text-[#5d5f5d] hover:bg-[#f0eded] transition-colors">
-            <span className="material-symbols-outlined">chevron_left</span>
+        <div className="flex justify-center items-center gap-1.5 pt-6">
+          <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#e8e0de] bg-white text-[#5d5f5d] hover:bg-[#f0eded] hover:border-[#d4c5c3] transition-all duration-150">
+            <span className="material-symbols-outlined text-[18px]">chevron_left</span>
           </button>
           {[1, 2, 3].map((p) => (
-            <button key={p} className={`w-10 h-10 flex items-center justify-center rounded-lg font-bold text-sm ${p === 1 ? 'bg-[#8B1A1A] text-white' : 'border border-[#e0bfbc] bg-white text-[#5d5f5d] hover:bg-[#f0eded]'}`}>{p}</button>
+            <button
+              key={p}
+              className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-sm font-sans transition-all duration-150 ${
+                p === 1
+                  ? 'bg-[#8B1A1A] text-white shadow-xs'
+                  : 'border border-[#e8e0de] bg-white text-[#5d5f5d] hover:bg-[#f0eded]'
+              }`}
+            >
+              {p}
+            </button>
           ))}
-          <span className="text-[#5d5f5d] px-2">...</span>
-          <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-[#e0bfbc] bg-white text-[#5d5f5d] hover:bg-[#f0eded] transition-colors">
-            <span className="material-symbols-outlined">chevron_right</span>
+          <span className="text-[#c4b5b3] px-1 text-sm">···</span>
+          <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#e8e0de] bg-white text-[#5d5f5d] hover:bg-[#f0eded] hover:border-[#d4c5c3] transition-all duration-150">
+            <span className="material-symbols-outlined text-[18px]">chevron_right</span>
           </button>
         </div>
       </div>
