@@ -1,22 +1,55 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
+import { contentService } from '../services/api/content.service'
+import { extractList } from '../services/types/api.types'
+import type { Content } from '../services/types/api.types'
 
-const filters = ['Todos', 'História', 'Agricultura', 'Petróleo', 'Comércio', 'Arquivo']
+const FILTERS = ['Todos', 'História', 'Agricultura', 'Petróleo', 'Comércio', 'Arquivo']
 
-const cards = [
-  { type: 'featured', category: 'Categoria Especial', title: 'A Rota do Ouro Branco: O Legado do Algodão', desc: 'Uma análise profunda sobre como a produção de algodão moldou as fronteiras económicas e sociais no século XIX.', meta: '15 min de leitura', route: '/leitura/microtexto', span: 'col-span-12 md:col-span-8' },
-  { type: 'card', category: 'Microtexto', title: 'Estabilidade Cambial e o Passado', desc: 'Reflexões curtas sobre as flutuações da moeda nacional comparadas ao período colonial.', meta: 'Hoje', route: '/leitura/microtexto', span: 'col-span-12 md:col-span-4' },
-  { type: 'card', category: 'Microtexto', title: 'O Café de Uíge: Relevância Global', desc: 'Como a região se tornou o epicentro da exportação e o que resta dessa infraestrutura hoje.', meta: '2 dias atrás', route: '/leitura/microtexto', span: 'col-span-12 md:col-span-4' },
-  { type: 'featured', category: 'Análise de Setor', title: 'Petróleo: Da Descoberta ao Futuro', desc: 'A evolução da indústria petrolífera e sua influência na balança comercial angolana desde 1950.', meta: '22 min de leitura', route: '/leitura/jindungo', span: 'col-span-12 md:col-span-8' },
-  { type: 'archive', category: 'Arquivo', title: 'Tratado de Comércio de 1891', desc: 'Acesso digital exclusivo ao documento original que redefiniu as taxas alfandegárias de Luanda.', meta: 'Documento', route: '/documento/detalhe', span: 'col-span-12 md:col-span-4' },
-  { type: 'card', category: 'Microtexto', title: 'Auto-suficiência Alimentar', desc: 'O paradoxo da abundância: por que a agricultura ainda luta para atingir o seu potencial histórico.', meta: '1 semana atrás', route: '/leitura/microtexto', span: 'col-span-12 md:col-span-4' },
-  { type: 'video', category: 'Aula em Vídeo', title: 'Economia de Luanda Colonial: Das Feitorias ao Século XX', desc: 'Explore a evolução económica de Luanda desde as primeiras feitorias portuguesas até ao início do século XX.', meta: '45 min', route: '/aula-video', span: 'col-span-12 md:col-span-4' },
-]
+function getContentRoute(content: Content): string {
+  if (content.type === 'VIDEO' || content.type === 'PODCAST' || content.type === 'AUDIO') return '/aula-video'
+  if (content.type === 'PDF') return '/documento/detalhe'
+  if (content.isJindungo || content.type === 'ARTICLE') return '/leitura/jindungo'
+  return '/leitura/microtexto'
+}
+
+function getContentTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    VIDEO: 'Aula em Vídeo',
+    PODCAST: 'Podcast',
+    AUDIO: 'Áudio',
+    TEXT: 'Microtexto',
+    MICROTEXT: 'Microtexto',
+    PDF: 'Arquivo',
+    ARTICLE: 'Análise',
+  }
+  return labels[type] ?? type
+}
 
 export default function Explorar() {
   const navigate = useNavigate()
   const [activeFilter, setActiveFilter] = useState('Todos')
+  const [contents, setContents] = useState<Content[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    setLoading(true)
+    setError('')
+    contentService
+      .list({ limit: 20 })
+      .then((res) => setContents(extractList(res)))
+      .catch(() => setError('Não foi possível carregar os conteúdos. Tente novamente.'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const filtered = activeFilter === 'Todos'
+    ? contents
+    : contents.filter((c) =>
+        c.category?.name?.toLowerCase()?.includes(activeFilter.toLowerCase()) ||
+        c.tags.some((t) => t.tag.name?.toLowerCase()?.includes(activeFilter.toLowerCase()))
+      )
 
   return (
     <AppShell searchPlaceholder="Pesquisar por eras, setores ou eventos...">
@@ -30,7 +63,7 @@ export default function Explorar() {
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-2 mb-10">
-          {filters.map((f) => (
+          {FILTERS.map((f) => (
             <button
               key={f}
               onClick={() => setActiveFilter(f)}
@@ -45,94 +78,156 @@ export default function Explorar() {
           ))}
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-12 gap-5">
-          {cards.map((card) => (
-            <article
-              key={card.title}
-              onClick={() => navigate(card.route)}
-              className={`${card.span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex ${card.type === 'featured' ? 'flex-col md:flex-row' : 'flex-col'} group`}
+        {/* Loading */}
+        {loading && (
+          <div className="grid grid-cols-12 gap-5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className={`${i % 3 === 0 ? 'col-span-12 md:col-span-8' : 'col-span-12 md:col-span-4'} bg-white rounded-xl h-56 border border-[#ebe5e4] animate-pulse`} />
+            ))}
+          </div>
+        )}
+
+        {/* Error */}
+        {!loading && error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+            <span className="material-symbols-outlined text-red-400 text-3xl mb-2 block">error_outline</span>
+            <p className="text-sm text-red-700 font-sans">{error}</p>
+            <button
+              onClick={() => { setLoading(true); contentService.list({ limit: 20 }).then((r) => setContents(extractList(r))).catch(() => setError('Erro ao carregar.')).finally(() => setLoading(false)) }}
+              className="mt-3 text-xs font-semibold text-red-700 hover:underline"
             >
-              {card.type === 'featured' ? (
-                <>
-                  <div className="md:w-1/2 bg-gradient-to-br from-[#f0eded] to-[#e5e2e1] flex items-center justify-center min-h-[200px]">
-                    <span className="material-symbols-outlined text-[#8B1A1A]/20 group-hover:scale-105 transition-transform duration-300" style={{ fontSize: '90px' }}>history_edu</span>
-                  </div>
-                  <div className="md:w-1/2 p-7 flex flex-col justify-center">
-                    <span className="text-[#8B1A1A] text-[10px] font-bold mb-2 tracking-[0.1em] uppercase font-sans">{card.category}</span>
-                    <h3 className="text-xl font-bold mb-3 text-[#1c1b1b] font-sans leading-snug">{card.title}</h3>
-                    <p className="text-sm text-[#5d5f5d] mb-5 font-serif leading-relaxed">{card.desc}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[#8B1A1A] text-[16px]">schedule</span>
-                      <span className="text-xs text-[#8c716e]">{card.meta}</span>
+              Tentar novamente
+            </button>
+          </div>
+        )}
+
+        {/* Empty */}
+        {!loading && !error && filtered.length === 0 && (
+          <div className="bg-white rounded-xl p-10 border border-[#ebe5e4] text-center">
+            <span className="material-symbols-outlined text-[#8B1A1A]/30 text-5xl mb-3 block">search_off</span>
+            <p className="text-sm text-[#5d5f5d] font-serif">Nenhum conteúdo encontrado para este filtro.</p>
+          </div>
+        )}
+
+        {/* Content grid */}
+        {!loading && !error && filtered.length > 0 && (
+          <div className="grid grid-cols-12 gap-5">
+            {filtered.map((content, idx) => {
+              const isFeatured = idx % 3 === 0
+              const isVideo = content.type === 'VIDEO' || content.type === 'PODCAST' || content.type === 'AUDIO'
+              const isArchive = content.type === 'PDF'
+              const route = getContentRoute(content)
+              const typeLabel = getContentTypeLabel(content.type)
+              const span = isFeatured ? 'col-span-12 md:col-span-8' : 'col-span-12 md:col-span-4'
+
+              if (isFeatured) {
+                return (
+                  <article
+                    key={content.id}
+                    onClick={() => navigate(route)}
+                    className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col md:flex-row group`}
+                  >
+                    <div className="md:w-1/2 bg-gradient-to-br from-[#f0eded] to-[#e5e2e1] flex items-center justify-center min-h-[200px]">
+                      <span className="material-symbols-outlined text-[#8B1A1A]/20 group-hover:scale-105 transition-transform duration-300" style={{ fontSize: '90px' }}>history_edu</span>
                     </div>
-                  </div>
-                </>
-              ) : card.type === 'archive' ? (
-                <>
-                  <div className="h-44 bg-[#8B1A1A] flex items-center justify-center">
-                    <span className="material-symbols-outlined text-white/30 group-hover:scale-105 transition-transform duration-300" style={{ fontSize: '52px' }}>history_edu</span>
-                  </div>
-                  <div className="p-5 flex flex-col flex-grow">
-                    <div className="flex justify-between items-start mb-2.5">
-                      <span className="bg-[#fff5f4] text-[#8B1A1A] px-2.5 py-0.5 rounded-full text-[10px] font-bold font-sans">{card.category}</span>
-                      <span className="text-[#b8a5a3] text-xs">{card.meta}</span>
+                    <div className="md:w-1/2 p-7 flex flex-col justify-center">
+                      <span className="text-[#8B1A1A] text-[10px] font-bold mb-2 tracking-[0.1em] uppercase font-sans">{content.category?.name ?? typeLabel}</span>
+                      <h3 className="text-xl font-bold mb-3 text-[#1c1b1b] font-sans leading-snug">{content.title}</h3>
+                      {content.summary && <p className="text-sm text-[#5d5f5d] mb-5 font-serif leading-relaxed line-clamp-3">{content.summary}</p>}
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#8B1A1A] text-[16px]">person</span>
+                        <span className="text-xs text-[#8c716e]">{content.author?.name}</span>
+                      </div>
                     </div>
-                    <h3 className="text-base font-semibold mb-2 text-[#1c1b1b] font-sans leading-snug">{card.title}</h3>
-                    <p className="text-sm text-[#5d5f5d] line-clamp-3 flex-grow font-serif leading-relaxed">{card.desc}</p>
-                    <div className="mt-auto pt-4 text-[#8B1A1A] text-sm font-semibold font-sans flex items-center gap-1">
-                      Ver Arquivo <span className="material-symbols-outlined text-[16px]">download</span>
+                  </article>
+                )
+              }
+
+              if (isArchive) {
+                return (
+                  <article
+                    key={content.id}
+                    onClick={() => navigate(route)}
+                    className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col group`}
+                  >
+                    <div className="h-44 bg-[#8B1A1A] flex items-center justify-center">
+                      <span className="material-symbols-outlined text-white/30 group-hover:scale-105 transition-transform duration-300" style={{ fontSize: '52px' }}>history_edu</span>
                     </div>
-                  </div>
-                </>
-              ) : card.type === 'video' ? (
-                <>
-                  <div className="h-44 bg-[#1c1b1b] flex items-center justify-center overflow-hidden relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#8B1A1A]/25 to-transparent" />
-                    <span className="material-symbols-outlined text-white/25 group-hover:scale-105 transition-transform duration-300 relative z-10" style={{ fontSize: '64px', fontVariationSettings: "'FILL' 1" }}>play_circle</span>
-                  </div>
-                  <div className="p-5 flex flex-col flex-grow">
-                    <div className="flex justify-between items-start mb-2.5">
-                      <span className="bg-[#fff5f4] text-[#8B1A1A] px-2.5 py-0.5 rounded-full text-[10px] font-bold font-sans">{card.category}</span>
-                      <span className="text-[#b8a5a3] text-xs">{card.meta}</span>
+                    <div className="p-5 flex flex-col flex-grow">
+                      <div className="flex justify-between items-start mb-2.5">
+                        <span className="bg-[#fff5f4] text-[#8B1A1A] px-2.5 py-0.5 rounded-full text-[10px] font-bold font-sans">Arquivo</span>
+                        <span className="text-[#b8a5a3] text-xs">{content.author?.name}</span>
+                      </div>
+                      <h3 className="text-base font-semibold mb-2 text-[#1c1b1b] font-sans leading-snug">{content.title}</h3>
+                      {content.summary && <p className="text-sm text-[#5d5f5d] line-clamp-3 flex-grow font-serif leading-relaxed">{content.summary}</p>}
+                      <div className="mt-auto pt-4 text-[#8B1A1A] text-sm font-semibold font-sans flex items-center gap-1">
+                        Ver Arquivo <span className="material-symbols-outlined text-[16px]">download</span>
+                      </div>
                     </div>
-                    <h3 className="text-base font-semibold mb-2 text-[#1c1b1b] font-sans leading-snug">{card.title}</h3>
-                    <p className="text-sm text-[#5d5f5d] line-clamp-3 flex-grow font-serif leading-relaxed">{card.desc}</p>
-                    <div className="mt-auto pt-4 text-[#8B1A1A] text-sm font-semibold font-sans flex items-center gap-1">
-                      Ver Aula <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                  </article>
+                )
+              }
+
+              if (isVideo) {
+                return (
+                  <article
+                    key={content.id}
+                    onClick={() => navigate(route)}
+                    className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col group`}
+                  >
+                    <div className="h-44 bg-[#1c1b1b] flex items-center justify-center overflow-hidden relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#8B1A1A]/25 to-transparent" />
+                      <span className="material-symbols-outlined text-white/25 group-hover:scale-105 transition-transform duration-300 relative z-10" style={{ fontSize: '64px', fontVariationSettings: "'FILL' 1" }}>play_circle</span>
                     </div>
-                  </div>
-                </>
-              ) : (
-                <>
+                    <div className="p-5 flex flex-col flex-grow">
+                      <div className="flex justify-between items-start mb-2.5">
+                        <span className="bg-[#fff5f4] text-[#8B1A1A] px-2.5 py-0.5 rounded-full text-[10px] font-bold font-sans">{typeLabel}</span>
+                        {content.durationSeconds && <span className="text-[#b8a5a3] text-xs">{Math.round(content.durationSeconds / 60)} min</span>}
+                      </div>
+                      <h3 className="text-base font-semibold mb-2 text-[#1c1b1b] font-sans leading-snug">{content.title}</h3>
+                      {content.summary && <p className="text-sm text-[#5d5f5d] line-clamp-3 flex-grow font-serif leading-relaxed">{content.summary}</p>}
+                      <div className="mt-auto pt-4 text-[#8B1A1A] text-sm font-semibold font-sans flex items-center gap-1">
+                        Ver Aula <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                      </div>
+                    </div>
+                  </article>
+                )
+              }
+
+              return (
+                <article
+                  key={content.id}
+                  onClick={() => navigate(route)}
+                  className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col group`}
+                >
                   <div className="h-44 bg-gradient-to-br from-[#f0eded] to-[#e8e2e1] flex items-center justify-center overflow-hidden">
                     <span className="material-symbols-outlined text-[#8B1A1A]/20 group-hover:scale-105 transition-transform duration-300" style={{ fontSize: '64px' }}>article</span>
                   </div>
                   <div className="p-5 flex flex-col flex-grow">
                     <div className="flex justify-between items-start mb-2.5">
-                      <span className="bg-[#fff5f4] text-[#8B1A1A] px-2.5 py-0.5 rounded-full text-[10px] font-bold font-sans">{card.category}</span>
-                      <span className="text-[#b8a5a3] text-xs">{card.meta}</span>
+                      <span className="bg-[#fff5f4] text-[#8B1A1A] px-2.5 py-0.5 rounded-full text-[10px] font-bold font-sans">{content.category?.name ?? typeLabel}</span>
+                      <span className="text-[#b8a5a3] text-xs">{content.author?.name}</span>
                     </div>
-                    <h3 className="text-base font-semibold mb-2 text-[#1c1b1b] font-sans leading-snug">{card.title}</h3>
-                    <p className="text-sm text-[#5d5f5d] line-clamp-3 flex-grow font-serif leading-relaxed">{card.desc}</p>
+                    <h3 className="text-base font-semibold mb-2 text-[#1c1b1b] font-sans leading-snug">{content.title}</h3>
+                    {content.summary && <p className="text-sm text-[#5d5f5d] line-clamp-3 flex-grow font-serif leading-relaxed">{content.summary}</p>}
                     <div className="mt-auto pt-4 text-[#8B1A1A] text-sm font-semibold font-sans flex items-center gap-1">
                       Ler Agora <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                     </div>
                   </div>
-                </>
-              )}
-            </article>
-          ))}
+                </article>
+              )
+            })}
 
-          {/* Quote card */}
-          <article className="col-span-12 md:col-span-4 bg-[#8B1A1A] rounded-xl p-7 flex flex-col justify-center text-white shadow-card">
-            <span className="material-symbols-outlined text-3xl mb-4 opacity-60" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
-            <blockquote className="text-base italic mb-5 leading-relaxed font-serif">
-              "A economia de amanhã é construída sobre as fundações das lições que decidimos ignorar no passado."
-            </blockquote>
-            <cite className="text-xs not-italic text-white/60 font-sans">— Análise Editorial, 2024</cite>
-          </article>
-        </div>
+            {/* Static quote card */}
+            <article className="col-span-12 md:col-span-4 bg-[#8B1A1A] rounded-xl p-7 flex flex-col justify-center text-white shadow-card">
+              <span className="material-symbols-outlined text-3xl mb-4 opacity-60" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
+              <blockquote className="text-base italic mb-5 leading-relaxed font-serif">
+                "A economia de amanhã é construída sobre as fundações das lições que decidimos ignorar no passado."
+              </blockquote>
+              <cite className="text-xs not-italic text-white/60 font-sans">— Análise Editorial, 2024</cite>
+            </article>
+          </div>
+        )}
       </div>
     </AppShell>
   )

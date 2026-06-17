@@ -8,7 +8,7 @@ Frontend web da plataforma **Economia com História — Angola**.
 
 | Tecnologia | Versão | Uso |
 |---|---|---|
-| Next.js | 14 (App Router) | Framework principal |
+| React.js | 14 (App Router) | Framework principal |
 | TypeScript | 5.x | Tipagem estática |
 | TailwindCSS | 3.x | Estilização |
 | shadcn/ui | latest | Componentes de UI |

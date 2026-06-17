@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import Icon from './Icon'
+import { useAuth, getUserInitials, getUserRole } from '../contexts/AuthContext'
 
 const navItems = [
   { to: '/dashboard', label: 'Início', icon: 'home' },
@@ -25,13 +26,18 @@ const bottomItems = [
   { to: '/ajuda', label: 'Ajuda', icon: 'help' },
 ]
 
-interface SidebarProps {
-  userName?: string
-  userRole?: string
-}
-
-export default function Sidebar({ userName = 'Carlos Tchípia', userRole = 'Investigador' }: SidebarProps) {
+export default function Sidebar() {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
+
+  const displayName = user?.name ?? 'Utilizador'
+  const initials = getUserInitials(user)
+  const role = getUserRole(user)
+
+  async function handleLogout() {
+    await logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-[280px] bg-[#fcf9f8] border-r border-[#ebe5e4] flex flex-col z-50 overflow-y-auto">
@@ -56,13 +62,11 @@ export default function Sidebar({ userName = 'Carlos Tchípia', userRole = 'Inve
           className="flex items-center gap-3 border-t border-[#ebe5e4] pt-4 mt-1 hover:bg-[#f0eded] rounded-xl px-2 py-2 transition-all duration-150 -mx-2 group"
         >
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#8B1A1A]/15 to-[#8B1A1A]/5 border border-[#e0bfbc] flex items-center justify-center flex-shrink-0">
-            <span className="text-[11px] font-bold text-[#8B1A1A] font-sans leading-none">
-              {userName.split(' ').map(n => n[0]).slice(0, 2).join('')}
-            </span>
+            <span className="text-[11px] font-bold text-[#8B1A1A] font-sans leading-none">{initials}</span>
           </div>
           <div className="flex flex-col overflow-hidden text-left min-w-0">
-            <span className="font-semibold text-sm text-[#1c1b1b] truncate font-sans leading-snug">{userName}</span>
-            <span className="text-[10px] uppercase tracking-[0.08em] text-[#8c716e] font-sans font-semibold">{userRole}</span>
+            <span className="font-semibold text-sm text-[#1c1b1b] truncate font-sans leading-snug">{displayName}</span>
+            <span className="text-[10px] uppercase tracking-[0.08em] text-[#8c716e] font-sans font-semibold">{role}</span>
           </div>
           <Icon name="chevron_right" className="text-[#c4b5b3] text-[18px] ml-auto flex-shrink-0 group-hover:text-[#8B1A1A] transition-colors duration-150" />
         </button>
@@ -144,7 +148,7 @@ export default function Sidebar({ userName = 'Carlos Tchípia', userRole = 'Inve
           </NavLink>
         ))}
         <button
-          onClick={() => navigate('/confirmacao/saida')}
+          onClick={handleLogout}
           className="flex items-center gap-3 text-[#5d5f5d] px-3 py-2 hover:bg-[#f0eded] hover:text-[#ba1a1a] transition-all duration-150 rounded-lg text-xs font-semibold font-sans w-full text-left mt-1"
         >
           <Icon name="logout" className="text-[18px] flex-shrink-0" />

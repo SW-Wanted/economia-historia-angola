@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from './Sidebar'
+import { useAuth, getUserInitials } from '../contexts/AuthContext'
 
 interface AppShellProps {
   children: ReactNode
@@ -11,12 +12,15 @@ interface AppShellProps {
 
 export default function AppShell({ children, title, searchPlaceholder = 'Pesquisar arquivo...', showSearch = true }: AppShellProps) {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [query, setQuery] = useState('')
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     if (query.trim()) navigate('/pesquisa')
   }
+
+  const initials = getUserInitials(user)
 
   return (
     <div className="bg-[#F2F2F0] text-[#1c1b1b] min-h-screen font-sans">
@@ -56,7 +60,7 @@ export default function AppShell({ children, title, searchPlaceholder = 'Pesquis
               className="w-9 h-9 rounded-full overflow-hidden border border-[#e0bfbc] bg-gradient-to-br from-[#8B1A1A]/15 to-[#8B1A1A]/5 flex items-center justify-center hover:border-[#8B1A1A]/60 hover:shadow-xs transition-all duration-150"
               aria-label="Perfil"
             >
-              <span className="text-[11px] font-bold text-[#8B1A1A] font-sans leading-none">CT</span>
+              <span className="text-[11px] font-bold text-[#8B1A1A] font-sans leading-none">{initials}</span>
             </button>
           </div>
         </div>
