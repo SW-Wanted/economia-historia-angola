@@ -10,10 +10,15 @@ build/
 *.tmp
 ~$*.docx
 
-# Web (Next.js) --->
+# Web (React.js) --->
 web/.next/
 web/out/
 web/.vercel/
+web/.yarn
+web/yarn.lock
+web/.pnp.*
+web/.pnp.js
+web/.pnp.cjs
 
 #  Mobile (Flutter) --->
 mobile/.dart_tool/
