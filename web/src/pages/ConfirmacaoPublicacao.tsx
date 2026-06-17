@@ -1,10 +1,41 @@
-﻿export default function ConfirmacaoPublicacao() {
+﻿import { useNavigate } from 'react-router-dom'
+import AppShell from '../components/AppShell'
+
+export default function ConfirmacaoPublicacao() {
+  const navigate = useNavigate()
+
   return (
-    <iframe
-      src="/pages_extraidas/confirma_o_de_publica_o/code.html"
-      title="Confirmação de Publicação"
-      className="w-full border-0"
-      style={{ height: '100vh', display: 'block' }}
-    />
+    <AppShell showSearch={false}>
+      <div className="px-10 py-16 max-w-[600px] mx-auto text-center">
+        <div className="bg-white rounded-xl p-12 border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="material-symbols-outlined text-green-600" style={{ fontSize: '48px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          </div>
+          <h1 className="text-[32px] font-bold text-[#1c1b1b] mb-3">Artigo Submetido!</h1>
+          <p className="text-lg text-[#5d5f5d] mb-8" style={{ fontFamily: 'Merriweather, serif' }}>
+            O seu artigo foi submetido com sucesso e está a aguardar revisão editorial. Será notificado quando for publicado.
+          </p>
+          <div className="bg-[#f6f3f2] rounded-xl p-4 mb-8 text-left">
+            <p className="text-xs font-semibold text-[#5d5f5d] uppercase tracking-widest mb-1">Próximos passos</p>
+            <ul className="space-y-2 text-sm text-[#1c1b1b]" style={{ fontFamily: 'Merriweather, serif' }}>
+              <li className="flex items-center gap-2"><span className="material-symbols-outlined text-[#8B1A1A] text-[16px]">schedule</span>Revisão editorial (2–5 dias úteis)</li>
+              <li className="flex items-center gap-2"><span className="material-symbols-outlined text-[#8B1A1A] text-[16px]">notifications</span>Notificação por email</li>
+              <li className="flex items-center gap-2"><span className="material-symbols-outlined text-[#8B1A1A] text-[16px]">public</span>Publicação no arquivo</li>
+            </ul>
+          </div>
+          <div className="flex gap-4">
+            <button onClick={() => navigate('/gestao/submeter-artigo')}
+              className="flex-1 border border-[#8B1A1A] text-[#8B1A1A] text-sm font-semibold py-4 rounded-full hover:bg-[#f0eded] transition-colors">
+              Submeter Outro
+            </button>
+            <button onClick={() => navigate('/dashboard')}
+              className="flex-1 bg-[#8B1A1A] text-white text-sm font-semibold py-4 rounded-full hover:opacity-90 transition-all flex items-center justify-center gap-2">
+              Ir ao Dashboard
+              <span className="material-symbols-outlined text-[18px]">home</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </AppShell>
   )
 }
