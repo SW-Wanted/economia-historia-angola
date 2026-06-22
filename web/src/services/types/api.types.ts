@@ -59,6 +59,15 @@ export interface Content {
   updatedAt: string
 }
 
+export interface ProgressContent {
+  id: string
+  title: string
+  type: ContentType
+  thumbnailUrl: string | null
+  category?: { id: string; name: string; slug: string } | null
+  tags?: { tag: { id: string; name: string; slug: string } }[]
+}
+
 export interface Progress {
   id: string
   contentId: string
@@ -66,7 +75,7 @@ export interface Progress {
   positionSeconds: number | null
   completedAt: string | null
   updatedAt: string
-  content: Content
+  content: ProgressContent
 }
 
 export interface Notification {
