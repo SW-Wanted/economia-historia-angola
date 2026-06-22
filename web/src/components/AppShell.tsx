@@ -17,7 +17,7 @@ export default function AppShell({ children, title, searchPlaceholder = 'Pesquis
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
-    if (query.trim()) navigate('/pesquisa')
+    if (query.trim()) navigate(`/pesquisa?q=${encodeURIComponent(query.trim())}`)
   }
 
   const initials = getUserInitials(user)

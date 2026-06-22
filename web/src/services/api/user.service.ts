@@ -3,11 +3,8 @@ import type { User, Progress } from '../types/api.types'
 
 export interface UpdateProfileDto {
   name?: string
-  username?: string
   bio?: string
   region?: string
-  province?: string
-  municipality?: string
   school?: string
   avatarUrl?: string
 }

@@ -6,8 +6,8 @@ export const quizService = {
 
   start: (quizId: string) => api.post<QuizAttempt>(`/quizzes/${quizId}/start`),
 
-  answer: (attemptId: string, questionId: string, optionId?: string, textAnswer?: string) =>
-    api.post<void>(`/quizzes/attempts/${attemptId}/answers`, { questionId, optionId, textAnswer }),
+  answer: (attemptId: string, questionId: string, optionId: string) =>
+    api.post<void>(`/quizzes/attempts/${attemptId}/answers`, { questionId, optionId }),
 
   submit: (attemptId: string) =>
     api.post<QuizAttempt>(`/quizzes/attempts/${attemptId}/submit`),
