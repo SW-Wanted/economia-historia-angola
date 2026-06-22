@@ -9,6 +9,9 @@ class ContentItem {
     required this.icon,
     this.locked = false,
     this.featured = false,
+    this.body = const [],
+    this.author = 'Prof. Carlos Lopes',
+    this.province,
   });
 
   final String title;
@@ -18,4 +21,11 @@ class ContentItem {
   final IconData icon;
   final bool locked;
   final bool featured;
+
+  /// Parágrafos do corpo do texto (usado no ecrã de leitura).
+  final List<String> body;
+  final String author;
+  final String? province;
+
+  bool get isJindungo => category.toLowerCase().contains('jindungo');
 }

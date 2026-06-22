@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
-import '../widgets/bottom_nav_shell.dart';
 import '../widgets/eh_button.dart';
 import '../widgets/eh_card.dart';
 import '../widgets/screen_frame.dart';
@@ -12,9 +11,10 @@ class QuizHubScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavShell(
-      index: 1,
-      child: ScreenFrame(title: 'Quiz Hub', paddingBottom: 96, children: [
+    return ScreenFrame(
+      title: 'Quiz Hub',
+      showBack: true,
+      children: [
         EhCard(
           color: AppColors.primary,
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -31,7 +31,7 @@ class QuizHubScreen extends StatelessWidget {
         const _Stat(label: 'Pontuacao media', value: '74%'),
         const SizedBox(height: 12),
         const _Stat(label: 'Participantes da semana', value: '1.284'),
-      ]),
+      ],
     );
   }
 }
