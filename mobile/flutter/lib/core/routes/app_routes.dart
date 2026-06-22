@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../screens/admin_panel_screen.dart';
 import '../../screens/admin_users_screen.dart';
+import '../../screens/community_screen.dart';
 import '../../screens/create_topic_screen.dart';
+import '../../screens/discussion_room_screen.dart';
+import '../../screens/faq_screen.dart';
+import '../../screens/feedback_screen.dart';
 import '../../screens/dashboard_screen.dart';
 import '../../screens/edit_profile_screen.dart';
 import '../../screens/explore_screen.dart';
@@ -10,6 +14,7 @@ import '../../screens/forgot_password_screen.dart';
 import '../../screens/forum_screen.dart';
 import '../../screens/forum_topic_screen.dart';
 import '../../screens/help_center_screen.dart';
+import '../../screens/invite_screen.dart';
 import '../../screens/landing_screen.dart';
 import '../../screens/library_screen.dart';
 import '../../screens/login_screen.dart';
@@ -32,10 +37,12 @@ import '../../screens/ranking_detail_screen.dart';
 import '../../screens/ranking_screen.dart';
 import '../../screens/reading_screen.dart';
 import '../../screens/register_screen.dart';
+import '../../screens/report_screen.dart';
 import '../../screens/restricted_content_screen.dart';
 import '../../screens/search_results_screen.dart';
 import '../../screens/splash_screen.dart';
 import '../../screens/subscription_screen.dart';
+import '../../screens/super_admin_screen.dart';
 import '../../screens/video_player_screen.dart';
 
 class AppRoutes {
@@ -83,6 +90,13 @@ class AppRoutes {
   static const subscription = '/subscription';
   static const manageForums = '/manage-forums';
   static const adminUsers = '/admin-users';
+  static const superAdmin = '/super-admin';
+  static const community = '/community';
+  static const discussionRoom = '/discussion-room';
+  static const faq = '/faq';
+  static const feedback = '/feedback';
+  static const invite = '/invite';
+  static const report = '/report';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = switch (settings.name) {
@@ -128,6 +142,13 @@ class AppRoutes {
       subscription => const SubscriptionScreen(),
       manageForums => const ManageForumsScreen(),
       adminUsers => const AdminUsersScreen(),
+      superAdmin => const SuperAdminScreen(),
+      community => const CommunityScreen(),
+      discussionRoom => const DiscussionRoomScreen(),
+      faq => const FaqScreen(),
+      feedback => const FeedbackScreen(),
+      invite => const InviteScreen(),
+      report => const ReportScreen(),
       _ => const SplashScreen(),
     };
 

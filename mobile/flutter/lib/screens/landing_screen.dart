@@ -47,6 +47,30 @@ class LandingScreen extends StatelessWidget {
       const SizedBox(height: 12),
       _Feature(icon: Icons.quiz_outlined, title: 'Quiz', text: 'Teste os seus conhecimentos e aprenda de forma interativa.'),
       const SizedBox(height: 32),
+      const SectionTitle('Explore sem conta'),
+      const SizedBox(height: 14),
+      Row(children: [
+        Expanded(child: EhCard(
+          onTap: () => Navigator.pushNamed(context, AppRoutes.forum),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Icon(Icons.forum_outlined, color: AppColors.primary),
+            const SizedBox(height: 10),
+            Text('Foruns publicos', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15)),
+            Text('Leia os debates abertos.', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+          ]),
+        )),
+        const SizedBox(width: 12),
+        Expanded(child: EhCard(
+          onTap: () => Navigator.pushNamed(context, AppRoutes.faq),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Icon(Icons.help_outline, color: AppColors.primary),
+            const SizedBox(height: 10),
+            Text('Perguntas frequentes', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15)),
+            Text('Tire as suas duvidas.', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+          ]),
+        )),
+      ]),
+      const SizedBox(height: 32),
       EhButton(label: 'Entrar', onPressed: () => Navigator.pushNamed(context, AppRoutes.login)),
     ]);
   }

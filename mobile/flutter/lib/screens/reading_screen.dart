@@ -34,6 +34,20 @@ class ReadingScreen extends StatelessWidget {
       const _Bullet('Moeda, Estado e confianca estao profundamente ligados.'),
       const _Bullet('Politica cambial afeta precos, comercio e investimento.'),
       const _Bullet('A memoria historica ajuda a ler problemas atuais.'),
+      const SizedBox(height: 16),
+      EhCard(
+        onTap: () => Navigator.pushNamed(context, '/discussion-room'),
+        color: AppColors.surfaceLow,
+        child: Row(children: [
+          const Icon(Icons.chat_bubble_outline, color: AppColors.primary),
+          const SizedBox(width: 14),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Sala de Discussao', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15)),
+            Text('Debata este tema com a turma.', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+          ])),
+          const Icon(Icons.chevron_right, color: AppColors.outline),
+        ]),
+      ),
     ]);
   }
 }

@@ -25,7 +25,6 @@ class EconomiaHistoriaApp extends StatelessWidget {
       notifier: AppState(),
       child: MaterialApp(
         // 3. Configurações necessárias para o DevicePreview funcionar perfeitamente
-        useInheritedMediaQuery: true,
         locale: DevicePreview.locale(context),
         builder: DevicePreview.appBuilder,
         
