@@ -4,6 +4,8 @@ import '../models/app_user.dart';
 import '../models/comment.dart';
 import '../models/community_category.dart';
 import '../models/content_item.dart';
+import '../models/content_report.dart';
+import '../models/dashboard_data.dart';
 import '../models/forum_topic.dart';
 import '../models/notification_item.dart';
 import '../models/quiz_question.dart';
@@ -15,10 +17,23 @@ class MockDataService {
   AppUser currentUser() => const AppUser(
         name: 'Manuel Kiala',
         initials: 'MK',
-        role: UserRole.admin,
+        role: UserRole.superAdmin,
         course: 'Economia',
+        email: 'manuel.kiala@isptec.co.ao',
         points: 980,
       );
+
+  /// Utilizadores reais para gestao e atribuicao de papeis.
+  /// Cada utilizador tem um unico papel coerente em toda a aplicacao.
+  List<AppUser> users() => const [
+        AppUser(name: 'Manuel Kiala', initials: 'MK', role: UserRole.superAdmin, course: 'Economia', email: 'manuel.kiala@isptec.co.ao', points: 980),
+        AppUser(name: 'Carlos Lopes', initials: 'CL', role: UserRole.admin, course: 'Historia Economica', email: 'carlos.lopes@isptec.co.ao', points: 1120),
+        AppUser(name: 'Ana Muachia', initials: 'AM', role: UserRole.professor, course: 'Historia', email: 'ana.muachia@isptec.co.ao', points: 910),
+        AppUser(name: 'Dr. Kambinda', initials: 'DK', role: UserRole.escritor, course: 'Economia Politica', email: 'kambinda@isptec.co.ao', points: 860),
+        AppUser(name: 'Joao Domingos', initials: 'JD', role: UserRole.normal, course: 'Gestao', email: 'joao.domingos@isptec.co.ao', points: 870),
+        AppUser(name: 'Beatriz Neto', initials: 'BN', role: UserRole.normal, course: 'Ciencias Sociais', email: 'beatriz.neto@isptec.co.ao', points: 790),
+        AppUser(name: 'Elisa Kiala', initials: 'EK', role: UserRole.normal, course: 'Direito', email: 'elisa.kiala@isptec.co.ao', points: 740),
+      ];
 
   List<ContentItem> contents() => const [
         ContentItem(
@@ -74,6 +89,31 @@ class MockDataService {
       ];
 
   ContentItem jindungo() => contents().firstWhere((c) => c.locked);
+
+  // ----- Dashboard -----
+
+  ContinueReading continueReading() => const ContinueReading(
+        title: 'Ciclos Economicos: 1975–1992',
+        subtitle: 'Modulo 3 • Aula 4',
+        progress: .65,
+      );
+
+  WeeklyQuiz weeklyQuiz() => const WeeklyQuiz(
+        title: 'Quiz da Semana',
+        description: 'Teste os seus conhecimentos sobre o Cafe em Angola.',
+      );
+
+  List<DashboardHighlight> highlights() => const [
+        DashboardHighlight(tag: 'ECONOMIA', title: 'Impacto do Setor Petrolifero', icon: Icons.oil_barrel_outlined),
+        DashboardHighlight(tag: 'HISTORIA', title: 'Rotas de Comercio no Seculo XIX', icon: Icons.route_outlined),
+      ];
+
+  FeaturedJindungo featuredJindungo() => const FeaturedJindungo(
+        quote: '"A analise definitiva sobre a inflacao estrutural e a heranca colonial nos mercados do Lobito."',
+        source: 'Dr. Kambinda, 2023',
+      );
+
+  String didYouKnow() => 'Na decada de 1970, Angola chegou a ser o quarto maior produtor mundial de cafe.';
 
   List<ForumTopic> topics() => const [
         ForumTopic(
@@ -153,6 +193,34 @@ class MockDataService {
         NotificationItem(title: 'Ana respondeu ao seu topico', body: '"O impacto das ferrovias no sec. XX?"', timeAgo: 'há 2 horas', kind: NotificationKind.forum, unread: true),
         NotificationItem(title: 'Texto Jindungo publicado', body: 'Petroleo e poder ja esta disponivel para membros.', timeAgo: 'há 1 dia', kind: NotificationKind.content),
         NotificationItem(title: 'Pedido de acesso aprovado', body: 'O seu acesso ao Nucleo Jindungo foi aprovado.', timeAgo: 'há 2 dias', kind: NotificationKind.access),
+      ];
+
+  /// Denuncias pendentes de revisao pela moderacao.
+  List<ContentReport> reports() => const [
+        ContentReport(
+          title: 'Comentario em "Impacto da Inflacao na Historia de Angola"',
+          target: ReportTarget.comment,
+          reason: ReportReason.offensive,
+          excerpt: 'Linguagem ofensiva dirigida a outro participante do debate.',
+          timeAgo: 'há 1 hora',
+          count: 3,
+        ),
+        ContentReport(
+          title: 'Topico "Grupo de Estudo: Plano Real vs Kwanza"',
+          target: ReportTarget.topic,
+          reason: ReportReason.misinformation,
+          excerpt: 'Dados sobre cambio apresentados sem fontes e considerados enganosos.',
+          timeAgo: 'há 4 horas',
+          count: 2,
+        ),
+        ContentReport(
+          title: 'Comentario em "O Comercio no Reino do Kongo"',
+          target: ReportTarget.comment,
+          reason: ReportReason.spam,
+          excerpt: 'Publicacao repetida com ligacoes externas de publicidade.',
+          timeAgo: 'há 1 dia',
+          count: 1,
+        ),
       ];
 
   List<String> provinces() => const [

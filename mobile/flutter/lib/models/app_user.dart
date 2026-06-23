@@ -16,6 +16,7 @@ class AppUser {
     required this.initials,
     required this.role,
     required this.course,
+    this.email = '',
     this.points = 0,
   });
 
@@ -23,6 +24,7 @@ class AppUser {
   final String initials;
   final UserRole role;
   final String course;
+  final String email;
   final int points;
 
   bool get isAdmin => role == UserRole.admin || role == UserRole.superAdmin;

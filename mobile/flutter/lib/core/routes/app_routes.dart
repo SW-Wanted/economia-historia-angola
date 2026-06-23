@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../models/app_user.dart';
 import '../../screens/admin_panel_screen.dart';
 import '../../screens/admin_users_screen.dart';
 import '../../screens/community_screen.dart';
@@ -23,6 +24,7 @@ import '../../screens/map_screen.dart';
 import '../../screens/notifications_screen.dart';
 import '../../screens/offline_mode_screen.dart';
 import '../../screens/onboarding_screen.dart';
+import '../../screens/pending_reports_screen.dart';
 import '../../screens/private_forum_access_screen.dart';
 import '../../screens/profile_screen.dart';
 import '../../screens/province_contents_screen.dart';
@@ -97,6 +99,7 @@ class AppRoutes {
   static const feedback = '/feedback';
   static const invite = '/invite';
   static const report = '/report';
+  static const pendingReports = '/pending-reports';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = switch (settings.name) {
@@ -142,13 +145,14 @@ class AppRoutes {
       subscription => const SubscriptionScreen(),
       manageForums => const ManageForumsScreen(),
       adminUsers => const AdminUsersScreen(),
-      superAdmin => const SuperAdminScreen(),
+      superAdmin => SuperAdminScreen(user: settings.arguments is AppUser ? settings.arguments as AppUser : null),
       community => const CommunityScreen(),
       discussionRoom => const DiscussionRoomScreen(),
       faq => const FaqScreen(),
       feedback => const FeedbackScreen(),
       invite => const InviteScreen(),
       report => const ReportScreen(),
+      pendingReports => const PendingReportsScreen(),
       _ => const SplashScreen(),
     };
 

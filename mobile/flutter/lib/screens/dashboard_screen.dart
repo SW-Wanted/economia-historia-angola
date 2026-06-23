@@ -16,6 +16,9 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final data = const MockDataService();
     final user = data.currentUser();
+    final resume = data.continueReading();
+    final quiz = data.weeklyQuiz();
+    final jindungo = data.featuredJindungo();
     return BottomNavShell(
       index: 0,
       child: ScreenFrame(
@@ -48,24 +51,24 @@ class DashboardScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Ciclos Economicos: 1975–1992',
+                      Text(resume.title,
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15)),
                       const SizedBox(height: 2),
-                      Text('Modulo 3 • Aula 4',
+                      Text(resume.subtitle,
                           style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
                       const SizedBox(height: 10),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(99),
-                        child: const LinearProgressIndicator(
-                          value: .65, minHeight: 7,
+                        child: LinearProgressIndicator(
+                          value: resume.progress, minHeight: 7,
                           backgroundColor: AppColors.surfaceHighest,
-                          valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                          valueColor: const AlwaysStoppedAnimation(AppColors.primary),
                         ),
                       ),
                       const SizedBox(height: 6),
                       Align(
                         alignment: Alignment.centerRight,
-                        child: Text('65% concluido',
+                        child: Text('${resume.percent}% concluido',
                             style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700)),
                       ),
                     ],
@@ -91,9 +94,9 @@ class DashboardScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Quiz da Semana', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
+                        Text(quiz.title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
                         const SizedBox(height: 6),
-                        Text('Teste os seus conhecimentos sobre o Cafe em Angola.',
+                        Text(quiz.description,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
                         const SizedBox(height: 16),
                         FilledButton(
@@ -117,16 +120,20 @@ class DashboardScreen extends StatelessWidget {
           )),
           const SizedBox(height: 14),
           SizedBox(
-            height: 168,
-            child: ListView(
+            height: 184,
+            child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              children: [
-                _Highlight(tag: 'ECONOMIA', title: 'Impacto do Setor Petrolifero', icon: Icons.oil_barrel_outlined,
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.reading)),
-                const SizedBox(width: 14),
-                _Highlight(tag: 'HISTORIA', title: 'Rotas de Comercio no Seculo XIX', icon: Icons.route_outlined,
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.reading)),
-              ],
+              itemCount: data.highlights().length,
+              separatorBuilder: (_, _) => const SizedBox(width: 14),
+              itemBuilder: (context, i) {
+                final h = data.highlights()[i];
+                return _Highlight(
+                  tag: h.tag,
+                  title: h.title,
+                  icon: h.icon,
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.reading),
+                );
+              },
             ),
           ),
           const SizedBox(height: 24),
@@ -139,8 +146,8 @@ class DashboardScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 12),
           JindungoCard(
-            quote: '"A analise definitiva sobre a inflacao estrutural e a heranca colonial nos mercados do Lobito."',
-            source: 'Dr. Kambinda, 2023',
+            quote: jindungo.quote,
+            source: jindungo.source,
             onTap: () => Navigator.pushNamed(context, AppRoutes.restrictedContent),
             onAction: () => Navigator.pushNamed(context, AppRoutes.subscription),
           ),
@@ -193,7 +200,7 @@ class DashboardScreen extends StatelessWidget {
                 Text('Sabia que?', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary)),
               ]),
               const SizedBox(height: 10),
-              const Text('Na decada de 1970, Angola chegou a ser o quarto maior produtor mundial de cafe.'),
+              Text(data.didYouKnow()),
             ]),
           ),
         ],
@@ -228,23 +235,30 @@ class _Highlight extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  height: 86,
+                  height: 78,
+                  width: double.infinity,
+                  alignment: Alignment.center,
                   decoration: const BoxDecoration(
                     color: AppColors.surfaceContainer,
                     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                   ),
-                  child: Icon(icon, color: AppColors.primary, size: 36),
+                  child: Icon(icon, color: AppColors.primary, size: 34),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(tag, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.primary, letterSpacing: 1)),
-                      const SizedBox(height: 4),
-                      Text(title, maxLines: 2, overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 14)),
-                    ],
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(tag, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.primary, letterSpacing: 1)),
+                        const SizedBox(height: 4),
+                        Flexible(
+                          child: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 14, height: 1.2)),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
