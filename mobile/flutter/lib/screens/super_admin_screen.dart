@@ -10,20 +10,27 @@ import '../widgets/section_title.dart';
 /// Painel de permissões (Super Admin) — T-25.
 /// "No inicio todos podem tudo, mas precisa de uma permissao" (resumo de sala).
 class SuperAdminScreen extends StatefulWidget {
-  const SuperAdminScreen({super.key});
+  const SuperAdminScreen({super.key, this.user});
+
+  /// Utilizador cujas permissoes estao a ser editadas.
+  final AppUser? user;
 
   @override
   State<SuperAdminScreen> createState() => _SuperAdminScreenState();
 }
 
 class _SuperAdminScreenState extends State<SuperAdminScreen> {
-  UserRole _role = UserRole.escritor;
-  bool _canPublishJindungo = false;
-  bool _canModerate = false;
-  bool _canApproveAccess = true;
+  late UserRole _role = widget.user?.role ?? UserRole.escritor;
+  late bool _canPublishJindungo = _role.index >= UserRole.professor.index;
+  late bool _canModerate = _role.index >= UserRole.admin.index;
+  late bool _canApproveAccess = _role == UserRole.professor || _role.index >= UserRole.admin.index;
 
   @override
   Widget build(BuildContext context) {
+    final user = widget.user;
+    final name = user?.name ?? 'Ana Muachia';
+    final email = (user != null && user.email.isNotEmpty) ? user.email : 'ana.muachia@isptec.co.ao';
+    final initials = user?.initials ?? 'AM';
     return ScreenFrame(
       title: 'Permissoes do Utilizador',
       showBack: true,
@@ -31,15 +38,15 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
         EhCard(
           child: Row(
             children: [
-              const CircleAvatar(radius: 26, backgroundColor: AppColors.surfaceContainer,
-                  child: Text('AM', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800))),
+              CircleAvatar(radius: 26, backgroundColor: AppColors.surfaceContainer,
+                  child: Text(initials, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800))),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Ana Muachia', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 17)),
-                    Text('ana.muachia@isptec.co.ao', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary)),
+                    Text(name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 17)),
+                    Text(email, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary)),
                   ],
                 ),
               ),

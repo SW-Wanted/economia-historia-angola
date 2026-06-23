@@ -40,9 +40,11 @@ class AdminPanelScreen extends StatelessWidget {
         const SizedBox(height: 12),
         AdminActionCard(icon: Icons.people_alt_outlined, title: 'Gestao de utilizadores', subtitle: 'Ver e editar perfis.', onTap: () => Navigator.pushNamed(context, AppRoutes.adminUsers)),
         const SizedBox(height: 10),
-        AdminActionCard(icon: Icons.shield_outlined, title: 'Permissoes (Super Admin)', subtitle: 'Definir papeis e acessos.', onTap: () => Navigator.pushNamed(context, AppRoutes.superAdmin)),
-        const SizedBox(height: 10),
-        AdminActionCard(icon: Icons.report_gmailerrorred_outlined, title: 'Denuncias pendentes', subtitle: 'Rever conteudo reportado.', onTap: () => Navigator.pushNamed(context, AppRoutes.manageForums)),
+        if (user.role == UserRole.superAdmin) ...[
+          AdminActionCard(icon: Icons.shield_outlined, title: 'Permissoes (Super Admin)', subtitle: 'Definir papeis e acessos.', onTap: () => Navigator.pushNamed(context, AppRoutes.adminUsers)),
+          const SizedBox(height: 10),
+        ],
+        AdminActionCard(icon: Icons.report_gmailerrorred_outlined, title: 'Denuncias pendentes', subtitle: 'Rever conteudo reportado.', onTap: () => Navigator.pushNamed(context, AppRoutes.pendingReports)),
       ],
     );
   }
