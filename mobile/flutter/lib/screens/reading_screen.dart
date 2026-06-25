@@ -23,8 +23,8 @@ class ReadingScreen extends StatelessWidget {
         color: unlocked ? AppColors.primary : AppColors.surface,
         child: Text(
           unlocked
-              ? 'Conteudo exclusivo desbloqueado. A economia petrolifera angolana mostra como recursos naturais, instituicoes e escolhas publicas se encontram. O desafio central e transformar renda em capacidade produtiva duradoura.'
-              : 'O Kwanza e mais do que uma unidade monetaria: e um simbolo de soberania. Entender a sua historia ajuda a perceber inflacao, cambio, salarios e poder de compra no quotidiano angolano.',
+              ? 'Conteúdo exclusivo desbloqueado. A economia petrolífera angolana mostra como recursos naturais, instituições e escolhas públicas se encontram. O desafio central e transformar renda em capacidade produtiva duradoura.'
+              : 'O Kwanza e mais do que uma unidade monetaria: e um simbolo de soberania. Entender a sua história ajuda a perceber inflacao, cambio, salarios e poder de compra no quotidiano angolano.',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: unlocked ? Colors.white : AppColors.text, height: 1.7),
         ),
       ),
@@ -33,7 +33,21 @@ class ReadingScreen extends StatelessWidget {
       const SizedBox(height: 10),
       const _Bullet('Moeda, Estado e confianca estao profundamente ligados.'),
       const _Bullet('Politica cambial afeta precos, comercio e investimento.'),
-      const _Bullet('A memoria historica ajuda a ler problemas atuais.'),
+      const _Bullet('A memória histórica ajuda a ler problemas atuais.'),
+      const SizedBox(height: 16),
+      EhCard(
+        onTap: () => Navigator.pushNamed(context, '/discussion-room'),
+        color: AppColors.surfaceLow,
+        child: Row(children: [
+          const Icon(Icons.chat_bubble_outline, color: AppColors.primary),
+          const SizedBox(width: 14),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Sala de Discussão', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15)),
+            Text('Debata este tema com a turma.', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+          ])),
+          const Icon(Icons.chevron_right, color: AppColors.outline),
+        ]),
+      ),
     ]);
   }
 }

@@ -17,7 +17,7 @@ class RankingDetailScreen extends StatelessWidget {
         const Text('Mestre Jindungo • 980 pontos'),
       ])),
       const SizedBox(height: 18),
-      const EhCard(child: Text('Conquistas: 12 quizzes completos, 8 leituras premium, 4 topicos criados no forum.')),
+      const EhCard(child: Text('Conquistas: 12 quizzes completos, 8 leituras premium, 4 tópicos criados no fórum.')),
     ]);
   }
 }

@@ -9,7 +9,7 @@ class VideoPlayerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenFrame(title: 'Player de Video', showBack: true, children: [
+    return ScreenFrame(title: 'Player de Vídeo', showBack: true, children: [
       EhCard(
         color: Colors.black,
         padding: EdgeInsets.zero,
@@ -22,7 +22,7 @@ class VideoPlayerScreen extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 18),
-      Text('A historia do Caminho de Ferro de Benguela', style: Theme.of(context).textTheme.headlineMedium),
+      Text('A história do Caminho de Ferro de Benguela', style: Theme.of(context).textTheme.headlineMedium),
       const SizedBox(height: 8),
       const Text('Aula visual com marcadores, transcricao e progresso guardado.'),
     ]);
