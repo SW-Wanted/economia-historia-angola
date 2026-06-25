@@ -29,6 +29,7 @@ export interface User {
   municipality: string | null
   school: string | null
   roles: { role: { code: string; name: string } }[]
+  permissions: string[]
   createdAt: string
   updatedAt: string
 }
@@ -86,6 +87,19 @@ export interface Notification {
   data: Record<string, unknown> | null
   readAt: string | null
   createdAt: string
+}
+
+export interface Comment {
+  id: string
+  text: string
+  contentId: string | null
+  roomId: string | null
+  parentId: string | null
+  visibility: string
+  status: string
+  author: { id: string; name: string; avatarUrl: string | null }
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Forum {

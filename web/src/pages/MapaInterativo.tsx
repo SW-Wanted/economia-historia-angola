@@ -8,6 +8,13 @@ const provinces = [
   'Huíla', 'Kwanza Sul', 'Kwanza Norte', 'Uíge', 'Zaire', 'Cabinda',
 ]
 
+const PROVINCE_ARTICLE_COUNT: Record<string, number> = {
+  'Luanda': 24, 'Benguela': 15, 'Huambo': 12, 'Bié': 8, 'Malanje': 7,
+  'Lunda Norte': 18, 'Lunda Sul': 14, 'Moxico': 6, 'Cuando Cubango': 5,
+  'Cunene': 4, 'Namibe': 9, 'Huíla': 11, 'Kwanza Sul': 10,
+  'Kwanza Norte': 7, 'Uíge': 8, 'Zaire': 6, 'Cabinda': 13,
+}
+
 const eras = ['Pré-Colonial', 'Era Colonial (1575–1975)', 'Pós-Independência (1975–2002)', 'Era Contemporânea (2002–)']
 
 export default function MapaInterativo() {
@@ -82,7 +89,7 @@ export default function MapaInterativo() {
             {provinces.map((province) => (
               <button
                 key={province}
-                onClick={() => navigate('/conteudos/provincia')}
+                onClick={() => navigate('/conteudos/provincia', { state: { province } })}
                 onMouseEnter={() => setHoveredProvince(province)}
                 onMouseLeave={() => setHoveredProvince(null)}
                 className={`bg-white p-4 rounded-xl border transition-all cursor-pointer text-left group ${
@@ -99,7 +106,7 @@ export default function MapaInterativo() {
                     {province}
                   </span>
                 </div>
-                <p className="text-xs text-[#5d5f5d]">{Math.floor(Math.random() * 20) + 3} artigos</p>
+                <p className="text-xs text-[#5d5f5d]">{PROVINCE_ARTICLE_COUNT[province] ?? 5} artigos</p>
               </button>
             ))}
           </div>

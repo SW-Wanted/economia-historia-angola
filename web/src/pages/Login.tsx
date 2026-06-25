@@ -11,6 +11,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [oauthInfo, setOauthInfo] = useState('')
 
   const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/dashboard'
 
@@ -130,21 +131,26 @@ export default function Login() {
             <div className="h-px flex-grow bg-[#ebe5e4]" />
           </div>
 
-          <div className="w-full flex gap-3 mb-7">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-[#e8e0de] rounded-lg text-sm font-semibold text-[#1c1b1b] hover:bg-[#f8f5f4] hover:border-[#d4c5c3] transition-all duration-150 font-sans"
-            >
-              <span className="material-symbols-outlined text-[18px] text-[#5d5f5d]">language</span>
-              Google
-            </button>
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-[#e8e0de] rounded-lg text-sm font-semibold text-[#1c1b1b] hover:bg-[#f8f5f4] hover:border-[#d4c5c3] transition-all duration-150 font-sans"
-            >
-              <span className="material-symbols-outlined text-[18px] text-[#5d5f5d]">work</span>
-              LinkedIn
-            </button>
+          <div className="w-full flex flex-col gap-2 mb-7">
+            <div className="flex gap-3">
+              <button
+                onClick={() => setOauthInfo('O acesso via Google ainda não está disponível. Por favor, utilize o email e palavra-passe.')}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-[#e8e0de] rounded-lg text-sm font-semibold text-[#8c716e] hover:bg-[#f8f5f4] hover:border-[#d4c5c3] transition-all duration-150 font-sans opacity-60 cursor-not-allowed"
+              >
+                <span className="material-symbols-outlined text-[18px] text-[#5d5f5d]">language</span>
+                Google
+              </button>
+              <button
+                onClick={() => setOauthInfo('O acesso via LinkedIn ainda não está disponível. Por favor, utilize o email e palavra-passe.')}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-[#e8e0de] rounded-lg text-sm font-semibold text-[#8c716e] hover:bg-[#f8f5f4] hover:border-[#d4c5c3] transition-all duration-150 font-sans opacity-60 cursor-not-allowed"
+              >
+                <span className="material-symbols-outlined text-[18px] text-[#5d5f5d]">work</span>
+                LinkedIn
+              </button>
+            </div>
+            {oauthInfo && (
+              <p className="text-xs text-[#8c716e] bg-[#f8f5f4] border border-[#e8e0de] rounded-lg px-3 py-2 text-center font-sans">{oauthInfo}</p>
+            )}
           </div>
 
           <div className="text-center pt-5 border-t border-[#ebe5e4] w-full">

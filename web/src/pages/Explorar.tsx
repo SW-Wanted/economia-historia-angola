@@ -124,7 +124,7 @@ export default function Explorar() {
                 return (
                   <article
                     key={content.id}
-                    onClick={() => navigate(route)}
+                    onClick={() => navigate(route, { state: { contentId: content.id } })}
                     className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col md:flex-row group`}
                   >
                     <div className="md:w-1/2 bg-gradient-to-br from-[#f0eded] to-[#e5e2e1] flex items-center justify-center min-h-[200px]">
@@ -147,7 +147,7 @@ export default function Explorar() {
                 return (
                   <article
                     key={content.id}
-                    onClick={() => navigate(route)}
+                    onClick={() => navigate(route, { state: { contentId: content.id } })}
                     className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col group`}
                   >
                     <div className="h-44 bg-[#8B1A1A] flex items-center justify-center">
@@ -172,7 +172,7 @@ export default function Explorar() {
                 return (
                   <article
                     key={content.id}
-                    onClick={() => navigate(route)}
+                    onClick={() => navigate(route, { state: { contentId: content.id } })}
                     className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col group`}
                   >
                     <div className="h-44 bg-[#1c1b1b] flex items-center justify-center overflow-hidden relative">
@@ -197,7 +197,7 @@ export default function Explorar() {
               return (
                 <article
                   key={content.id}
-                  onClick={() => navigate(route)}
+                  onClick={() => navigate(route, { state: { contentId: content.id } })}
                   className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col group`}
                 >
                   <div className="h-44 bg-gradient-to-br from-[#f0eded] to-[#e8e2e1] flex items-center justify-center overflow-hidden">

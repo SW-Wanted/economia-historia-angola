@@ -95,7 +95,7 @@ export default function ResultadosPesquisa() {
               return (
                 <div
                   key={r.id}
-                  onClick={() => navigate(route)}
+                  onClick={() => navigate(route, { state: { contentId: r.id } })}
                   className="bg-white rounded-xl p-6 border border-[#e0bfbc] hover:border-[#8B1A1A] hover:shadow-md transition-all cursor-pointer group flex items-start gap-5"
                 >
                   <div className="w-12 h-12 bg-[#eae7e7] rounded-lg flex items-center justify-center flex-shrink-0">

@@ -1,7 +1,9 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import AppShell from '../components/AppShell'
+import { quizService } from '../services/api/quiz.service'
 
+// Static questions — no GET /quizzes/:id endpoint exists in the backend
 const questions = [
   {
     q: 'Em que ano foi introduzida a moeda Kwanza em Angola?',
@@ -22,10 +24,24 @@ const questions = [
 
 export default function QuizEmCurso() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const quizId = (location.state as { quizId?: string } | null)?.quizId
+
+  const [attemptId, setAttemptId] = useState<string | null>(null)
   const [current, setCurrent] = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
   const [answered, setAnswered] = useState(false)
   const [score, setScore] = useState(0)
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!quizId) return
+    quizService.start(quizId)
+      .then((attempt) => setAttemptId(attempt.id))
+      .catch(() => {
+        // Attempt may already be started; proceed anyway with static questions
+      })
+  }, [quizId])
 
   const q = questions[current]
   const isLast = current === questions.length - 1
@@ -37,14 +53,45 @@ export default function QuizEmCurso() {
     if (idx === q.correct) setScore((s) => s + 1)
   }
 
-  function handleNext() {
+  async function handleNext() {
     if (isLast) {
-      navigate('/quiz/resultado')
+      setSubmitting(true)
+      if (attemptId) {
+        try {
+          await quizService.submit(attemptId)
+        } catch {
+          // ignore — navigate to result regardless
+        }
+      }
+      setSubmitting(false)
+      navigate('/quiz/resultado', {
+        state: {
+          score,
+          total: questions.length,
+          quizTitle: 'Quiz de História',
+        },
+      })
     } else {
       setCurrent((c) => c + 1)
       setSelected(null)
       setAnswered(false)
     }
+  }
+
+  if (!quizId) {
+    return (
+      <AppShell title="Quiz em Curso" showSearch={false}>
+        <div className="px-10 py-16 max-w-[600px] mx-auto text-center">
+          <span className="material-symbols-outlined text-[#8B1A1A]/30 text-5xl mb-3 block">quiz</span>
+          <h2 className="text-xl font-bold text-[#1c1b1b] mb-2 font-sans">Nenhum quiz selecionado</h2>
+          <p className="text-sm text-[#5d5f5d] font-serif mb-6">Escolha um quiz na lista para o iniciar.</p>
+          <button onClick={() => navigate('/quiz')}
+            className="bg-[#8B1A1A] text-white px-6 py-2.5 rounded-full text-sm font-semibold font-sans hover:bg-[#7a1616] transition-all">
+            Ver Quizzes
+          </button>
+        </div>
+      </AppShell>
+    )
   }
 
   return (
@@ -60,8 +107,8 @@ export default function QuizEmCurso() {
             Sair do Quiz
           </button>
           <div className="flex items-center gap-2 text-sm text-[#5d5f5d] bg-[#f0eded] px-3 py-1.5 rounded-lg">
-            <span className="material-symbols-outlined text-[16px]">timer</span>
-            <span className="font-semibold font-sans">8:42</span>
+            <span className="material-symbols-outlined text-[16px]">quiz</span>
+            <span className="font-semibold font-sans">{questions.length} questões</span>
           </div>
         </div>
 
@@ -85,7 +132,7 @@ export default function QuizEmCurso() {
             <div className="w-9 h-9 bg-[#8B1A1A] rounded-lg flex items-center justify-center text-white font-bold text-sm font-sans flex-shrink-0">
               {current + 1}
             </div>
-            <span className="text-[10px] font-semibold text-[#8c716e] uppercase tracking-[0.1em] font-sans">A Evolução da Moeda Colonial</span>
+            <span className="text-[10px] font-semibold text-[#8c716e] uppercase tracking-[0.1em] font-sans">Questão</span>
           </div>
           <h2 className="text-xl font-bold text-[#1c1b1b] mb-7 font-sans leading-snug">{q.q}</h2>
 
@@ -126,10 +173,17 @@ export default function QuizEmCurso() {
           <div className="flex justify-end">
             <button
               onClick={handleNext}
-              className="bg-[#8B1A1A] text-white px-7 py-3 rounded-full text-sm font-bold font-sans flex items-center gap-2 hover:bg-[#7a1616] hover:shadow-md active:scale-[0.98] transition-all duration-150"
+              disabled={submitting}
+              className="bg-[#8B1A1A] text-white px-7 py-3 rounded-full text-sm font-bold font-sans flex items-center gap-2 hover:bg-[#7a1616] hover:shadow-md active:scale-[0.98] transition-all duration-150 disabled:opacity-60"
             >
-              {isLast ? 'Ver Resultado' : 'Próxima Questão'}
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              {submitting ? (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  {isLast ? 'Ver Resultado' : 'Próxima Questão'}
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </>
+              )}
             </button>
           </div>
         )}

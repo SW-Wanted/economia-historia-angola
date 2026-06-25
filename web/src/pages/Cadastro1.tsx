@@ -6,6 +6,7 @@ export default function Cadastro1() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
+  const [oauthInfo, setOauthInfo] = useState('')
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -78,12 +79,15 @@ export default function Cadastro1() {
               </button>
               <button
                 type="button"
-                onClick={() => navigate('/dashboard')}
-                className="w-full flex items-center justify-center gap-2.5 border border-[#e8e0de] text-[#1c1b1b] py-3 rounded-full text-sm font-semibold font-sans hover:bg-[#f8f5f4] hover:border-[#d4c5c3] transition-all duration-150"
+                onClick={() => setOauthInfo('O registo via Google ainda não está disponível. Por favor, preencha o formulário.')}
+                className="w-full flex items-center justify-center gap-2.5 border border-[#e8e0de] text-[#8c716e] py-3 rounded-full text-sm font-semibold font-sans hover:bg-[#f8f5f4] transition-all duration-150 opacity-60 cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-[18px] text-[#5d5f5d]">language</span>
                 Registar com Google
               </button>
+              {oauthInfo && (
+                <p className="text-xs text-[#8c716e] bg-[#f8f5f4] border border-[#e8e0de] rounded-lg px-3 py-2 text-center font-sans">{oauthInfo}</p>
+              )}
             </div>
           </form>
 

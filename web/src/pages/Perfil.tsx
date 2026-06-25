@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
-import { useAuth, getUserInitials, getUserRole } from '../contexts/AuthContext'
+import { useAuth, getUserInitials, getUserRole, canCreateContent } from '../contexts/AuthContext'
 import { userService } from '../services/api/user.service'
+import { getErrorMessage } from '../utils/errors'
 import type { Progress } from '../services/types/api.types'
 
 const tabs = ['Leituras', 'Contribuições', 'Medalhas', 'Atividade']
@@ -25,10 +26,18 @@ function getContentTypeRoute(type: string): string {
 
 export default function Perfil() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const [activeTab, setActiveTab] = useState('Leituras')
   const [progress, setProgress] = useState<Progress[]>([])
   const [loadingProgress, setLoadingProgress] = useState(true)
+
+  // Inline edit state
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editBio, setEditBio] = useState('')
+  const [editRegion, setEditRegion] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
     userService
@@ -38,6 +47,33 @@ export default function Perfil() {
       .finally(() => setLoadingProgress(false))
   }, [])
 
+  function startEdit() {
+    setEditName(user?.name ?? '')
+    setEditBio(user?.bio ?? '')
+    setEditRegion(user?.region ?? '')
+    setSaveError('')
+    setEditing(true)
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    setSaveError('')
+    try {
+      await userService.updateProfile({
+        name: editName.trim() || undefined,
+        bio: editBio.trim() || undefined,
+        region: editRegion.trim() || undefined,
+      })
+      await refreshUser()
+      setEditing(false)
+    } catch (err) {
+      setSaveError(getErrorMessage(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const canContribute = canCreateContent(user)
   const initials = getUserInitials(user)
   const role = getUserRole(user)
   const memberSince = user?.createdAt
@@ -65,41 +101,98 @@ export default function Perfil() {
               <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
             </div>
           </div>
-          <div className="flex-1 space-y-3 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-[28px] font-bold text-[#1c1b1b] font-sans tracking-tight">{user?.name ?? '—'}</h1>
-              <span className="bg-[#fff5f4] text-[#8B1A1A] px-3 py-1 rounded-full text-xs font-semibold font-sans border border-[#8B1A1A]/15">{role}</span>
-            </div>
-            {user?.bio ? (
-              <p className="text-sm text-[#5d5f5d] max-w-2xl font-serif leading-relaxed">{user.bio}</p>
-            ) : (
-              <p className="text-sm text-[#8c716e] font-serif italic">Sem bio definida.</p>
-            )}
-            <div className="flex flex-wrap gap-5 pt-1">
-              <div className="flex items-center gap-1.5 text-[#8c716e]">
-                <span className="material-symbols-outlined text-[16px]">calendar_today</span>
-                <span className="text-xs font-sans">Membro desde {memberSince}</span>
+
+          {editing ? (
+            <div className="flex-1 space-y-3 min-w-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-[#58413f] font-sans">Nome</label>
+                  <input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg px-3 py-2 text-sm font-sans focus:ring-1 focus:ring-[#8B1A1A] outline-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-[#58413f] font-sans">Região</label>
+                  <input
+                    value={editRegion}
+                    onChange={(e) => setEditRegion(e.target.value)}
+                    placeholder="ex: Luanda"
+                    className="bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg px-3 py-2 text-sm font-sans focus:ring-1 focus:ring-[#8B1A1A] outline-none"
+                  />
+                </div>
               </div>
-              {user?.region && (
-                <div className="flex items-center gap-1.5 text-[#8c716e]">
-                  <span className="material-symbols-outlined text-[16px]">location_on</span>
-                  <span className="text-xs font-sans">{user.region}</span>
-                </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#58413f] font-sans">Bio</label>
+                <textarea
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  rows={2}
+                  placeholder="Escreva uma breve bio..."
+                  className="bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg px-3 py-2 text-sm font-serif focus:ring-1 focus:ring-[#8B1A1A] outline-none resize-none"
+                />
+              </div>
+              {saveError && (
+                <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 font-sans">{saveError}</p>
               )}
-              {user?.email && (
-                <div className="flex items-center gap-1.5 text-[#8c716e]">
-                  <span className="material-symbols-outlined text-[16px]">mail</span>
-                  <span className="text-xs font-sans">{user.email}</span>
-                </div>
-              )}
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => setEditing(false)}
+                  className="border border-[#e0bfbc] text-[#5d5f5d] px-4 py-2 rounded-full text-xs font-semibold font-sans hover:bg-[#f0eded] transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="bg-[#8B1A1A] text-white px-5 py-2 rounded-full text-xs font-semibold font-sans hover:bg-[#7a1616] disabled:opacity-60 transition-all flex items-center gap-1.5"
+                >
+                  {saving && <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                  Guardar
+                </button>
+              </div>
             </div>
-          </div>
-          <button
-            onClick={() => navigate('/perfil')}
-            className="bg-[#8B1A1A] text-white px-5 py-2.5 rounded-full text-sm font-semibold font-sans hover:bg-[#7a1616] active:scale-[0.98] transition-all duration-150 whitespace-nowrap"
-          >
-            Editar Perfil
-          </button>
+          ) : (
+            <div className="flex-1 space-y-3 min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-[28px] font-bold text-[#1c1b1b] font-sans tracking-tight">{user?.name ?? '—'}</h1>
+                <span className="bg-[#fff5f4] text-[#8B1A1A] px-3 py-1 rounded-full text-xs font-semibold font-sans border border-[#8B1A1A]/15">{role}</span>
+              </div>
+              {user?.bio ? (
+                <p className="text-sm text-[#5d5f5d] max-w-2xl font-serif leading-relaxed">{user.bio}</p>
+              ) : (
+                <p className="text-sm text-[#8c716e] font-serif italic">Sem bio definida.</p>
+              )}
+              <div className="flex flex-wrap gap-5 pt-1">
+                <div className="flex items-center gap-1.5 text-[#8c716e]">
+                  <span className="material-symbols-outlined text-[16px]">calendar_today</span>
+                  <span className="text-xs font-sans">Membro desde {memberSince}</span>
+                </div>
+                {user?.region && (
+                  <div className="flex items-center gap-1.5 text-[#8c716e]">
+                    <span className="material-symbols-outlined text-[16px]">location_on</span>
+                    <span className="text-xs font-sans">{user.region}</span>
+                  </div>
+                )}
+                {user?.email && (
+                  <div className="flex items-center gap-1.5 text-[#8c716e]">
+                    <span className="material-symbols-outlined text-[16px]">mail</span>
+                    <span className="text-xs font-sans">{user.email}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {!editing && (
+            <button
+              onClick={startEdit}
+              className="bg-[#8B1A1A] text-white px-5 py-2.5 rounded-full text-sm font-semibold font-sans hover:bg-[#7a1616] active:scale-[0.98] transition-all duration-150 whitespace-nowrap"
+            >
+              Editar Perfil
+            </button>
+          )}
         </section>
 
         {/* Stats */}
@@ -164,7 +257,7 @@ export default function Perfil() {
                 {displayReadings.map((r) => (
                   <div
                     key={r.id}
-                    onClick={() => navigate(getContentTypeRoute(r.content.type))}
+                    onClick={() => navigate(getContentTypeRoute(r.content.type), { state: { contentId: r.content.id } })}
                     className="bg-white rounded-xl overflow-hidden shadow-card border border-[#ebe5e4] hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer"
                   >
                     <div className="h-36 bg-gradient-to-br from-[#f0eded] to-[#e5e2e1] flex items-center justify-center">
@@ -216,12 +309,18 @@ export default function Perfil() {
             <span className="material-symbols-outlined text-[#8B1A1A]/20 mb-3" style={{ fontSize: '64px' }}>cloud_upload</span>
             <h3 className="text-2xl font-bold text-[#1c1b1b] mb-1.5 font-sans">Contribuições</h3>
             <p className="text-sm text-[#5d5f5d] mb-6 font-serif leading-relaxed max-w-sm mx-auto">Submeta documentos históricos para o arquivo digital.</p>
-            <button
-              onClick={() => navigate('/gestao/submeter-artigo')}
-              className="bg-[#8B1A1A] text-white px-7 py-2.5 rounded-full text-sm font-semibold font-sans hover:bg-[#7a1616] active:scale-[0.98] transition-all duration-150"
-            >
-              Submeter Novo Documento
-            </button>
+            {canContribute ? (
+              <button
+                onClick={() => navigate('/gestao/submeter-artigo')}
+                className="bg-[#8B1A1A] text-white px-7 py-2.5 rounded-full text-sm font-semibold font-sans hover:bg-[#7a1616] active:scale-[0.98] transition-all duration-150"
+              >
+                Submeter Novo Documento
+              </button>
+            ) : (
+              <p className="text-xs text-[#8c716e] font-sans">
+                A submissão de documentos está disponível para escritores e professores.
+              </p>
+            )}
           </div>
         )}
 

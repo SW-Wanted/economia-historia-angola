@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import Icon from './Icon'
-import { useAuth, getUserInitials, getUserRole } from '../contexts/AuthContext'
+import { useAuth, getUserInitials, getUserRole, canAccessContentManagement, canManageUsers } from '../contexts/AuthContext'
 
 const navItems = [
   { to: '/dashboard', label: 'Início', icon: 'home' },
@@ -11,7 +11,7 @@ const navItems = [
   { to: '/perfil', label: 'Perfil', icon: 'person' },
 ]
 
-const secondaryItems = [
+const contentItems = [
   { to: '/biblioteca', label: 'Biblioteca', icon: 'library_books' },
   { to: '/favoritos', label: 'Favoritos', icon: 'bookmark' },
   { to: '/estatisticas', label: 'Estatísticas', icon: 'bar_chart' },
@@ -20,11 +20,32 @@ const secondaryItems = [
 ]
 
 const bottomItems = [
-  { to: '/gestao/conteudos', label: 'Gestão', icon: 'admin_panel_settings' },
   { to: '/guia-rapido', label: 'Guia Rápido', icon: 'rocket_launch' },
   { to: '/guia-investigacao', label: 'Investigação', icon: 'science' },
   { to: '/ajuda', label: 'Ajuda', icon: 'help' },
 ]
+
+function SecondaryNavItem({ to, label, icon }: { to: string; label: string; icon: string }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-xs font-semibold font-sans ${
+          isActive
+            ? 'bg-[#8B1A1A]/8 text-[#8B1A1A]'
+            : 'text-[#5d5f5d] hover:bg-[#f0eded] hover:text-[#1c1b1b]'
+        }`
+      }
+    >
+      {({ isActive }) => (
+        <>
+          <Icon name={icon} filled={isActive} className="text-[18px] flex-shrink-0" />
+          {label}
+        </>
+      )}
+    </NavLink>
+  )
+}
 
 export default function Sidebar() {
   const navigate = useNavigate()
@@ -33,6 +54,9 @@ export default function Sidebar() {
   const displayName = user?.name ?? 'Utilizador'
   const initials = getUserInitials(user)
   const role = getUserRole(user)
+
+  const canManageContent = canAccessContentManagement(user)
+  const showUserMgmt = canManageUsers(user)
 
   async function handleLogout() {
     await logout()
@@ -101,51 +125,32 @@ export default function Sidebar() {
             Conteúdos
           </p>
           <nav className="flex flex-col gap-0.5">
-            {secondaryItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-xs font-semibold font-sans ${
-                    isActive
-                      ? 'bg-[#8B1A1A]/8 text-[#8B1A1A]'
-                      : 'text-[#5d5f5d] hover:bg-[#f0eded] hover:text-[#1c1b1b]'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <Icon name={item.icon} filled={isActive} className="text-[18px] flex-shrink-0" />
-                    {item.label}
-                  </>
-                )}
-              </NavLink>
+            {contentItems.map((item) => (
+              <SecondaryNavItem key={item.to} {...item} />
             ))}
           </nav>
         </div>
+
+        {/* Management navigation — only for ADMIN / SUPER_ADMIN / MODERATOR */}
+        {canManageContent && (
+          <div>
+            <p className="text-[10px] font-bold text-[#b8a5a3] uppercase tracking-[0.1em] px-3 mb-1.5 font-sans">
+              Gestão
+            </p>
+            <nav className="flex flex-col gap-0.5">
+              <SecondaryNavItem to="/gestao/conteudos" label="Gerir Conteúdos" icon="admin_panel_settings" />
+              {showUserMgmt && (
+                <SecondaryNavItem to="/gestao/utilizadores" label="Utilizadores" icon="manage_accounts" />
+              )}
+            </nav>
+          </div>
+        )}
       </div>
 
       {/* Bottom section */}
       <div className="border-t border-[#ebe5e4] p-4 flex flex-col gap-0.5">
         {bottomItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-xs font-semibold font-sans ${
-                isActive
-                  ? 'bg-[#8B1A1A]/8 text-[#8B1A1A]'
-                  : 'text-[#5d5f5d] hover:bg-[#f0eded] hover:text-[#1c1b1b]'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <Icon name={item.icon} filled={isActive} className="text-[18px] flex-shrink-0" />
-                {item.label}
-              </>
-            )}
-          </NavLink>
+          <SecondaryNavItem key={item.to} {...item} />
         ))}
         <button
           onClick={handleLogout}

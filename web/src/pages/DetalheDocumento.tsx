@@ -1,10 +1,82 @@
-﻿import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import AppShell from '../components/AppShell'
+import { contentService } from '../services/api/content.service'
+import { useAuth } from '../contexts/AuthContext'
+import { getErrorMessage } from '../utils/errors'
+import type { Content } from '../services/types/api.types'
 
 export default function DetalheDocumento() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { user } = useAuth()
+  const contentId = (location.state as { contentId?: string } | null)?.contentId
+
+  const [content, setContent] = useState<Content | null>(null)
+  const [loading, setLoading] = useState(!!contentId)
+  const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
+  const [savingFav, setSavingFav] = useState(false)
+
+  useEffect(() => {
+    if (!contentId) return
+    contentService
+      .get(contentId)
+      .then(setContent)
+      .catch((err) => setError(getErrorMessage(err)))
+      .finally(() => setLoading(false))
+  }, [contentId])
+
+  async function toggleFavorite() {
+    if (!contentId || !user) return
+    setSavingFav(true)
+    try {
+      await contentService.favorite(contentId)
+      setSaved((s) => !s)
+    } catch {
+      // ignore
+    } finally {
+      setSavingFav(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <AppShell title="Arquivo Digital" showSearch={false}>
+        <div className="px-10 py-8 max-w-[900px] mx-auto space-y-5">
+          <div className="h-8 bg-[#f0eded] rounded w-32 animate-pulse" />
+          <div className="bg-white rounded-xl p-8 border border-[#e0bfbc] h-52 animate-pulse" />
+          <div className="bg-white rounded-xl border border-[#e0bfbc] h-72 animate-pulse" />
+        </div>
+      </AppShell>
+    )
+  }
+
+  if (error) {
+    return (
+      <AppShell title="Arquivo Digital" showSearch={false}>
+        <div className="px-10 py-16 max-w-[600px] mx-auto text-center">
+          <span className="material-symbols-outlined text-[#8B1A1A]/30 text-5xl mb-3 block">description</span>
+          <p className="text-sm text-[#5d5f5d] font-serif mb-5">{error}</p>
+          <button onClick={() => navigate('/explorar')}
+            className="bg-[#8B1A1A] text-white px-6 py-2.5 rounded-full text-sm font-semibold font-sans hover:bg-[#7a1616] transition-all">
+            Voltar ao Arquivo
+          </button>
+        </div>
+      </AppShell>
+    )
+  }
+
+  const title = content?.title ?? 'Documento Histórico'
+  const summary = content?.summary ?? ''
+  const body = content?.body ?? ''
+  const publishedAt = content?.publishedAt
+    ? new Date(content.publishedAt).getFullYear()
+    : content?.createdAt
+    ? new Date(content.createdAt).getFullYear()
+    : null
+  const authorName = content?.author?.name
+  const categoryName = content?.category?.name
 
   return (
     <AppShell title="Arquivo Digital" showSearch={false}>
@@ -23,80 +95,116 @@ export default function DetalheDocumento() {
             </div>
             <div className="flex-grow">
               <div className="flex items-center gap-3 mb-3">
-                <span className="bg-[#8B1A1A]/10 text-[#8B1A1A] px-3 py-1 rounded-full text-xs font-semibold">Documento Histórico</span>
-                <span className="text-xs text-[#5d5f5d]">1891</span>
+                <span className="bg-[#8B1A1A]/10 text-[#8B1A1A] px-3 py-1 rounded-full text-xs font-semibold font-sans">
+                  {categoryName ?? 'Documento Histórico'}
+                </span>
+                {publishedAt && <span className="text-xs text-[#5d5f5d]">{publishedAt}</span>}
               </div>
-              <h1 className="text-[32px] font-bold text-[#1c1b1b] mb-3">Tratado de Comércio de 1891</h1>
-              <p className="text-base text-[#5d5f5d] mb-4" style={{ fontFamily: 'Merriweather, serif' }}>
-                Documento original que redefiniu as taxas alfandegárias de Luanda e estabeleceu as bases do comércio colonial no final do século XIX.
-              </p>
+              <h1 className="text-[28px] font-bold text-[#1c1b1b] mb-3 font-sans">{title}</h1>
+              {summary && (
+                <p className="text-base text-[#5d5f5d] mb-4 font-serif leading-relaxed">{summary}</p>
+              )}
               <div className="flex flex-wrap gap-4 text-xs text-[#5d5f5d]">
-                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">calendar_today</span>1891</span>
-                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">location_on</span>Luanda, Angola</span>
-                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">folder</span>Arquivo Histórico Nacional</span>
-                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">translate</span>Português</span>
+                {publishedAt && (
+                  <span className="flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                    {publishedAt}
+                  </span>
+                )}
+                {authorName && (
+                  <span className="flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">person</span>
+                    {authorName}
+                  </span>
+                )}
+                {content?.tags?.slice(0, 2).map((t) => (
+                  <span key={t.tag.id} className="flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">label</span>
+                    {t.tag.name}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
 
           <div className="flex gap-3 mt-6 pt-6 border-t border-[#e0bfbc]">
-            <button className="flex items-center gap-2 bg-[#8B1A1A] text-white px-6 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-all">
-              <span className="material-symbols-outlined text-[18px]">download</span>
-              Descarregar PDF
-            </button>
-            <button onClick={() => setSaved(!saved)} className={`flex items-center gap-2 border px-6 py-3 rounded-full text-sm font-semibold transition-all ${saved ? 'border-[#8B1A1A] text-[#8B1A1A] bg-[#8B1A1A]/5' : 'border-[#e0bfbc] text-[#1c1b1b] hover:bg-[#f6f3f2]'}`}>
-              <span className="material-symbols-outlined text-[18px]" style={saved ? { fontVariationSettings: "'FILL' 1" } : undefined}>bookmark</span>
+            {content?.mediaUrl ? (
+              <a
+                href={content.mediaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-[#8B1A1A] text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#7a1616] transition-all"
+              >
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                Descarregar PDF
+              </a>
+            ) : (
+              <button
+                disabled
+                className="flex items-center gap-2 bg-[#8B1A1A]/40 text-white px-6 py-3 rounded-full text-sm font-semibold cursor-not-allowed"
+                title="Ficheiro não disponível"
+              >
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                PDF Indisponível
+              </button>
+            )}
+            <button
+              onClick={toggleFavorite}
+              disabled={savingFav || !user}
+              className={`flex items-center gap-2 border px-6 py-3 rounded-full text-sm font-semibold transition-all ${
+                saved
+                  ? 'border-[#8B1A1A] text-[#8B1A1A] bg-[#8B1A1A]/5'
+                  : 'border-[#e0bfbc] text-[#1c1b1b] hover:bg-[#f6f3f2]'
+              } disabled:opacity-50`}
+            >
+              <span className="material-symbols-outlined text-[18px]" style={saved ? { fontVariationSettings: "'FILL' 1" } : undefined}>
+                bookmark
+              </span>
               {saved ? 'Guardado' : 'Guardar'}
             </button>
-            <button onClick={() => navigate('/forum/detalhe')}
-              className="flex items-center gap-2 border border-[#e0bfbc] text-[#1c1b1b] px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#f6f3f2] transition-all">
+            <button
+              onClick={() => navigate('/forum')}
+              className="flex items-center gap-2 border border-[#e0bfbc] text-[#1c1b1b] px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#f6f3f2] transition-all"
+            >
               <span className="material-symbols-outlined text-[18px]">forum</span>
               Discutir
             </button>
           </div>
         </div>
 
-        {/* Document preview */}
-        <div className="bg-white rounded-xl border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)] mb-6">
-          <div className="p-6 border-b border-[#e0bfbc] flex items-center justify-between">
-            <h2 className="text-xl font-bold text-[#1c1b1b]">Pré-visualização do Documento</h2>
-            <span className="text-xs text-[#5d5f5d]">Página 1 de 12</span>
-          </div>
-          <div className="p-8 bg-[#f6f3f2] min-h-[400px] flex items-center justify-center">
-            <div className="bg-white w-full max-w-[600px] p-12 shadow-lg rounded" style={{ fontFamily: 'Merriweather, serif' }}>
-              <div className="text-center mb-8">
-                <p className="text-xs text-[#5d5f5d] uppercase tracking-widest mb-2">Governo Geral da Província de Angola</p>
-                <h2 className="text-2xl font-bold text-[#1c1b1b] mb-1">TRATADO DE COMÉRCIO</h2>
-                <p className="text-sm text-[#5d5f5d]">Entre o Governo Português e as Casas Comerciais de Luanda</p>
-                <p className="text-sm text-[#5d5f5d]">Anno de 1891</p>
-              </div>
-              <div className="border-t border-[#e0bfbc] pt-6 space-y-4 text-sm text-[#5d5f5d] leading-relaxed">
-                <p>Artigo I.º — Ficam estabelecidas as seguintes taxas alfandegárias para os produtos de importação e exportação pela barra do porto de Luanda...</p>
-                <p>Artigo II.º — Os produtos de origem angolana, nomeadamente café, borracha e marfim, beneficiarão de taxas preferenciais conforme o disposto no presente tratado...</p>
-                <p className="italic opacity-60">[ Documento continua... ]</p>
+        {/* Document body */}
+        {body && (
+          <div className="bg-white rounded-xl border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)] mb-6">
+            <div className="p-6 border-b border-[#e0bfbc] flex items-center justify-between">
+              <h2 className="text-xl font-bold text-[#1c1b1b] font-sans">Conteúdo do Documento</h2>
+            </div>
+            <div className="p-8 bg-[#f6f3f2]">
+              <div className="bg-white w-full p-10 shadow-sm rounded font-serif">
+                {body.split(/\n{2,}/).filter(Boolean).map((p, i) => (
+                  <p key={i} className="text-sm text-[#5d5f5d] leading-relaxed mb-4">{p}</p>
+                ))}
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Related documents */}
-        <div>
-          <h3 className="text-2xl font-bold text-[#1c1b1b] mb-4">Documentos Relacionados</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              'Regulamento Alfandegário de 1885',
-              'Acordo Comercial Luso-Britânico de 1898',
-            ].map((doc) => (
-              <button key={doc} onClick={() => navigate('/documento/detalhe')}
-                className="bg-white rounded-xl p-4 border border-[#e0bfbc] hover:border-[#8B1A1A] hover:shadow-md transition-all text-left flex items-center gap-4 group">
-                <div className="w-10 h-12 bg-[#8B1A1A]/10 rounded flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-[#8B1A1A] text-sm">description</span>
-                </div>
-                <span className="text-sm font-semibold text-[#1c1b1b] group-hover:text-[#8B1A1A] transition-colors">{doc}</span>
-              </button>
-            ))}
+        {/* No contentId fallback */}
+        {!contentId && !content && (
+          <div className="bg-white rounded-xl border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)] mb-6">
+            <div className="p-8 bg-[#f6f3f2] min-h-[300px] flex items-center justify-center">
+              <div className="text-center">
+                <span className="material-symbols-outlined text-[#8B1A1A]/30 text-5xl mb-3 block">description</span>
+                <p className="text-sm text-[#5d5f5d] font-serif">Selecione um documento no arquivo para o visualizar aqui.</p>
+                <button
+                  onClick={() => navigate('/explorar')}
+                  className="mt-4 text-sm font-semibold text-[#8B1A1A] font-sans hover:underline"
+                >
+                  Ir para o Arquivo →
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </AppShell>
   )

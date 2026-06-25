@@ -3,23 +3,33 @@ import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { forumService, slugify } from '../services/api/forum.service'
 import type { Forum } from '../services/types/api.types'
-
-const CATEGORIES = ['Microtextos', 'Economia Colonial', 'Pós-Independência', 'Arquivos Históricos', 'Jindungo']
+import { getErrorMessage } from '../utils/errors'
 
 export default function SubmeterTopico() {
   const navigate = useNavigate()
   const [forums, setForums] = useState<Forum[]>([])
+  const [forumsLoading, setForumsLoading] = useState(true)
+  const [forumsError, setForumsError] = useState(false)
   const [title, setTitle] = useState('')
-  const [category, setCategory] = useState('')
   const [body, setBody] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    forumService.listForums().then((data) => {
-      setForums(Array.isArray(data) ? data : [])
-    }).catch(() => {})
+    setForumsLoading(true)
+    setForumsError(false)
+    forumService.listForums()
+      .then((data) => {
+        setForums(Array.isArray(data) ? data : [])
+      })
+      .catch(() => {
+        setForumsError(true)
+        setForums([])
+      })
+      .finally(() => setForumsLoading(false))
   }, [])
+
+  const noForumsAvailable = !forumsLoading && !forumsError && forums.length === 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -33,14 +43,13 @@ export default function SubmeterTopico() {
       const forumId = forums[0].id
       await forumService.createTopic(forumId, {
         title: title.trim(),
-        slug: slugify(title.trim()),
+        slug: slugify(title.trim()) + '-' + Date.now().toString(36),
         body: body.trim(),
         visibility: 'PUBLIC',
       })
       navigate('/forum')
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao publicar tópico. Tente novamente.'
-      setError(msg)
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -63,6 +72,51 @@ export default function SubmeterTopico() {
             Partilhe a sua investigação ou inicie um debate com a comunidade.
           </p>
 
+          {/* Forum availability banners */}
+          {forumsLoading && (
+            <div className="flex items-center gap-3 bg-[#f6f3f2] border border-[#e0bfbc] rounded-xl p-4 mb-6">
+              <span className="w-4 h-4 border-2 border-[#8B1A1A] border-t-transparent rounded-full animate-spin flex-shrink-0" />
+              <p className="text-sm text-[#5d5f5d] font-serif">A verificar fóruns disponíveis...</p>
+            </div>
+          )}
+
+          {forumsError && (
+            <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+              <span className="material-symbols-outlined text-red-600 text-[18px] mt-0.5 flex-shrink-0">error</span>
+              <div>
+                <p className="text-sm font-semibold text-red-800 font-sans">Não foi possível carregar os fóruns</p>
+                <p className="text-xs text-red-600 font-serif mt-0.5">
+                  Verifique a sua ligação à internet e tente novamente.
+                </p>
+                <button
+                  onClick={() => {
+                    setForumsLoading(true)
+                    setForumsError(false)
+                    forumService.listForums()
+                      .then((data) => setForums(Array.isArray(data) ? data : []))
+                      .catch(() => setForumsError(true))
+                      .finally(() => setForumsLoading(false))
+                  }}
+                  className="mt-2 text-xs font-semibold text-red-700 hover:underline font-sans"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            </div>
+          )}
+
+          {noForumsAvailable && (
+            <div className="flex items-start gap-3 bg-[#fff8f7] border border-[#8B1A1A]/20 rounded-xl p-4 mb-6">
+              <span className="material-symbols-outlined text-[#8B1A1A] text-[18px] mt-0.5 flex-shrink-0">info</span>
+              <div>
+                <p className="text-sm font-semibold text-[#1c1b1b] font-sans">Nenhum fórum disponível</p>
+                <p className="text-xs text-[#5d5f5d] font-serif mt-0.5">
+                  Ainda não existem fóruns públicos criados no sistema. Os fóruns são criados pelo administrador da plataforma directamente na base de dados.
+                </p>
+              </div>
+            </div>
+          )}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-2">
               <label className="text-sm font-semibold text-[#58413f]">Título do Tópico</label>
@@ -74,18 +128,6 @@ export default function SubmeterTopico() {
                 required
                 className="w-full bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg p-4 focus:ring-1 focus:ring-[#8B1A1A] outline-none transition-all font-serif"
               />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-[#58413f]">Categoria</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg p-4 focus:ring-1 focus:ring-[#8B1A1A] outline-none transition-all text-[#1c1b1b]"
-              >
-                <option value="">Selecione uma categoria</option>
-                {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-              </select>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -114,8 +156,9 @@ export default function SubmeterTopico() {
               </button>
               <button
                 type="submit"
-                disabled={loading || forums.length === 0}
+                disabled={loading || forumsLoading || forums.length === 0}
                 className="flex-1 bg-[#8B1A1A] text-white text-sm font-semibold py-4 rounded-full hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                title={forums.length === 0 && !forumsLoading ? 'Nenhum fórum disponível no sistema' : undefined}
               >
                 {loading ? (
                   <>

@@ -1,8 +1,15 @@
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function ConfirmacaoSaida() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
+
+  async function handleLogout() {
+    await logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <AppShell showSearch={false}>
@@ -23,7 +30,7 @@ export default function ConfirmacaoSaida() {
               Cancelar
             </button>
             <button
-              onClick={() => navigate('/login')}
+              onClick={handleLogout}
               className="flex-1 bg-[#8B1A1A] text-white text-sm font-semibold font-sans py-3 rounded-full hover:bg-[#7a1616] hover:shadow-md active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
             >
               Sair

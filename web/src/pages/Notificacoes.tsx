@@ -52,9 +52,24 @@ export default function Notificacoes() {
         prev.map((n) => n.id === notification.id ? { ...n, readAt: new Date().toISOString() } : n)
       )
     }
-    // Navigate based on notification data if available
-    const route = (notification.data as { route?: string } | null)?.route
-    if (route && typeof route === 'string') navigate(route)
+    const data = notification.data as { route?: string; contentId?: string } | null
+    const route = data?.route
+    if (route && typeof route === 'string') {
+      navigate(route)
+      return
+    }
+    // Type-based fallback
+    const fallbacks: Record<string, string> = {
+      CONTENT: '/explorar',
+      COMMENT: '/forum',
+      FORUM: '/forum',
+      COMMUNITY: '/forum',
+      QUIZ: '/quiz',
+      MODERATION: '/dashboard',
+      SYSTEM: '/dashboard',
+    }
+    const fallback = fallbacks[notification.type]
+    if (fallback) navigate(fallback)
   }
 
   const unreadCount = notifications.filter((n) => !n.readAt).length
