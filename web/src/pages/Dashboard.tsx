@@ -140,7 +140,7 @@ export default function Dashboard() {
               {inProgress.map((item) => (
                 <article
                   key={item.id}
-                  onClick={() => navigate(getContentTypeRoute(item.content.type))}
+                  onClick={() => navigate(getContentTypeRoute(item.content.type), { state: { contentId: item.contentId } })}
                   className="col-span-12 md:col-span-6 bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 >
                   <div className="flex h-44">

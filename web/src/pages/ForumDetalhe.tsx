@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { api } from '../services/api/client'
 import type { Topic } from '../services/types/api.types'
+import { getErrorMessage } from '../utils/errors'
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -36,8 +37,7 @@ export default function ForumDetalhe() {
       setReplyBody('')
       setReplySuccess(true)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao publicar resposta. Tente novamente.'
-      setReplyError(msg)
+      setReplyError(getErrorMessage(err))
     } finally {
       setSubmitting(false)
     }

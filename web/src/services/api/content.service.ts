@@ -43,4 +43,5 @@ export const contentService = {
 
   updateProgress: (id: string, percentage: number) =>
     api.patch<void>(`/contents/${id}/progress`, { percentage }),
+
 }

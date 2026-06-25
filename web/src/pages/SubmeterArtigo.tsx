@@ -4,6 +4,8 @@ import AppShell from '../components/AppShell'
 import { contentService } from '../services/api/content.service'
 import { slugify } from '../services/api/forum.service'
 import type { ContentType } from '../services/types/api.types'
+import { getErrorMessage } from '../utils/errors'
+import { useAuth, canPublishContent } from '../contexts/AuthContext'
 
 type FormType = 'Microtexto' | 'Jindungo' | 'Documento de Arquivo'
 
@@ -15,6 +17,8 @@ const TYPE_MAP: Record<FormType, { type: ContentType; isJindungo?: boolean }> = 
 
 export default function SubmeterArtigo() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const isPublisher = canPublishContent(user)
   const [contentType, setContentType] = useState<FormType>('Microtexto')
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
@@ -33,17 +37,18 @@ export default function SubmeterArtigo() {
     try {
       await contentService.create({
         title: title.trim(),
-        slug: slugify(title.trim()),
+        slug: slugify(title.trim()) + '-' + Date.now().toString(36),
         type: mapped.type,
         summary: summary.trim() || undefined,
         body: body.trim(),
-        visibility: 'AUTHENTICATED',
+        // PUBLIC so content becomes visible in listings once an admin publishes it.
+        // AUTHENTICATED was incorrectly filtering content out of all public endpoints.
+        visibility: mapped.isJindungo ? 'AUTHENTICATED' : 'PUBLIC',
         isJindungo: mapped.isJindungo,
       })
-      navigate('/confirmacao/publicacao')
+      navigate('/confirmacao/publicacao', { state: { isPublisher } })
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao submeter artigo. Tente novamente.'
-      setError(msg)
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -59,9 +64,13 @@ export default function SubmeterArtigo() {
         </button>
 
         <div className="bg-white rounded-xl p-10 border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-          <h1 className="text-[32px] font-bold text-[#1c1b1b] mb-2">Submeter Novo Artigo</h1>
+          <h1 className="text-[32px] font-bold text-[#1c1b1b] mb-2">
+            {isPublisher ? 'Criar Novo Conteúdo' : 'Submeter Novo Artigo'}
+          </h1>
           <p className="text-base text-[#5d5f5d] mb-8 font-serif">
-            Contribua com o seu conhecimento para o arquivo histórico de Angola.
+            {isPublisher
+              ? 'Crie conteúdo para o arquivo histórico. O conteúdo será guardado como rascunho — a publicação directa está em desenvolvimento.'
+              : 'Contribua com o seu conhecimento para o arquivo histórico de Angola.'}
           </p>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
@@ -143,8 +152,8 @@ export default function SubmeterArtigo() {
                   </>
                 ) : (
                   <>
-                    Submeter para Revisão
-                    <span className="material-symbols-outlined text-[18px]">send</span>
+                    {isPublisher ? 'Criar Conteúdo' : 'Submeter para Revisão'}
+                    <span className="material-symbols-outlined text-[18px]">{isPublisher ? 'save' : 'send'}</span>
                   </>
                 )}
               </button>

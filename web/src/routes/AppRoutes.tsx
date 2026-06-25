@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from '../components/ProtectedRoute'
+import PermissionRoute from '../components/PermissionRoute'
 
 // Auth / Public
 import SplashScreen from '../pages/SplashScreen'
@@ -48,6 +49,15 @@ import CentroAjuda from '../pages/CentroAjuda'
 
 function Protected({ children }: { children: React.ReactNode }) {
   return <ProtectedRoute>{children}</ProtectedRoute>
+}
+
+/** Route requiring at least one of the listed permissions (after auth check). */
+function PermProtected({ children, permissions }: { children: React.ReactNode; permissions: string[] }) {
+  return (
+    <ProtectedRoute>
+      <PermissionRoute permissions={permissions}>{children}</PermissionRoute>
+    </ProtectedRoute>
+  )
 }
 
 export default function AppRoutes() {
@@ -111,10 +121,22 @@ export default function AppRoutes() {
       {/* Protected — stats */}
       <Route path="/estatisticas" element={<Protected><PainelEstatisticas /></Protected>} />
 
-      {/* Protected — management */}
-      <Route path="/gestao/conteudos" element={<Protected><PainelGestaoConteudos /></Protected>} />
-      <Route path="/gestao/utilizadores" element={<Protected><GestaoUtilizadores /></Protected>} />
-      <Route path="/gestao/submeter-artigo" element={<Protected><SubmeterArtigo /></Protected>} />
+      {/* Protected — management (permission-gated) */}
+      <Route path="/gestao/conteudos" element={
+        <PermProtected permissions={['CONTENT_CREATE', 'CONTENT_APPROVE', 'CONTENT_PUBLISH', 'CONTENT_DELETE']}>
+          <PainelGestaoConteudos />
+        </PermProtected>
+      } />
+      <Route path="/gestao/utilizadores" element={
+        <PermProtected permissions={['USER_MANAGE']}>
+          <GestaoUtilizadores />
+        </PermProtected>
+      } />
+      <Route path="/gestao/submeter-artigo" element={
+        <PermProtected permissions={['CONTENT_CREATE']}>
+          <SubmeterArtigo />
+        </PermProtected>
+      } />
 
       {/* Protected — confirmations */}
       <Route path="/confirmacao/publicacao" element={<Protected><ConfirmacaoPublicacao /></Protected>} />
