@@ -20,26 +20,26 @@ class _CreateTopicScreenState extends State<CreateTopicScreen> {
   @override
   Widget build(BuildContext context) {
     return ScreenFrame(
-      title: 'Criar Topico',
+      title: 'Criar Tópico',
       showBack: true,
       children: [
-        const SectionTitle('Detalhes do topico'),
+        const SectionTitle('Detalhes do tópico'),
         const SizedBox(height: 16),
         Text('Titulo', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.textMuted)),
         const SizedBox(height: 6),
-        const TextField(decoration: InputDecoration(hintText: 'Ex.: O papel do cafe na economia colonial')),
+        const TextField(decoration: InputDecoration(hintText: 'Ex.: O papel do café na economia colonial')),
         const SizedBox(height: 16),
         Text('Categoria', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.textMuted)),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           initialValue: _category,
-          items: const ['Economia', 'Historia', 'Comercio', 'Educacao', 'Ancestralidade']
+          items: const ['Economia', 'História', 'Comercio', 'Educacao', 'Ancestralidade']
               .map((e) => DropdownMenuItem(value: e, child: Text(e)))
               .toList(),
           onChanged: (v) => setState(() => _category = v ?? _category),
         ),
         const SizedBox(height: 16),
-        Text('Conteudo', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.textMuted)),
+        Text('Conteúdo', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.textMuted)),
         const SizedBox(height: 6),
         const TextField(maxLines: 6, decoration: InputDecoration(hintText: 'Apresente o tema para debate...')),
         const SizedBox(height: 20),
@@ -56,9 +56,9 @@ class _CreateTopicScreenState extends State<CreateTopicScreen> {
                 value: _private,
                 activeThumbColor: AppColors.primary,
                 onChanged: (v) => setState(() => _private = v),
-                title: const Text('Topico privado'),
+                title: const Text('Tópico privado'),
                 subtitle: Text(
-                  _private ? 'Entrada por convite e aprovacao do professor.' : 'Visivel e aberto a todos os utilizadores.',
+                  _private ? 'Entrada por convite e aprovação da administração.' : 'Visivel e aberto a todos os utilizadores.',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary),
                 ),
               ),
@@ -76,12 +76,12 @@ class _CreateTopicScreenState extends State<CreateTopicScreen> {
         ],
         const SizedBox(height: 24),
         EhButton(
-          label: 'Publicar topico',
+          label: 'Publicar tópico',
           icon: Icons.send,
           onPressed: () {
             Navigator.pushReplacementNamed(context, AppRoutes.forum);
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Topico publicado com sucesso'), behavior: SnackBarBehavior.floating),
+              const SnackBar(content: Text('Tópico publicado com sucesso'), behavior: SnackBarBehavior.floating),
             );
           },
         ),

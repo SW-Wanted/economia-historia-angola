@@ -33,7 +33,7 @@ class _InviteScreenState extends State<InviteScreen> with SingleTickerProviderSt
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.secondary,
           indicatorColor: AppColors.primary,
-          tabs: const [Tab(text: 'Por e-mail'), Tab(text: 'Por codigo')],
+          tabs: const [Tab(text: 'Por e-mail'), Tab(text: 'Por código')],
         ),
       ),
       body: SafeArea(
@@ -51,7 +51,7 @@ class _InviteScreenState extends State<InviteScreen> with SingleTickerProviderSt
       children: [
         const SectionTitle('Convite por e-mail'),
         const SizedBox(height: 8),
-        Text('O membro recebe um convite e entra apos aprovacao do professor.',
+        Text('O membro recebe um convite e entra após aprovação da administração.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary)),
         const SizedBox(height: 16),
         const TextField(decoration: InputDecoration(hintText: 'nome@email.com', prefixIcon: Icon(Icons.mail_outline))),
@@ -86,9 +86,9 @@ class _InviteScreenState extends State<InviteScreen> with SingleTickerProviderSt
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const SectionTitle('Codigo de acesso'),
+        const SectionTitle('Código de acesso'),
         const SizedBox(height: 8),
-        Text('Partilhe este codigo. Quem o usar solicita entrada, sujeita a aprovacao.',
+        Text('Partilhe este código. Quem o usar solicita entrada, sujeita a aprovacao.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary)),
         const SizedBox(height: 20),
         Container(
@@ -110,7 +110,7 @@ class _InviteScreenState extends State<InviteScreen> with SingleTickerProviderSt
         Row(children: [
           Expanded(child: OutlinedButton.icon(
             onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Codigo copiado'), behavior: SnackBarBehavior.floating)),
+              const SnackBar(content: Text('Código copiado'), behavior: SnackBarBehavior.floating)),
             icon: const Icon(Icons.copy),
             label: const Text('Copiar'),
             style: OutlinedButton.styleFrom(foregroundColor: AppColors.primary, side: const BorderSide(color: AppColors.primary)),

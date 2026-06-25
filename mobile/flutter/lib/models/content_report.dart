@@ -33,6 +33,7 @@ extension ReportTargetX on ReportTarget {
 /// Uma denuncia pendente de revisao pela moderacao.
 class ContentReport {
   const ContentReport({
+    this.id,
     required this.title,
     required this.target,
     required this.reason,
@@ -41,6 +42,8 @@ class ContentReport {
     this.count = 1,
   });
 
+  /// Identificador no backend (null nos dados mock locais).
+  final String? id;
   final String title;
   final ReportTarget target;
   final ReportReason reason;

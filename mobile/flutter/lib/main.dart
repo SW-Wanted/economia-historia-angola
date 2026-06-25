@@ -7,6 +7,9 @@ import 'core/theme/app_theme.dart';
 import 'providers/app_state.dart';
 
 void main() {
+  // Tipografia online com fallback ao sistema quando offline.
+  AppTheme.configureFonts();
+
   // 2. Envolver o app com o DevicePreview
   runApp(
     DevicePreview(

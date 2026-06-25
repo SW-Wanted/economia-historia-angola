@@ -6,6 +6,19 @@ import '../constants/app_colors.dart';
 class AppTheme {
   const AppTheme._();
 
+  /// Configura a tipografia para funcionar online e offline.
+  ///
+  /// O pacote google_fonts descarrega as fontes (Plus Jakarta Sans / Lexend)
+  /// pela internet em tempo de execução, garantindo a tipografia exata do
+  /// design em qualquer máquina, sem ser preciso empacotar ficheiros locais.
+  /// Quando não há ligação, o download é simplesmente ignorado e a aplicação
+  /// recorre à fonte do sistema — pelo que continua a funcionar offline.
+  /// Deve ser chamado uma vez no arranque (main()).
+  static void configureFonts() {
+    // Permite obter as fontes pela internet (consistência entre sistemas).
+    GoogleFonts.config.allowRuntimeFetching = true;
+  }
+
   // Tipografia do Design System (Plus Jakarta Sans p/ titulos, Lexend p/ corpo).
   static TextStyle _heading(double size, FontWeight weight, {double? height, double? spacing}) =>
       GoogleFonts.plusJakartaSans(fontSize: size, fontWeight: weight, height: height, letterSpacing: spacing, color: AppColors.text);
@@ -22,7 +35,14 @@ class AppTheme {
       error: AppColors.error,
     );
 
-    final base = GoogleFonts.lexendTextTheme();
+    // Base de tipografia NATIVA (nunca nula), independente de rede.
+    // O google_fonts é aplicado por cima nos estilos principais; se o
+    // download falhar (offline), cada estilo mantém um valor válido do
+    // sistema e a app não rebenta com "Unexpected null value".
+    final base = Typography.material2021(platform: TargetPlatform.android)
+        .black
+        .apply(bodyColor: AppColors.text, displayColor: AppColors.text);
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,

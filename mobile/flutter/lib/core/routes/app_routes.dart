@@ -44,7 +44,10 @@ import '../../screens/restricted_content_screen.dart';
 import '../../screens/search_results_screen.dart';
 import '../../screens/splash_screen.dart';
 import '../../screens/subscription_screen.dart';
+import '../../screens/super_admin_chain_screen.dart';
 import '../../screens/super_admin_screen.dart';
+import '../../screens/content_moderation_screen.dart';
+import '../../screens/podcast_player_screen.dart';
 import '../../screens/video_player_screen.dart';
 
 class AppRoutes {
@@ -86,6 +89,7 @@ class AppRoutes {
   static const publishConfirmation = '/publish-confirmation';
   static const searchResults = '/search-results';
   static const videoPlayer = '/video-player';
+  static const podcastPlayer = '/podcast-player';
   static const helpCenter = '/help-center';
   static const library = '/library';
   static const offlineMode = '/offline-mode';
@@ -93,6 +97,8 @@ class AppRoutes {
   static const manageForums = '/manage-forums';
   static const adminUsers = '/admin-users';
   static const superAdmin = '/super-admin';
+  static const superAdminChain = '/super-admin-chain';
+  static const contentModeration = '/content-moderation';
   static const community = '/community';
   static const discussionRoom = '/discussion-room';
   static const faq = '/faq';
@@ -139,6 +145,7 @@ class AppRoutes {
       publishConfirmation => const PublishConfirmationScreen(),
       searchResults => const SearchResultsScreen(),
       videoPlayer => const VideoPlayerScreen(),
+      podcastPlayer => const PodcastPlayerScreen(),
       helpCenter => const HelpCenterScreen(),
       library => const LibraryScreen(),
       offlineMode => const OfflineModeScreen(),
@@ -146,6 +153,8 @@ class AppRoutes {
       manageForums => const ManageForumsScreen(),
       adminUsers => const AdminUsersScreen(),
       superAdmin => SuperAdminScreen(user: settings.arguments is AppUser ? settings.arguments as AppUser : null),
+      superAdminChain => const SuperAdminChainScreen(),
+      contentModeration => const ContentModerationScreen(),
       community => const CommunityScreen(),
       discussionRoom => const DiscussionRoomScreen(),
       faq => const FaqScreen(),

@@ -20,9 +20,9 @@ class QuizHubScreen extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Icon(Icons.timer_outlined, color: Colors.white),
             const SizedBox(height: 12),
-            Text('Quiz: O Ciclo do Cafe', style: Theme.of(context).textTheme.displayLarge?.copyWith(color: Colors.white)),
+            Text('Quiz: O Ciclo do Café', style: Theme.of(context).textTheme.displayLarge?.copyWith(color: Colors.white)),
             const SizedBox(height: 10),
-            Text('Teste seus conhecimentos sobre uma das principais exportacoes historicas de Angola.', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white.withValues(alpha: .86))),
+            Text('Teste seus conhecimentos sobre uma das principais exportações históricas de Angola.', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white.withValues(alpha: .86))),
             const SizedBox(height: 20),
             EhButton(label: 'Participar agora', inverted: true, fullWidth: false, onPressed: () => Navigator.pushNamed(context, AppRoutes.quizQuestion)),
           ]),

@@ -43,15 +43,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _label(context, 'Curso'),
         DropdownButtonFormField<String>(
           initialValue: _course,
-          items: const ['Economia', 'Gestao', 'Direito', 'Engenharia', 'Ciencias Sociais', 'Outro']
+          items: const ['Economia', 'Gestão', 'Direito', 'Engenharia', 'Ciencias Sociais', 'Outro']
               .map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
           onChanged: (v) => setState(() => _course = v ?? _course),
         ),
         const SizedBox(height: 14),
-        _label(context, 'Motivacao pelo interesse na economia-historia'),
+        _label(context, 'Motivacao pelo interesse na economia-história'),
         const TextField(maxLines: 3, decoration: InputDecoration(hintText: 'Conte-nos o que o motiva...')),
         const SizedBox(height: 14),
-        _label(context, 'Provincia'),
+        _label(context, 'Província'),
         const TextField(decoration: InputDecoration(hintText: 'Luanda')),
         const SizedBox(height: 28),
         EhButton(

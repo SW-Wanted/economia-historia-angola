@@ -21,11 +21,11 @@ class PublishConfirmationScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        Text('Conteudo publicado!', textAlign: TextAlign.center,
+        Text('Conteúdo publicado!', textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 26)),
         const SizedBox(height: 10),
         Text(
-          'O seu conteudo ja esta disponivel para a comunidade. Pode acompanhar o desempenho no painel.',
+          'O seu conteúdo ja esta disponivel para a comunidade. Pode acompanhar o desempenho no painel.',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary, height: 1.5),
         ),

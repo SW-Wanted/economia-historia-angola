@@ -5,7 +5,7 @@ void main() {
   testWidgets('renders splash screen', (WidgetTester tester) async {
     await tester.pumpWidget(const EconomiaHistoriaApp());
 
-    expect(find.text('Economia com Historia'), findsOneWidget);
+    expect(find.text('Economia com História'), findsOneWidget);
     expect(find.text('Criar conta'), findsOneWidget);
   });
 }

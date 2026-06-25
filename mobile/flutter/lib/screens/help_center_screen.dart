@@ -22,7 +22,7 @@ class HelpCenterScreen extends StatelessWidget {
         Row(children: [
           Expanded(child: _quick(context, Icons.quiz_outlined, 'FAQ', () => Navigator.pushNamed(context, AppRoutes.faq))),
           const SizedBox(width: 12),
-          Expanded(child: _quick(context, Icons.feedback_outlined, 'Sugestoes', () => Navigator.pushNamed(context, AppRoutes.feedback))),
+          Expanded(child: _quick(context, Icons.feedback_outlined, 'Sugestões', () => Navigator.pushNamed(context, AppRoutes.feedback))),
         ]),
         const SizedBox(height: 24),
         const SectionTitle('Perguntas frequentes'),

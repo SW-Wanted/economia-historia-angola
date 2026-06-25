@@ -20,7 +20,7 @@ class FaqScreen extends StatelessWidget {
         Text('Tudo o que precisa de saber',
             style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 24)),
         const SizedBox(height: 6),
-        Text('Respostas rapidas sobre a plataforma, conteudos e acesso.',
+        Text('Respostas rápidas sobre a plataforma, conteúdos e acesso.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary)),
         const SizedBox(height: 20),
         for (final entry in faq.entries) ...[
@@ -58,7 +58,7 @@ class FaqScreen extends StatelessWidget {
             children: [
               const Icon(Icons.help_outline, color: AppColors.primary, size: 30),
               const SizedBox(height: 10),
-              Text('Ainda tem duvidas?', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
+              Text('Ainda tem dúvidas?', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
               const SizedBox(height: 4),
               Text('Crie conta para participar e contactar a equipa.',
                   textAlign: TextAlign.center,

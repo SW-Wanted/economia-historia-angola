@@ -15,18 +15,18 @@ class FeedbackScreen extends StatefulWidget {
 
 class _FeedbackScreenState extends State<FeedbackScreen> {
   int _rating = 0;
-  String _type = 'Sugestao de tema';
+  String _type = 'Sugestão de tema';
 
   @override
   Widget build(BuildContext context) {
     return ScreenFrame(
-      title: 'Comentarios e Sugestoes',
+      title: 'Comentarios e Sugestões',
       showBack: true,
       children: [
-        const SectionTitle('A sua opiniao conta'),
+        const SectionTitle('A sua opinião conta'),
         const SizedBox(height: 8),
         Text(
-          'Ajude-nos a melhorar a aplicacao e a escolher novos temas para os proximos conteudos.',
+          'Ajude-nos a melhorar a aplicação e a escolher novos temas para os próximos conteúdos.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary),
         ),
         const SizedBox(height: 20),
@@ -47,7 +47,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           initialValue: _type,
-          items: const ['Sugestao de tema', 'Problema tecnico', 'Elogio', 'Outro']
+          items: const ['Sugestão de tema', 'Problema tecnico', 'Elogio', 'Outro']
               .map((e) => DropdownMenuItem(value: e, child: Text(e)))
               .toList(),
           onChanged: (v) => setState(() => _type = v ?? _type),
