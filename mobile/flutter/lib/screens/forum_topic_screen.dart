@@ -37,7 +37,7 @@ class _ForumTopicScreenState extends State<ForumTopicScreen> {
     final comments = const MockDataService().comments();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Topico'),
+        title: const Text('Tópico'),
         actions: [
           IconButton(
             tooltip: 'Denunciar',
@@ -117,6 +117,7 @@ class _ForumTopicScreenState extends State<ForumTopicScreen> {
           ),
           const SizedBox(width: 8),
           IconButton.filled(
+            tooltip: 'Enviar comentário',
             onPressed: _send,
             style: IconButton.styleFrom(backgroundColor: AppColors.primary),
             icon: const Icon(Icons.send, color: Colors.white),

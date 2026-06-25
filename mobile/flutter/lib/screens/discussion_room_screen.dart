@@ -6,8 +6,8 @@ import '../core/utils/responsive.dart';
 import '../services/mock_data_service.dart';
 import '../widgets/comment_tile.dart';
 
-/// Sala de Discussão — secção de comentários PRIVADA controlada pelo professor.
-/// (Decisão do resumo de sala de aula: professor decide quem comenta/visualiza.)
+/// Sala de Discussão — secção de comentários privada.
+/// Espaço reservado; o acesso é gerido internamente.
 class DiscussionRoomScreen extends StatefulWidget {
   const DiscussionRoomScreen({super.key});
 
@@ -29,7 +29,7 @@ class _DiscussionRoomScreenState extends State<DiscussionRoomScreen> {
     final comments = const MockDataService().comments();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sala de Discussao'),
+        title: const Text('Sala de Discussão'),
         actions: [
           IconButton(
             tooltip: 'Gerir participantes',
@@ -59,7 +59,7 @@ class _DiscussionRoomScreenState extends State<DiscussionRoomScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Espaco privado. O professor define quem pode visualizar e comentar.',
+                          'Espaço privado.',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.navy),
                         ),
                       ),
@@ -90,11 +90,12 @@ class _DiscussionRoomScreenState extends State<DiscussionRoomScreen> {
                           controller: _controller,
                           minLines: 1,
                           maxLines: 4,
-                          decoration: const InputDecoration(hintText: 'Participar na discussao...'),
+                          decoration: const InputDecoration(hintText: 'Participar na discussão...'),
                         ),
                       ),
                       const SizedBox(width: 8),
                       IconButton.filled(
+                        tooltip: 'Enviar mensagem',
                         style: IconButton.styleFrom(backgroundColor: AppColors.primary),
                         onPressed: () {
                           if (_controller.text.trim().isEmpty) return;

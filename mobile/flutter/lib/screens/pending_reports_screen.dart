@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
 import '../models/content_report.dart';
-import '../services/mock_data_service.dart';
+import '../services/backend_service.dart';
 import '../widgets/eh_card.dart';
 import '../widgets/screen_frame.dart';
 
@@ -15,29 +15,68 @@ class PendingReportsScreen extends StatefulWidget {
 }
 
 class _PendingReportsScreenState extends State<PendingReportsScreen> {
-  late final List<ContentReport> _reports = [...const MockDataService().reports()];
+  List<ContentReport>? _reports; // null enquanto carrega
 
-  void _resolve(int index, String message) {
-    setState(() => _reports.removeAt(index));
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final reports = await BackendService.instance.reports();
+    if (!mounted) return;
+    setState(() => _reports = [...reports]);
+  }
+
+  Future<void> _resolve(int index, {required bool remove}) async {
+    final list = _reports;
+    if (list == null) return;
+    final report = list[index];
+    try {
+      if (report.id != null) {
+        await BackendService.instance.reviewReport(report.id!, remove: remove);
+      }
+    } catch (_) {
+      // Sem ligação: resolve apenas localmente (otimista).
+    }
+    if (!mounted) return;
+    setState(() => list.removeAt(index));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+      SnackBar(
+        content: Text(remove ? 'Conteúdo removido.' : 'Denúncia descartada. Conteúdo mantido.'),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final reports = _reports;
+    if (reports == null) {
+      return const ScreenFrame(
+        title: 'Denúncias Pendentes',
+        showBack: true,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 80),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ],
+      );
+    }
     return ScreenFrame(
-      title: 'Denuncias Pendentes',
+      title: 'Denúncias Pendentes',
       showBack: true,
       children: [
         Text(
-          _reports.isEmpty
-              ? 'Sem denuncias pendentes.'
-              : '${_reports.length} ${_reports.length == 1 ? 'denuncia aguarda' : 'denuncias aguardam'} revisao.',
+          reports.isEmpty
+              ? 'Sem denúncias pendentes.'
+              : '${reports.length} ${reports.length == 1 ? 'denúncia aguarda' : 'denúncias aguardam'} revisão.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary),
         ),
         const SizedBox(height: 16),
-        if (_reports.isEmpty)
+        if (reports.isEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 48),
             child: Center(
@@ -48,15 +87,15 @@ class _PendingReportsScreenState extends State<PendingReportsScreen> {
                   Text('Tudo revisto',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 17)),
                   const SizedBox(height: 4),
-                  Text('Nao ha conteudo reportado por rever.',
+                  Text('Não ha conteúdo reportado por rever.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary)),
                 ],
               ),
             ),
           ),
-        for (var i = 0; i < _reports.length; i++) ...[
-          _reportCard(context, i, _reports[i]),
+        for (var i = 0; i < reports.length; i++) ...[
+          _reportCard(context, i, reports[i]),
           const SizedBox(height: 12),
         ],
       ],
@@ -74,7 +113,7 @@ class _PendingReportsScreenState extends State<PendingReportsScreen> {
               const SizedBox(width: 8),
               _tag(report.target.label, AppColors.navy),
               const SizedBox(width: 6),
-              if (report.count > 1) _tag('${report.count} denuncias', AppColors.error),
+              if (report.count > 1) _tag('${report.count} denúncias', AppColors.error),
               const Spacer(),
               Text(report.timeAgo,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
@@ -103,7 +142,7 @@ class _PendingReportsScreenState extends State<PendingReportsScreen> {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _resolve(index, 'Denuncia descartada. Conteudo mantido.'),
+                  onPressed: () => _resolve(index, remove: false),
                   icon: const Icon(Icons.check_circle_outline, size: 18),
                   label: const Text('Manter'),
                   style: OutlinedButton.styleFrom(
@@ -116,7 +155,7 @@ class _PendingReportsScreenState extends State<PendingReportsScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: () => _resolve(index, 'Conteudo removido.'),
+                  onPressed: () => _resolve(index, remove: true),
                   icon: const Icon(Icons.delete_outline, size: 18),
                   label: const Text('Remover'),
                   style: FilledButton.styleFrom(

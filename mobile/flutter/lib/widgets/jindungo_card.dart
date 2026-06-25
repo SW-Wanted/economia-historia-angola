@@ -63,7 +63,7 @@ class JindungoCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      locked ? 'Exclusivo para membros' : 'Conteudo desbloqueado',
+                      locked ? 'Exclusivo para membros' : 'Conteúdo desbloqueado',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.white70, fontStyle: FontStyle.italic),
                     ),

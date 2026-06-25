@@ -15,10 +15,10 @@ class ReportScreen extends StatefulWidget {
 class _ReportScreenState extends State<ReportScreen> {
   int _reason = -1;
   static const _reasons = [
-    'Conteudo ofensivo ou de odio',
-    'Informacao falsa ou enganosa',
+    'Conteúdo ofensivo ou de ódio',
+    'Informação falsa ou enganosa',
     'Spam ou publicidade',
-    'Conteudo partidario',
+    'Conteúdo partidário',
     'Outro motivo',
   ];
 
@@ -28,26 +28,32 @@ class _ReportScreenState extends State<ReportScreen> {
       title: 'Denunciar',
       showBack: true,
       children: [
-        Text('Porque esta a denunciar este conteudo?',
+        Text('Porque está a denunciar este conteúdo?',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18)),
         const SizedBox(height: 6),
-        Text('As denuncias sao anonimas e revistas pela moderacao.',
+        Text('As denúncias são anónimas e revistas pela moderação.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary)),
         const SizedBox(height: 20),
-        for (var i = 0; i < _reasons.length; i++)
-          RadioListTile<int>(
-            value: i,
-            groupValue: _reason,
-            activeColor: AppColors.primary,
-            contentPadding: EdgeInsets.zero,
-            title: Text(_reasons[i]),
-            onChanged: (v) => setState(() => _reason = v ?? -1),
+        RadioGroup<int>(
+          groupValue: _reason,
+          onChanged: (v) => setState(() => _reason = v ?? -1),
+          child: Column(
+            children: [
+              for (var i = 0; i < _reasons.length; i++)
+                RadioListTile<int>(
+                  value: i,
+                  activeColor: AppColors.primary,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(_reasons[i]),
+                ),
+            ],
           ),
+        ),
         const SizedBox(height: 8),
         const TextField(maxLines: 4, decoration: InputDecoration(hintText: 'Detalhes adicionais (opcional)')),
         const SizedBox(height: 24),
         EhButton(
-          label: 'Enviar denuncia',
+          label: 'Enviar denúncia',
           icon: Icons.flag,
           onPressed: _reason == -1
               ? () => ScaffoldMessenger.of(context).showSnackBar(
@@ -55,7 +61,7 @@ class _ReportScreenState extends State<ReportScreen> {
               : () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Denuncia enviada. Obrigado.'), behavior: SnackBarBehavior.floating));
+                    const SnackBar(content: Text('Denúncia enviada. Obrigado.'), behavior: SnackBarBehavior.floating));
                 },
         ),
       ],

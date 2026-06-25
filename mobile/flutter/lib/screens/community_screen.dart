@@ -29,9 +29,9 @@ class CommunityScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Forum de Debate', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
+                    Text('Fórum de Debate', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
                     const SizedBox(height: 2),
-                    Text('Debates abertos sobre economia e historia.',
+                    Text('Debates abertos sobre economia e história.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
                   ],
                 ),
@@ -83,7 +83,7 @@ class CommunityScreen extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(cat.description, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted)),
                       const SizedBox(height: 6),
-                      Text('${cat.topics} topicos • ${cat.members} membros',
+                      Text('${cat.topics} tópicos • ${cat.members} membros',
                           style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
                     ],
                   ),

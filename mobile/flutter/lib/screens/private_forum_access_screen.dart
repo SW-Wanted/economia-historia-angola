@@ -23,19 +23,19 @@ class PrivateForumAccessScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        Text('Conteudo restrito', textAlign: TextAlign.center,
+        Text('Conteúdo restrito', textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 24)),
         const SizedBox(height: 8),
         Text(
-          'Este espaco e privado. Solicite acesso ou introduza um codigo de convite. '
-          'A entrada e aprovada pelo professor responsavel.',
+          'Este espaco e privado. Solicite acesso ou introduza um código de convite. '
+          'A entrada é aprovada pela administração responsável.',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary, height: 1.5),
         ),
         const SizedBox(height: 28),
         const TextField(
           textCapitalization: TextCapitalization.characters,
-          decoration: InputDecoration(hintText: 'Codigo de convite (opcional)', prefixIcon: Icon(Icons.vpn_key_outlined)),
+          decoration: InputDecoration(hintText: 'Código de convite (opcional)', prefixIcon: Icon(Icons.vpn_key_outlined)),
         ),
         const SizedBox(height: 16),
         EhButton(
