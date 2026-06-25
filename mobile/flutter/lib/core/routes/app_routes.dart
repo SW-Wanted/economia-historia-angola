@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../models/app_user.dart';
 import '../../screens/admin_panel_screen.dart';
 import '../../screens/admin_users_screen.dart';
+import '../../screens/community_screen.dart';
 import '../../screens/create_topic_screen.dart';
+import '../../screens/discussion_room_screen.dart';
+import '../../screens/faq_screen.dart';
+import '../../screens/feedback_screen.dart';
 import '../../screens/dashboard_screen.dart';
 import '../../screens/edit_profile_screen.dart';
 import '../../screens/explore_screen.dart';
@@ -10,6 +15,7 @@ import '../../screens/forgot_password_screen.dart';
 import '../../screens/forum_screen.dart';
 import '../../screens/forum_topic_screen.dart';
 import '../../screens/help_center_screen.dart';
+import '../../screens/invite_screen.dart';
 import '../../screens/landing_screen.dart';
 import '../../screens/library_screen.dart';
 import '../../screens/login_screen.dart';
@@ -18,6 +24,7 @@ import '../../screens/map_screen.dart';
 import '../../screens/notifications_screen.dart';
 import '../../screens/offline_mode_screen.dart';
 import '../../screens/onboarding_screen.dart';
+import '../../screens/pending_reports_screen.dart';
 import '../../screens/private_forum_access_screen.dart';
 import '../../screens/profile_screen.dart';
 import '../../screens/province_contents_screen.dart';
@@ -32,10 +39,15 @@ import '../../screens/ranking_detail_screen.dart';
 import '../../screens/ranking_screen.dart';
 import '../../screens/reading_screen.dart';
 import '../../screens/register_screen.dart';
+import '../../screens/report_screen.dart';
 import '../../screens/restricted_content_screen.dart';
 import '../../screens/search_results_screen.dart';
 import '../../screens/splash_screen.dart';
 import '../../screens/subscription_screen.dart';
+import '../../screens/super_admin_chain_screen.dart';
+import '../../screens/super_admin_screen.dart';
+import '../../screens/content_moderation_screen.dart';
+import '../../screens/podcast_player_screen.dart';
 import '../../screens/video_player_screen.dart';
 
 class AppRoutes {
@@ -77,12 +89,23 @@ class AppRoutes {
   static const publishConfirmation = '/publish-confirmation';
   static const searchResults = '/search-results';
   static const videoPlayer = '/video-player';
+  static const podcastPlayer = '/podcast-player';
   static const helpCenter = '/help-center';
   static const library = '/library';
   static const offlineMode = '/offline-mode';
   static const subscription = '/subscription';
   static const manageForums = '/manage-forums';
   static const adminUsers = '/admin-users';
+  static const superAdmin = '/super-admin';
+  static const superAdminChain = '/super-admin-chain';
+  static const contentModeration = '/content-moderation';
+  static const community = '/community';
+  static const discussionRoom = '/discussion-room';
+  static const faq = '/faq';
+  static const feedback = '/feedback';
+  static const invite = '/invite';
+  static const report = '/report';
+  static const pendingReports = '/pending-reports';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = switch (settings.name) {
@@ -122,12 +145,23 @@ class AppRoutes {
       publishConfirmation => const PublishConfirmationScreen(),
       searchResults => const SearchResultsScreen(),
       videoPlayer => const VideoPlayerScreen(),
+      podcastPlayer => const PodcastPlayerScreen(),
       helpCenter => const HelpCenterScreen(),
       library => const LibraryScreen(),
       offlineMode => const OfflineModeScreen(),
       subscription => const SubscriptionScreen(),
       manageForums => const ManageForumsScreen(),
       adminUsers => const AdminUsersScreen(),
+      superAdmin => SuperAdminScreen(user: settings.arguments is AppUser ? settings.arguments as AppUser : null),
+      superAdminChain => const SuperAdminChainScreen(),
+      contentModeration => const ContentModerationScreen(),
+      community => const CommunityScreen(),
+      discussionRoom => const DiscussionRoomScreen(),
+      faq => const FaqScreen(),
+      feedback => const FeedbackScreen(),
+      invite => const InviteScreen(),
+      report => const ReportScreen(),
+      pendingReports => const PendingReportsScreen(),
       _ => const SplashScreen(),
     };
 

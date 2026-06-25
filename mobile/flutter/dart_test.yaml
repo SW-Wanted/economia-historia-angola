@@ -1,0 +1,7 @@
+# Testes marcados com @Tags(['integration']) precisam do backend a correr.
+# Por isso são saltados por omissão (mantêm `flutter test` verde sem backend).
+# Para os executar, com o backend ligado:
+#   flutter test --run-skipped test/backend_integration_test.dart
+tags:
+  integration:
+    skip: "Requer o backend em http://localhost:3001 (npm run start:dev). Use --run-skipped."

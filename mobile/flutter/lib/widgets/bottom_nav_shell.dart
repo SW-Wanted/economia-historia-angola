@@ -14,24 +14,30 @@ class BottomNavShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // NOTA: o [child] (ScreenFrame) já é um Scaffold. Para evitar dois
+    // Scaffolds aninhados — que em web colapsam a altura do corpo e deixam
+    // o ecrã em branco —, a barra de navegação é colocada por baixo do filho
+    // num único Scaffold exterior, deixando o corpo do filho ocupar o espaço.
+    final navBar = NavigationBar(
+      selectedIndex: index,
+      height: 70,
+      backgroundColor: AppColors.surface.withValues(alpha: .96),
+      indicatorColor: AppColors.primary.withValues(alpha: .12),
+      onDestinationSelected: (value) {
+        AppStateScope.of(context, listen: false).setNavIndex(value);
+        if (value != index) Navigator.pushReplacementNamed(context, _routes[value]);
+      },
+      destinations: const [
+        NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Início'),
+        NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore), label: 'Explorar'),
+        NavigationDestination(icon: Icon(Icons.forum_outlined), selectedIcon: Icon(Icons.forum), label: 'Fórum'),
+        NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Perfil'),
+      ],
+    );
+
     return Scaffold(
       body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        height: 70,
-        backgroundColor: AppColors.surface.withValues(alpha: .96),
-        indicatorColor: AppColors.primary.withValues(alpha: .12),
-        onDestinationSelected: (value) {
-          AppStateScope.of(context, listen: false).setNavIndex(value);
-          if (value != index) Navigator.pushReplacementNamed(context, _routes[value]);
-        },
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Inicio'),
-          NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore), label: 'Explorar'),
-          NavigationDestination(icon: Icon(Icons.forum_outlined), selectedIcon: Icon(Icons.forum), label: 'Forum'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Perfil'),
-        ],
-      ),
+      bottomNavigationBar: navBar,
     );
   }
 }

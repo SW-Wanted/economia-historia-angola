@@ -10,9 +10,9 @@ class OnboardingScreen extends StatelessWidget {
   final int step;
 
   static const _data = [
-    ('Aprenda com contexto', 'Microtextos claros ligam historia, economia e cultura angolana.', Icons.auto_stories_outlined),
-    ('Explore por provincia', 'Mapas e temas ajudam a perceber como cada regiao moldou o pais.', Icons.map_outlined),
-    ('Teste e participe', 'Quizzes, ranking e forum tornam a aprendizagem viva e comunitaria.', Icons.quiz_outlined),
+    ('Aprenda com contexto', 'Microtextos claros ligam história, economia e cultura angolana.', Icons.auto_stories_outlined),
+    ('Explore por província', 'Mapas e temas ajudam a perceber como cada regiao moldou o pais.', Icons.map_outlined),
+    ('Teste e participe', 'Quizzes, ranking e fórum tornam a aprendizagem viva e comunitaria.', Icons.quiz_outlined),
   ];
 
   @override
@@ -45,7 +45,7 @@ class OnboardingScreen extends StatelessWidget {
             const SizedBox(height: 28),
             Row(children: List.generate(3, (i) => Expanded(child: Container(margin: const EdgeInsets.only(right: 8), height: 4, decoration: BoxDecoration(color: i < step ? AppColors.primary : AppColors.outlineVariant, borderRadius: BorderRadius.circular(99)))))),
             const SizedBox(height: 28),
-            EhButton(label: step == 3 ? 'Comecar agora' : 'Proximo', onPressed: () => Navigator.pushNamed(context, next)),
+            EhButton(label: step == 3 ? 'Começar agora' : 'Proximo', onPressed: () => Navigator.pushNamed(context, next)),
           ]),
         ),
       ),
