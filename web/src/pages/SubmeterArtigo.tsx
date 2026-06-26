@@ -41,8 +41,6 @@ export default function SubmeterArtigo() {
         type: mapped.type,
         summary: summary.trim() || undefined,
         body: body.trim(),
-        // PUBLIC so content becomes visible in listings once an admin publishes it.
-        // AUTHENTICATED was incorrectly filtering content out of all public endpoints.
         visibility: mapped.isJindungo ? 'AUTHENTICATED' : 'PUBLIC',
         isJindungo: mapped.isJindungo,
       })
@@ -56,18 +54,20 @@ export default function SubmeterArtigo() {
 
   return (
     <AppShell title="Submeter Artigo" showSearch={false}>
-      <div className="px-10 py-8 max-w-[800px] mx-auto">
-        <button onClick={() => navigate('/gestao/conteudos')}
-          className="flex items-center gap-2 text-[#5d5f5d] hover:text-[#8B1A1A] transition-colors mb-8 text-sm font-semibold">
+      <div className="page-content-narrow animate-fade-in">
+        <button
+          onClick={() => navigate('/gestao/conteudos')}
+          className="flex items-center gap-2 text-secondary hover:text-primary transition-colors duration-150 mb-8 text-sm font-semibold font-sans"
+        >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Voltar à Gestão
         </button>
 
-        <div className="bg-white rounded-xl p-10 border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-          <h1 className="text-[32px] font-bold text-[#1c1b1b] mb-2">
+        <div className="card p-8">
+          <h1 className="text-headline-md font-bold text-text mb-2 font-sans">
             {isPublisher ? 'Criar Novo Conteúdo' : 'Submeter Novo Artigo'}
           </h1>
-          <p className="text-base text-[#5d5f5d] mb-8 font-serif">
+          <p className="text-body-md font-body text-secondary mb-8">
             {isPublisher
               ? 'Crie conteúdo para o arquivo histórico. O conteúdo será guardado como rascunho — a publicação directa está em desenvolvimento.'
               : 'Contribua com o seu conhecimento para o arquivo histórico de Angola.'}
@@ -75,8 +75,8 @@ export default function SubmeterArtigo() {
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-[#58413f]">Tipo de Conteúdo</label>
-              <div className="flex gap-3">
+              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Tipo de Conteúdo</label>
+              <div className="flex gap-4 flex-wrap">
                 {(['Microtexto', 'Jindungo', 'Documento de Arquivo'] as FormType[]).map((type) => (
                   <label key={type} className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -85,65 +85,70 @@ export default function SubmeterArtigo() {
                       value={type}
                       checked={contentType === type}
                       onChange={() => setContentType(type)}
-                      className="text-[#8B1A1A]"
+                      className="accent-primary"
                     />
-                    <span className="text-sm font-semibold text-[#1c1b1b]">{type}</span>
+                    <span className="text-sm font-semibold text-text font-sans">{type}</span>
                   </label>
                 ))}
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-[#58413f]">Título</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Título</label>
               <input
                 type="text"
                 placeholder="Título do artigo..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
-                className="w-full bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg p-4 focus:ring-1 focus:ring-[#8B1A1A] outline-none transition-all font-serif"
+                className="input"
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-[#58413f]">Resumo <span className="text-[#8c716e] font-normal">(opcional)</span></label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                Resumo <span className="text-outline normal-case font-normal">(opcional)</span>
+              </label>
               <input
                 type="text"
                 placeholder="Breve resumo do artigo..."
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
-                className="w-full bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg p-4 focus:ring-1 focus:ring-[#8B1A1A] outline-none transition-all font-serif"
+                className="input"
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-[#58413f]">Conteúdo</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Conteúdo</label>
               <textarea
                 rows={10}
                 placeholder="Escreva o conteúdo do artigo aqui..."
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 required
-                className="w-full bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg p-4 focus:ring-1 focus:ring-[#8B1A1A] outline-none transition-all resize-none font-serif"
+                className="input resize-none"
               />
             </div>
 
             {error && (
-              <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 font-sans">{error}</p>
+              <div className="alert-error rounded-button">
+                <span className="material-symbols-outlined text-error text-[16px]">error_outline</span>
+                <p className="text-sm text-error font-body">{error}</p>
+              </div>
             )}
 
             <div className="flex gap-4 pt-4">
               <button
                 type="button"
                 onClick={() => navigate('/gestao/conteudos')}
-                className="flex-1 border border-[#8B1A1A] text-[#8B1A1A] text-sm font-semibold py-4 rounded-full hover:bg-[#f0eded] transition-colors"
+                className="btn-secondary flex-1 justify-center"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-[#8B1A1A] text-white text-sm font-semibold py-4 rounded-full hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="btn-primary flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>

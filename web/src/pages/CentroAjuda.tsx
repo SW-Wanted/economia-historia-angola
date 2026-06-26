@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 
@@ -16,11 +16,13 @@ export default function CentroAjuda() {
 
   return (
     <AppShell title="Centro de Ajuda" searchPlaceholder="Pesquisar ajuda...">
-      <div className="px-10 py-16 max-w-[800px] mx-auto">
-        <h1 className="text-[40px] font-extrabold text-[#1c1b1b] mb-2">Como podemos ajudar?</h1>
-        <p className="text-lg text-[#5d5f5d] mb-12" style={{ fontFamily: 'Merriweather, serif' }}>
-          Encontre respostas às perguntas mais frequentes ou contacte-nos diretamente.
-        </p>
+      <div className="page-content-narrow animate-fade-in">
+        <div className="mb-10">
+          <h1 className="text-display-web font-extrabold text-text font-sans tracking-tight mb-2">Como podemos ajudar?</h1>
+          <p className="text-body-lg text-secondary font-reading leading-relaxed">
+            Encontre respostas às perguntas mais frequentes ou contacte-nos diretamente.
+          </p>
+        </div>
 
         {/* Quick links */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
@@ -33,38 +35,41 @@ export default function CentroAjuda() {
             <button
               key={item.label}
               onClick={() => navigate(item.route)}
-              className="bg-white rounded-xl p-6 border border-[#e0bfbc] hover:border-[#8B1A1A] hover:shadow-md transition-all flex flex-col items-center gap-2"
+              className="card-interactive p-6 flex flex-col items-center gap-2"
             >
-              <span className="material-symbols-outlined text-[#8B1A1A] text-3xl">{item.icon}</span>
-              <span className="text-sm font-semibold text-[#1c1b1b]">{item.label}</span>
+              <span className="material-symbols-outlined text-primary text-3xl">{item.icon}</span>
+              <span className="text-sm font-semibold text-text font-sans">{item.label}</span>
             </button>
           ))}
         </div>
 
         {/* FAQ */}
-        <h2 className="text-2xl font-bold text-[#1c1b1b] mb-6">Perguntas Frequentes</h2>
+        <h2 className="text-headline-lg font-bold text-text font-sans mb-6">Perguntas Frequentes</h2>
         <div className="space-y-3">
           {faqs.map((faq, i) => (
-            <div key={i} className="bg-white rounded-xl border border-[#e0bfbc] overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+            <div key={i} className="card overflow-hidden">
               <button
                 onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex justify-between items-center p-6 text-left font-bold text-[#1c1b1b] hover:bg-[#f6f3f2] transition-colors"
+                className="w-full flex justify-between items-center p-6 text-left font-bold text-text hover:bg-surface-container-low transition-colors font-sans"
               >
                 {faq.q}
-                <span className={`material-symbols-outlined transition-transform ${open === i ? 'rotate-180' : ''}`}>expand_more</span>
+                <span className={`material-symbols-outlined transition-transform text-outline ${open === i ? 'rotate-180' : ''}`}>expand_more</span>
               </button>
               {open === i && (
-                <div className="px-6 pb-6 text-base text-[#5d5f5d]" style={{ fontFamily: 'Merriweather, serif' }}>{faq.a}</div>
+                <div className="px-6 pb-6 text-base text-secondary font-reading border-t border-outline-variant/30 pt-4">{faq.a}</div>
               )}
             </div>
           ))}
         </div>
 
         {/* Contact */}
-        <div className="mt-12 bg-[#8B1A1A] rounded-xl p-8 text-white text-center">
-          <h3 className="text-2xl font-bold mb-2">Ainda tem dúvidas?</h3>
-          <p className="text-white/80 mb-6" style={{ fontFamily: 'Merriweather, serif' }}>A nossa equipa está disponível para ajudar.</p>
-          <button onClick={() => navigate('/forum/novo-topico')} className="bg-white text-[#8B1A1A] px-8 py-3 rounded-full text-sm font-bold hover:shadow-lg transition-all">
+        <div className="mt-12 bg-primary rounded-card p-8 text-white text-center">
+          <h3 className="text-2xl font-bold mb-2 font-sans">Ainda tem dúvidas?</h3>
+          <p className="text-white/80 mb-6 font-body">A nossa equipa está disponível para ajudar.</p>
+          <button
+            onClick={() => navigate('/forum/novo-topico')}
+            className="btn-white"
+          >
             Contactar Suporte
           </button>
         </div>

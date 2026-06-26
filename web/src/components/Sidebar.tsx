@@ -2,45 +2,82 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import Icon from './Icon'
 import { useAuth, getUserInitials, getUserRole, canAccessContentManagement, canManageUsers } from '../contexts/AuthContext'
 
-const navItems = [
+const primaryNav = [
   { to: '/dashboard', label: 'Início', icon: 'home' },
   { to: '/explorar', label: 'Explorar', icon: 'explore' },
   { to: '/mapa', label: 'Mapa Económico', icon: 'map' },
   { to: '/forum', label: 'Fórum', icon: 'forum' },
   { to: '/quiz', label: 'Quizzes', icon: 'quiz' },
-  { to: '/perfil', label: 'Perfil', icon: 'person' },
 ]
 
-const contentItems = [
+const libraryNav = [
   { to: '/biblioteca', label: 'Biblioteca', icon: 'library_books' },
   { to: '/favoritos', label: 'Favoritos', icon: 'bookmark' },
-  { to: '/estatisticas', label: 'Estatísticas', icon: 'bar_chart' },
   { to: '/glossario', label: 'Glossário', icon: 'menu_book' },
   { to: '/comparador', label: 'Comparador', icon: 'compare' },
+  { to: '/estatisticas', label: 'Estatísticas', icon: 'bar_chart' },
 ]
 
-const bottomItems = [
+const supportNav = [
+  { to: '/perfil', label: 'Perfil', icon: 'person' },
   { to: '/guia-rapido', label: 'Guia Rápido', icon: 'rocket_launch' },
-  { to: '/guia-investigacao', label: 'Investigação', icon: 'science' },
-  { to: '/ajuda', label: 'Ajuda', icon: 'help' },
+  { to: '/ajuda', label: 'Ajuda', icon: 'help_outline' },
 ]
 
-function SecondaryNavItem({ to, label, icon }: { to: string; label: string; icon: string }) {
+function NavGroup({ label, items }: { label: string; items: { to: string; label: string; icon: string }[] }) {
+  return (
+    <div>
+      <p className="px-4 mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-outline/55 font-sans select-none">
+        {label}
+      </p>
+      <nav className="flex flex-col gap-0.5">
+        {items.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              `relative flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-sans transition-all duration-150 ${
+                isActive
+                  ? 'text-primary bg-primary/8 font-semibold'
+                  : 'text-text/55 font-medium hover:text-text hover:bg-surface-container-low/60'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                )}
+                <Icon
+                  name={item.icon}
+                  filled={isActive}
+                  className={`text-[20px] flex-shrink-0 transition-colors duration-150 ${isActive ? 'text-primary' : 'text-outline'}`}
+                />
+                <span className="truncate">{item.label}</span>
+              </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
+    </div>
+  )
+}
+
+function AdminNavItem({ to, label, icon }: { to: string; label: string; icon: string }) {
   return (
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-xs font-semibold font-sans ${
-          isActive
-            ? 'bg-[#8B1A1A]/8 text-[#8B1A1A]'
-            : 'text-[#5d5f5d] hover:bg-[#f0eded] hover:text-[#1c1b1b]'
+        `relative flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-sans transition-all duration-150 ${
+          isActive ? 'text-primary bg-primary/8 font-semibold' : 'text-text/55 font-medium hover:text-text hover:bg-surface-container-low/60'
         }`
       }
     >
       {({ isActive }) => (
         <>
-          <Icon name={icon} filled={isActive} className="text-[18px] flex-shrink-0" />
-          {label}
+          {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />}
+          <Icon name={icon} filled={isActive} className={`text-[20px] flex-shrink-0 ${isActive ? 'text-primary' : 'text-outline'}`} />
+          <span>{label}</span>
         </>
       )}
     </NavLink>
@@ -54,7 +91,6 @@ export default function Sidebar() {
   const displayName = user?.name ?? 'Utilizador'
   const initials = getUserInitials(user)
   const role = getUserRole(user)
-
   const canManageContent = canAccessContentManagement(user)
   const showUserMgmt = canManageUsers(user)
 
@@ -64,100 +100,72 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[280px] bg-[#fcf9f8] border-r border-[#ebe5e4] flex flex-col z-50 overflow-y-auto">
-      <div className="flex flex-col gap-5 p-5 flex-grow">
-        {/* Brand */}
-        <div className="flex flex-col gap-1 px-1 pt-1">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2.5 hover:opacity-75 transition-opacity duration-150 text-left"
-          >
-            <Icon name="account_balance" className="text-[#8B1A1A] text-3xl flex-shrink-0" filled />
-            <span className="font-bold text-[#8B1A1A] text-base leading-tight font-sans tracking-tight">
-              Economia com História
-            </span>
-          </button>
-          <span className="text-[10px] font-sans text-[#8c716e] ml-9 uppercase tracking-[0.12em]">Angola</span>
-        </div>
+    <aside className="fixed left-0 top-0 h-screen w-sidebar bg-surface border-r border-outline-variant/25 flex flex-col z-50 overflow-hidden">
 
-        {/* User chip */}
+      {/* Brand */}
+      <div className="px-5 pt-6 pb-4 flex-shrink-0">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-3 group w-full text-left"
+        >
+          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-200">
+            <Icon name="account_balance" filled className="text-white text-[20px]" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[13px] font-bold text-text font-sans leading-tight tracking-tight truncate">
+              Economia com História
+            </p>
+            <p className="text-[10px] font-semibold text-outline/70 uppercase tracking-[0.10em] font-sans mt-0.5">Angola</p>
+          </div>
+        </button>
+      </div>
+
+      {/* User chip */}
+      <div className="px-3 pb-3 flex-shrink-0">
         <button
           onClick={() => navigate('/perfil')}
-          className="flex items-center gap-3 border-t border-[#ebe5e4] pt-4 mt-1 hover:bg-[#f0eded] rounded-xl px-2 py-2 transition-all duration-150 -mx-2 group"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container-low/60 transition-all duration-150 group text-left"
         >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#8B1A1A]/15 to-[#8B1A1A]/5 border border-[#e0bfbc] flex items-center justify-center flex-shrink-0">
-            <span className="text-[11px] font-bold text-[#8B1A1A] font-sans leading-none">{initials}</span>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/8 border border-primary/20 flex items-center justify-center flex-shrink-0">
+            <span className="text-[10px] font-bold text-primary font-sans leading-none">{initials}</span>
           </div>
-          <div className="flex flex-col overflow-hidden text-left min-w-0">
-            <span className="font-semibold text-sm text-[#1c1b1b] truncate font-sans leading-snug">{displayName}</span>
-            <span className="text-[10px] uppercase tracking-[0.08em] text-[#8c716e] font-sans font-semibold">{role}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-semibold text-text font-sans leading-tight truncate">{displayName}</p>
+            <p className="text-[10px] text-outline/70 font-sans uppercase tracking-[0.06em]">{role}</p>
           </div>
-          <Icon name="chevron_right" className="text-[#c4b5b3] text-[18px] ml-auto flex-shrink-0 group-hover:text-[#8B1A1A] transition-colors duration-150" />
+          <Icon name="chevron_right" className="text-[16px] text-outline/40 flex-shrink-0 group-hover:text-primary/50 transition-colors duration-150" />
         </button>
+      </div>
 
-        {/* Primary navigation */}
-        <nav className="flex flex-col gap-0.5">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 text-sm font-semibold font-sans ${
-                  isActive
-                    ? 'bg-[#8B1A1A] text-white shadow-xs'
-                    : 'text-[#4a4a4a] hover:bg-[#f0eded] hover:text-[#1c1b1b]'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <Icon name={item.icon} filled={isActive} className="flex-shrink-0" />
-                  {item.label}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
+      <div className="h-px bg-outline-variant/20 mx-5 flex-shrink-0" />
 
-        {/* Secondary navigation */}
-        <div>
-          <p className="text-[10px] font-bold text-[#b8a5a3] uppercase tracking-[0.1em] px-3 mb-1.5 font-sans">
-            Conteúdos
-          </p>
-          <nav className="flex flex-col gap-0.5">
-            {contentItems.map((item) => (
-              <SecondaryNavItem key={item.to} {...item} />
-            ))}
-          </nav>
-        </div>
+      {/* Nav */}
+      <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-5 min-h-0">
+        <NavGroup label="Principal" items={primaryNav} />
+        <NavGroup label="Conteúdo" items={libraryNav} />
+        <NavGroup label="Conta" items={supportNav} />
 
-        {/* Management navigation — only for ADMIN / SUPER_ADMIN / MODERATOR */}
         {canManageContent && (
           <div>
-            <p className="text-[10px] font-bold text-[#b8a5a3] uppercase tracking-[0.1em] px-3 mb-1.5 font-sans">
-              Gestão
+            <p className="px-4 mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-outline/55 font-sans select-none">
+              Administração
             </p>
             <nav className="flex flex-col gap-0.5">
-              <SecondaryNavItem to="/gestao/conteudos" label="Gerir Conteúdos" icon="admin_panel_settings" />
-              {showUserMgmt && (
-                <SecondaryNavItem to="/gestao/utilizadores" label="Utilizadores" icon="manage_accounts" />
-              )}
+              <AdminNavItem to="/gestao/conteudos" label="Gerir Conteúdos" icon="admin_panel_settings" />
+              {showUserMgmt && <AdminNavItem to="/gestao/utilizadores" label="Utilizadores" icon="manage_accounts" />}
             </nav>
           </div>
         )}
       </div>
 
-      {/* Bottom section */}
-      <div className="border-t border-[#ebe5e4] p-4 flex flex-col gap-0.5">
-        {bottomItems.map((item) => (
-          <SecondaryNavItem key={item.to} {...item} />
-        ))}
+      {/* Logout */}
+      <div className="flex-shrink-0 p-3 border-t border-outline-variant/20">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 text-[#5d5f5d] px-3 py-2 hover:bg-[#f0eded] hover:text-[#ba1a1a] transition-all duration-150 rounded-lg text-xs font-semibold font-sans w-full text-left mt-1"
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium font-sans text-text/45 hover:text-error hover:bg-error/5 transition-all duration-150"
         >
-          <Icon name="logout" className="text-[18px] flex-shrink-0" />
-          Sair
+          <Icon name="logout" className="text-[20px] flex-shrink-0 text-outline/60" />
+          <span>Terminar Sessão</span>
         </button>
       </div>
     </aside>

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { contentService } from '../services/api/content.service'
@@ -11,11 +11,11 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  PUBLISHED: 'bg-green-100 text-green-800',
-  PENDING_REVIEW: 'bg-amber-100 text-amber-800',
-  DRAFT: 'bg-[#eae7e7] text-[#5d5f5d]',
-  ARCHIVED: 'bg-blue-100 text-blue-800',
-  REJECTED: 'bg-red-100 text-red-800',
+  PUBLISHED: 'badge bg-success/10 text-success',
+  PENDING_REVIEW: 'badge bg-warning/10 text-warning',
+  DRAFT: 'badge bg-surface-container text-secondary',
+  ARCHIVED: 'badge bg-surface-container text-secondary',
+  REJECTED: 'badge bg-error/10 text-error',
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -23,7 +23,7 @@ const TYPE_LABELS: Record<string, string> = {
   MICROTEXT: 'Microtexto', PDF: 'Documento', ARTICLE: 'Jindungo', AUDIO: 'Áudio',
 }
 
-const FILTER_STATUSES: Record<string, string | null> = {
+const FILTERS: Record<string, string | null> = {
   'Todos': null, 'Publicados': 'PUBLISHED', 'Em Revisão': 'PENDING_REVIEW', 'Rascunhos': 'DRAFT',
 }
 
@@ -47,8 +47,8 @@ export default function PainelGestaoConteudos() {
       .finally(() => setLoading(false))
   }, [])
 
-  const filtered = FILTER_STATUSES[filter]
-    ? contents.filter((c) => c.status === FILTER_STATUSES[filter])
+  const filtered = FILTERS[filter]
+    ? contents.filter((c) => c.status === FILTERS[filter])
     : contents
 
   const stats = {
@@ -66,121 +66,123 @@ export default function PainelGestaoConteudos() {
   }
 
   return (
-    <AppShell title="Gestão de Conteúdos" searchPlaceholder="Pesquisar artigos...">
-      <div className="px-10 py-8 max-w-[1160px] mx-auto">
-        <div className="flex items-center justify-between mb-8">
+    <AppShell searchPlaceholder="Pesquisar artigos...">
+      <div className="page-content animate-fade-in">
+        <div className="section-header mb-8">
           <div>
-            <h2 className="text-[40px] font-extrabold text-[#1c1b1b] mb-1 font-sans">Gestão de Conteúdos</h2>
-            <p className="text-base text-[#5d5f5d] font-serif">Gerencie todos os artigos e documentos da plataforma.</p>
+            <h2 className="section-title">Gestão de Conteúdos</h2>
+            <p className="section-subtitle">Gerencie artigos e documentos da plataforma.</p>
           </div>
           <div className="flex gap-3">
             {showUserMgmt && (
-              <button onClick={() => navigate('/gestao/utilizadores')}
-                className="flex items-center gap-2 border border-[#e0bfbc] text-[#1c1b1b] px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-[#f6f3f2] transition-all">
+              <button onClick={() => navigate('/gestao/utilizadores')} className="btn-secondary">
                 <span className="material-symbols-outlined text-[18px]">group</span>
                 Utilizadores
               </button>
             )}
             {canCreate && (
-              <button onClick={() => navigate('/gestao/submeter-artigo')}
-                className="flex items-center gap-2 bg-[#8B1A1A] text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:opacity-90 transition-all shadow-sm">
-                <span className="material-symbols-outlined">add</span>
+              <button onClick={() => navigate('/gestao/submeter-artigo')} className="btn-primary">
+                <span className="material-symbols-outlined text-[18px]">add</span>
                 Novo Artigo
               </button>
             )}
           </div>
         </div>
 
-        {/* Backend notice */}
-        <div className="bg-[#fff8f7] border border-[#8B1A1A]/15 rounded-xl p-4 mb-6 flex items-start gap-3">
-          <span className="material-symbols-outlined text-[#8B1A1A] text-[18px] mt-0.5 flex-shrink-0">info</span>
-          <p className="text-xs text-[#5d5f5d] font-serif">
-            Este painel lista conteúdos públicos publicados. A gestão de rascunhos, aprovação e publicação requer endpoints administrativos que estão em desenvolvimento.
+        <div className="alert-info rounded-card mb-6">
+          <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0 mt-0.5">info</span>
+          <p className="text-body-md text-secondary font-body">
+            Este painel lista conteúdos públicos publicados. A gestão de rascunhos e aprovação requer endpoints administrativos em desenvolvimento.
           </p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4 mb-8">
           {[
-            { value: loading ? '…' : String(stats.published), label: 'Publicados', color: 'text-green-600' },
-            { value: loading ? '…' : String(stats.review), label: 'Em Revisão', color: 'text-amber-600' },
-            { value: loading ? '…' : String(stats.drafts), label: 'Rascunhos', color: 'text-[#5d5f5d]' },
-            { value: loading ? '…' : stats.views.toLocaleString(), label: 'Visualizações', color: 'text-[#8B1A1A]' },
+            { value: loading ? '…' : String(stats.published), label: 'Publicados', color: 'text-success' },
+            { value: loading ? '…' : String(stats.review), label: 'Em Revisão', color: 'text-warning' },
+            { value: loading ? '…' : String(stats.drafts), label: 'Rascunhos', color: 'text-secondary' },
+            { value: loading ? '…' : stats.views.toLocaleString(), label: 'Visualizações', color: 'text-primary' },
           ].map((s) => (
-            <div key={s.label} className="bg-white rounded-xl p-5 border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)] text-center">
-              <p className={`text-[32px] font-extrabold font-sans ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-[#5d5f5d] uppercase tracking-wider font-sans">{s.label}</p>
+            <div key={s.label} className="card p-5 text-center">
+              <p className={`text-[28px] font-extrabold font-sans ${s.color}`}>{s.value}</p>
+              <p className="text-label-md text-secondary uppercase tracking-wider font-sans mt-1">{s.label}</p>
             </div>
           ))}
         </div>
 
-        {/* Filter */}
+        {/* Filter chips */}
         <div className="flex gap-2 mb-6">
-          {Object.keys(FILTER_STATUSES).map((f) => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold font-sans transition-colors ${filter === f ? 'bg-[#8B1A1A] text-white' : 'bg-white border border-[#e0bfbc] text-[#5d5f5d] hover:border-[#8B1A1A]'}`}>
+          {Object.keys(FILTERS).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={f === filter ? 'filter-chip-active' : 'filter-chip-inactive'}
+            >
               {f}
             </button>
           ))}
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="card overflow-hidden">
           {loading ? (
             <div className="p-8 space-y-3">
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="h-12 bg-[#f0eded] rounded-lg animate-pulse" />
+                <div key={i} className="skeleton h-12 rounded-lg" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center">
-              <span className="material-symbols-outlined text-[#8B1A1A]/20 text-5xl mb-3 block">article</span>
-              <p className="text-sm text-[#5d5f5d] font-serif">Nenhum conteúdo encontrado com este filtro.</p>
+            <div className="empty-state py-12">
+              <div className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary/40 text-[28px]">article</span>
+              </div>
+              <p className="text-body-md text-secondary font-body">Nenhum conteúdo encontrado.</p>
             </div>
           ) : (
             <table className="w-full">
-              <thead className="bg-[#f6f3f2] border-b border-[#e0bfbc]">
+              <thead className="bg-surface-container-low border-b border-outline-variant/25">
                 <tr>
-                  {['Título', 'Tipo', 'Estado', 'Data', 'Visualizações', 'Ações'].map((h) => (
-                    <th key={h} className="text-left px-5 py-3 text-xs font-bold text-[#5d5f5d] uppercase tracking-wider font-sans">{h}</th>
+                  {['Título', 'Tipo', 'Estado', 'Data', 'Vistas', ''].map((h) => (
+                    <th key={h} className="text-left px-5 py-3.5 text-label-md font-bold text-secondary uppercase tracking-wider font-sans">
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e0bfbc]">
+              <tbody className="divide-y divide-outline-variant/20">
                 {filtered.map((c) => (
-                  <tr key={c.id} className="hover:bg-[#f6f3f2] transition-colors">
+                  <tr key={c.id} className="hover:bg-surface-container-low/50 transition-colors">
                     <td className="px-5 py-4">
-                      <button onClick={() => navigate(getContentRoute(c.type))}
-                        className="text-sm font-semibold text-[#1c1b1b] hover:text-[#8B1A1A] transition-colors text-left line-clamp-1 max-w-[280px] font-sans">
+                      <button
+                        onClick={() => navigate(getContentRoute(c.type), { state: { contentId: c.id } })}
+                        className="text-sm font-semibold text-text hover:text-primary transition-colors text-left line-clamp-1 max-w-[280px] font-sans"
+                      >
                         {c.title}
                       </button>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="text-xs font-semibold text-[#8B1A1A] bg-[#8B1A1A]/10 px-2 py-0.5 rounded-full font-sans">
-                        {TYPE_LABELS[c.type] ?? c.type}
-                      </span>
+                      <span className="badge-primary">{TYPE_LABELS[c.type] ?? c.type}</span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full font-sans ${STATUS_COLORS[c.status] ?? 'bg-[#eae7e7] text-[#5d5f5d]'}`}>
+                      <span className={STATUS_COLORS[c.status] ?? 'badge bg-surface-container text-secondary'}>
                         {STATUS_LABELS[c.status] ?? c.status}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-xs text-[#5d5f5d] font-sans">
+                    <td className="px-5 py-4 text-[12px] text-secondary font-body">
                       {new Date(c.createdAt).toLocaleDateString('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
-                    <td className="px-5 py-4 text-sm font-semibold text-[#1c1b1b] font-sans">
+                    <td className="px-5 py-4 text-sm font-semibold text-text font-sans">
                       {(c._count?.views ?? 0).toLocaleString()}
                     </td>
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => navigate(getContentRoute(c.type), { state: { contentId: c.id } })}
-                          className="p-1.5 rounded hover:bg-[#eae7e7] transition-colors text-[#5d5f5d] hover:text-[#8B1A1A]"
-                          title="Ver conteúdo"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">visibility</span>
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => navigate(getContentRoute(c.type), { state: { contentId: c.id } })}
+                        className="btn-icon"
+                        title="Ver conteúdo"
+                      >
+                        <span className="material-symbols-outlined text-[17px]">visibility</span>
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -9,9 +9,9 @@ export default function Login() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [oauthInfo, setOauthInfo] = useState('')
 
   const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/dashboard'
 
@@ -22,155 +22,219 @@ export default function Login() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (!email.trim() || !password) {
-      setError('Preencha o email e a palavra-passe.')
-      return
-    }
+    if (!email.trim() || !password) { setError('Preencha o email e a palavra-passe.'); return }
     setLoading(true)
     try {
       await login({ email: email.trim(), password })
       navigate(from, { replace: true })
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao iniciar sessão. Tente novamente.'
-      setError(msg)
+      setError(err instanceof Error ? err.message : 'Erro ao iniciar sessão. Tente novamente.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden font-sans" style={{ backgroundColor: '#F2F2F0' }}>
-      <div className="absolute inset-0 opacity-[0.035]" style={{ backgroundImage: 'radial-gradient(#8B1A1A 0.5px, transparent 0.5px)', backgroundSize: '20px 20px' }} />
+    <div className="min-h-screen flex bg-background font-body">
 
-      <main className="w-full max-w-[440px] px-4 z-10">
-        <div className="bg-white rounded-2xl shadow-lg border border-[#ebe5e4] px-8 py-10 flex flex-col items-center">
-          {/* Logo */}
-          <div className="mb-7 flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-xl bg-[#fff5f4] flex items-center justify-center">
-              <span className="material-symbols-outlined text-[#8B1A1A]" style={{ fontSize: '28px', fontVariationSettings: "'FILL' 1" }}>account_balance</span>
+      {/* Left panel — decorative */}
+      <div className="hidden lg:flex lg:w-[45%] xl:w-[50%] flex-col relative overflow-hidden"
+        style={{ background: 'linear-gradient(145deg, #8B1A1A 0%, #5A1010 55%, #2A0808 100%)' }}>
+        {/* Decorative patterns */}
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        <div className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-[0.08]"
+          style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)', transform: 'translate(-30%, -30%)' }} />
+        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full opacity-[0.06]"
+          style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)', transform: 'translate(30%, 30%)' }} />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col h-full p-12">
+          {/* Brand */}
+          <div className="flex items-center gap-3 mb-auto">
+            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center border border-white/20">
+              <span className="material-symbols-outlined text-white text-[22px]"
+                style={{ fontVariationSettings: "'FILL' 1" }}>account_balance</span>
             </div>
-            <div className="text-center">
-              <h1 className="font-bold text-[#8B1A1A] text-base tracking-tight font-sans">Economia com História</h1>
-              <p className="text-[10px] text-[#8c716e] uppercase tracking-[0.12em] font-sans mt-0.5">Angola</p>
+            <div>
+              <p className="text-white text-sm font-bold font-sans leading-tight">Economia com História</p>
+              <p className="text-white/50 text-[10px] uppercase tracking-[0.1em] font-sans">Angola</p>
             </div>
           </div>
 
-          <div className="text-center mb-7">
-            <h2 className="text-2xl font-bold text-[#1c1b1b] font-sans tracking-tight">Aceda à sua conta</h2>
-            <p className="text-sm text-[#5d5f5d] mt-1.5 font-serif">Aceda à sua conta para continuar a ler.</p>
+          {/* Testimonial block */}
+          <div className="mt-auto">
+            <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block"
+              style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
+            <blockquote className="text-white/80 text-lg font-reading italic leading-relaxed mb-6">
+              "Uma plataforma essencial para compreender a complexidade económica de Angola através da sua história."
+            </blockquote>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-white/15 border border-white/20 flex items-center justify-center">
+                <span className="text-[11px] font-bold text-white font-sans">CE</span>
+              </div>
+              <div>
+                <p className="text-white/75 text-sm font-sans font-semibold">Carlos Eduardo</p>
+                <p className="text-white/45 text-[11px] font-body">Investigador · Universidade Agostinho Neto</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right panel — form */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-[400px]">
+
+          {/* Mobile brand */}
+          <div className="flex items-center gap-2.5 mb-10 lg:hidden">
+            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+              <span className="material-symbols-outlined text-white text-[20px]"
+                style={{ fontVariationSettings: "'FILL' 1" }}>account_balance</span>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-text font-sans leading-tight">Economia com História</p>
+              <p className="text-[10px] text-outline uppercase tracking-[0.1em] font-sans">Angola</p>
+            </div>
           </div>
 
-          <form className="w-full space-y-4" onSubmit={handleSubmit}>
+          {/* Heading */}
+          <div className="mb-8">
+            <h1 className="text-headline-xl font-bold text-text font-sans tracking-tight mb-1">
+              Bem-vindo de volta
+            </h1>
+            <p className="text-body-md text-secondary font-body">
+              Inicie sessão para continuar a explorar.
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-[#58413f] font-sans uppercase tracking-[0.05em]">Email</label>
+              <label className="block text-label-lg text-text-muted font-sans">
+                Endereço de email
+              </label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#b8a5a3] text-[18px] pointer-events-none">mail</span>
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline/50 text-[17px] pointer-events-none">mail</span>
                 <input
                   type="email"
                   placeholder="nome@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#f8f5f4] rounded-lg border border-[#e8e0de] focus:bg-white focus:border-[#8B1A1A] focus:ring-2 focus:ring-[#8B1A1A]/10 outline-none transition-all duration-150 text-sm font-serif placeholder:text-[#c4b5b3]"
+                  className="input pl-10"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-[#58413f] font-sans uppercase tracking-[0.05em]">Palavra-passe</label>
+              <div className="flex items-center justify-between">
+                <label className="block text-label-lg text-text-muted font-sans">
+                  Palavra-passe
+                </label>
+                <button
+                  type="button"
+                  onClick={() => navigate('/recuperar-senha')}
+                  className="text-sm text-primary hover:text-primary-dark font-semibold font-sans transition-colors duration-150"
+                >
+                  Esqueceu?
+                </button>
+              </div>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#b8a5a3] text-[18px] pointer-events-none">lock</span>
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline/50 text-[17px] pointer-events-none">lock</span>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-10 pr-12 py-2.5 bg-[#f8f5f4] rounded-lg border border-[#e8e0de] focus:bg-white focus:border-[#8B1A1A] focus:ring-2 focus:ring-[#8B1A1A]/10 outline-none transition-all duration-150 text-sm"
+                  className="input pl-10 pr-11"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-outline/50 hover:text-outline transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[17px]">
+                    {showPassword ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
               </div>
             </div>
 
             {error && (
-              <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 font-sans">
-                {error}
-              </p>
+              <div className="alert-error rounded-button">
+                <span className="material-symbols-outlined text-error/70 text-[16px] flex-shrink-0 mt-0.5">error_outline</span>
+                <p className="text-sm text-error font-body">{error}</p>
+              </div>
             )}
 
-            <div className="flex items-center justify-between py-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-[#e0bfbc] accent-[#8B1A1A]" />
-                <span className="text-sm text-[#5d5f5d]">Lembrar-me</span>
-              </label>
-              <button
-                type="button"
-                onClick={() => navigate('/recuperar-senha')}
-                className="text-sm text-[#8B1A1A] hover:text-[#6e1515] font-semibold font-sans transition-colors duration-150"
-              >
-                Esqueceu a senha?
-              </button>
-            </div>
+            <label className="flex items-center gap-2.5 cursor-pointer pt-1">
+              <input type="checkbox" className="w-4 h-4 rounded border-outline-variant/60 accent-primary" />
+              <span className="text-sm text-secondary font-body">Manter sessão iniciada</span>
+            </label>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#8B1A1A] text-white text-sm font-semibold py-3 rounded-full hover:bg-[#7a1616] hover:shadow-md active:scale-[0.99] transition-all duration-150 font-sans mt-1 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="btn-primary w-full justify-center py-4 text-base mt-2"
             >
               {loading ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   A entrar...
                 </>
-              ) : 'Entrar'}
+              ) : 'Entrar na plataforma'}
             </button>
           </form>
 
-          <div className="w-full flex items-center gap-3 my-6">
-            <div className="h-px flex-grow bg-[#ebe5e4]" />
-            <span className="text-[11px] text-[#b8a5a3] uppercase tracking-[0.1em] font-sans whitespace-nowrap">ou aceder com</span>
-            <div className="h-px flex-grow bg-[#ebe5e4]" />
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="h-px flex-grow bg-outline-variant/30" />
+            <span className="text-[11px] text-outline/60 uppercase tracking-wider font-sans whitespace-nowrap">ou</span>
+            <div className="h-px flex-grow bg-outline-variant/30" />
           </div>
 
-          <div className="w-full flex flex-col gap-2 mb-7">
-            <div className="flex gap-3">
-              <button
-                onClick={() => setOauthInfo('O acesso via Google ainda não está disponível. Por favor, utilize o email e palavra-passe.')}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-[#e8e0de] rounded-lg text-sm font-semibold text-[#8c716e] hover:bg-[#f8f5f4] hover:border-[#d4c5c3] transition-all duration-150 font-sans opacity-60 cursor-not-allowed"
+          {/* Social — clearly "coming soon", not broken */}
+          <div className="grid grid-cols-2 gap-3 mb-8">
+            {[
+              { icon: 'language', label: 'Google' },
+              { icon: 'work', label: 'LinkedIn' },
+            ].map((p) => (
+              <div
+                key={p.label}
+                className="flex items-center justify-center gap-2 py-3 border border-outline-variant/30 rounded-button text-sm font-semibold text-secondary/50 font-sans cursor-not-allowed select-none relative"
               >
-                <span className="material-symbols-outlined text-[18px] text-[#5d5f5d]">language</span>
-                Google
-              </button>
-              <button
-                onClick={() => setOauthInfo('O acesso via LinkedIn ainda não está disponível. Por favor, utilize o email e palavra-passe.')}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-[#e8e0de] rounded-lg text-sm font-semibold text-[#8c716e] hover:bg-[#f8f5f4] hover:border-[#d4c5c3] transition-all duration-150 font-sans opacity-60 cursor-not-allowed"
-              >
-                <span className="material-symbols-outlined text-[18px] text-[#5d5f5d]">work</span>
-                LinkedIn
-              </button>
-            </div>
-            {oauthInfo && (
-              <p className="text-xs text-[#8c716e] bg-[#f8f5f4] border border-[#e8e0de] rounded-lg px-3 py-2 text-center font-sans">{oauthInfo}</p>
-            )}
+                <span className="material-symbols-outlined text-[17px] text-secondary/40">{p.icon}</span>
+                {p.label}
+                <span className="absolute -top-2 -right-1 text-[9px] bg-surface-container text-secondary/60 px-1.5 py-0.5 rounded-full font-sans font-bold uppercase tracking-wide border border-outline-variant/30">
+                  Em breve
+                </span>
+              </div>
+            ))}
           </div>
 
-          <div className="text-center pt-5 border-t border-[#ebe5e4] w-full">
-            <p className="text-sm text-[#5d5f5d] font-serif">
-              Não tem conta?{' '}
-              <button onClick={() => navigate('/cadastro')} className="text-[#8B1A1A] font-bold hover:text-[#6e1515] transition-colors duration-150 font-sans ml-1">
-                Criar conta grátis
-              </button>
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 flex justify-center gap-6">
-          {['Sobre', 'Termos', 'Privacidade', 'Contacto'].map((l) => (
-            <button key={l} onClick={() => navigate('/ajuda')} className="text-xs text-[#b8a5a3] hover:text-[#8B1A1A] transition-colors duration-150 font-sans">
-              {l}
+          {/* Register link */}
+          <p className="text-center text-sm text-secondary font-body">
+            Não tem conta?{' '}
+            <button
+              onClick={() => navigate('/cadastro')}
+              className="text-primary font-bold hover:text-primary-dark transition-colors duration-150 font-sans"
+            >
+              Criar conta gratuitamente
             </button>
-          ))}
+          </p>
+
+          {/* Footer */}
+          <div className="flex justify-center gap-5 mt-10">
+            {['Sobre', 'Termos', 'Privacidade'].map((l) => (
+              <button key={l} onClick={() => navigate('/ajuda')} className="text-xs text-outline/60 hover:text-primary transition-colors font-body">
+                {l}
+              </button>
+            ))}
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }
