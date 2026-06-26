@@ -23,51 +23,57 @@ export default function AppShell({ children, title, searchPlaceholder = 'Pesquis
   const initials = getUserInitials(user)
 
   return (
-    <div className="bg-[#F2F2F0] text-[#1c1b1b] min-h-screen font-sans">
+    <div className="bg-background text-text min-h-screen font-body">
       <Sidebar />
 
       {/* Top bar */}
-      <header className="fixed top-0 right-0 left-[280px] bg-[#fcf9f8]/95 backdrop-blur-sm z-40 border-b border-[#ebe5e4]">
-        <div className="flex justify-between items-center px-10 h-[60px] max-w-[1160px] mx-auto">
-          <div className="flex items-center gap-6">
+      <header className="fixed top-0 right-0 left-sidebar bg-surface/95 backdrop-blur-sm z-40 border-b border-outline-variant/20">
+        <div className="flex items-center justify-between px-8 h-topbar max-w-[1200px] mx-auto">
+
+          {/* Left: title + search */}
+          <div className="flex items-center gap-5">
             {title && (
-              <h1 className="text-lg font-bold text-[#1c1b1b] whitespace-nowrap font-sans tracking-tight">{title}</h1>
+              <h1 className="text-[15px] font-bold text-text font-sans tracking-tight whitespace-nowrap">{title}</h1>
             )}
             {showSearch && (
               <form onSubmit={handleSearch} className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#b8a5a3] text-[18px] pointer-events-none">search</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline/60 text-[17px] pointer-events-none">
+                  search
+                </span>
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className="bg-[#f0eded] border border-transparent rounded-lg pl-9 pr-4 py-2 text-sm w-60 focus:w-72 focus:bg-white focus:border-[#e0bfbc] focus:ring-2 focus:ring-[#8B1A1A]/10 outline-none transition-all duration-200 font-serif placeholder:text-[#c4b5b3]"
+                  className="bg-background border border-transparent rounded-button pl-9 pr-4 py-2 text-sm w-56 focus:w-72 focus:bg-surface focus:border-outline-variant/50 focus:ring-2 focus:ring-primary/8 outline-none transition-all duration-200 font-body placeholder:text-outline/50 text-text"
                 />
               </form>
             )}
           </div>
-          <div className="flex items-center gap-3">
+
+          {/* Right: actions */}
+          <div className="flex items-center gap-1">
             <button
               onClick={() => navigate('/notificacoes')}
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-[#5d5f5d] hover:text-[#8B1A1A] hover:bg-[#f0eded] transition-all duration-150 relative"
+              className="relative w-9 h-9 flex items-center justify-center rounded-lg text-text/50 hover:text-primary hover:bg-surface-container-low transition-all duration-150"
               aria-label="Notificações"
             >
-              <span className="material-symbols-outlined text-[22px]">notifications</span>
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#8B1A1A] rounded-full ring-2 ring-[#fcf9f8]" />
+              <span className="material-symbols-outlined text-[20px]">notifications</span>
+              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-primary rounded-full ring-[1.5px] ring-surface" />
             </button>
             <button
               onClick={() => navigate('/perfil')}
-              className="w-9 h-9 rounded-full overflow-hidden border border-[#e0bfbc] bg-gradient-to-br from-[#8B1A1A]/15 to-[#8B1A1A]/5 flex items-center justify-center hover:border-[#8B1A1A]/60 hover:shadow-xs transition-all duration-150"
+              className="ml-1 w-8 h-8 rounded-full overflow-hidden border border-outline-variant/40 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center hover:border-primary/40 hover:shadow-xs transition-all duration-150"
               aria-label="Perfil"
             >
-              <span className="text-[11px] font-bold text-[#8B1A1A] font-sans leading-none">{initials}</span>
+              <span className="text-[10px] font-bold text-primary font-sans leading-none">{initials}</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Content */}
-      <main className="ml-[280px] pt-[60px] min-h-screen">
+      {/* Main content */}
+      <main className="ml-sidebar pt-topbar min-h-screen">
         {children}
       </main>
     </div>

@@ -19,13 +19,8 @@ export default function SubmeterTopico() {
     setForumsLoading(true)
     setForumsError(false)
     forumService.listForums()
-      .then((data) => {
-        setForums(Array.isArray(data) ? data : [])
-      })
-      .catch(() => {
-        setForumsError(true)
-        setForums([])
-      })
+      .then((data) => { setForums(Array.isArray(data) ? data : []) })
+      .catch(() => { setForumsError(true); setForums([]) })
       .finally(() => setForumsLoading(false))
   }, [])
 
@@ -37,7 +32,6 @@ export default function SubmeterTopico() {
     if (!title.trim()) { setError('O título é obrigatório.'); return }
     if (!body.trim()) { setError('O conteúdo é obrigatório.'); return }
     if (forums.length === 0) { setError('Nenhum fórum disponível para publicar. Tente mais tarde.'); return }
-
     setLoading(true)
     try {
       const forumId = forums[0].id
@@ -55,50 +49,48 @@ export default function SubmeterTopico() {
     }
   }
 
+  function reloadForums() {
+    setForumsLoading(true)
+    setForumsError(false)
+    forumService.listForums()
+      .then((data) => setForums(Array.isArray(data) ? data : []))
+      .catch(() => setForumsError(true))
+      .finally(() => setForumsLoading(false))
+  }
+
   return (
-    <AppShell title="Novo Tópico" showSearch={false}>
-      <div className="px-10 py-16 max-w-[800px] mx-auto">
+    <AppShell showSearch={false}>
+      <div className="page-content-narrow animate-fade-in">
         <button
           onClick={() => navigate('/forum')}
-          className="flex items-center gap-2 text-[#5d5f5d] hover:text-[#8B1A1A] transition-colors mb-8 text-sm font-semibold"
+          className="flex items-center gap-2 text-secondary hover:text-primary transition-colors duration-150 mb-8 text-sm font-semibold font-sans"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Voltar ao Fórum
         </button>
 
-        <div className="bg-white rounded-xl p-10 border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-          <h1 className="text-[32px] font-bold text-[#1c1b1b] mb-2">Submeter Novo Tópico</h1>
-          <p className="text-base text-[#5d5f5d] mb-8 font-serif">
-            Partilhe a sua investigação ou inicie um debate com a comunidade.
-          </p>
+        <div className="card p-8">
+          <div className="mb-8">
+            <h1 className="text-headline-xl font-bold text-text font-sans tracking-tight mb-2">Novo Tópico</h1>
+            <p className="text-body-md text-secondary font-body leading-relaxed">
+              Partilhe a sua investigação ou inicie um debate com a comunidade académica.
+            </p>
+          </div>
 
-          {/* Forum availability banners */}
           {forumsLoading && (
-            <div className="flex items-center gap-3 bg-[#f6f3f2] border border-[#e0bfbc] rounded-xl p-4 mb-6">
-              <span className="w-4 h-4 border-2 border-[#8B1A1A] border-t-transparent rounded-full animate-spin flex-shrink-0" />
-              <p className="text-sm text-[#5d5f5d] font-serif">A verificar fóruns disponíveis...</p>
+            <div className="alert-info rounded-button mb-6">
+              <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin flex-shrink-0" />
+              <p className="text-body-md text-secondary font-body">A verificar fóruns disponíveis...</p>
             </div>
           )}
 
           {forumsError && (
-            <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-              <span className="material-symbols-outlined text-red-600 text-[18px] mt-0.5 flex-shrink-0">error</span>
+            <div className="alert-error rounded-card mb-6">
+              <span className="material-symbols-outlined text-error text-[18px] flex-shrink-0">error</span>
               <div>
-                <p className="text-sm font-semibold text-red-800 font-sans">Não foi possível carregar os fóruns</p>
-                <p className="text-xs text-red-600 font-serif mt-0.5">
-                  Verifique a sua ligação à internet e tente novamente.
-                </p>
-                <button
-                  onClick={() => {
-                    setForumsLoading(true)
-                    setForumsError(false)
-                    forumService.listForums()
-                      .then((data) => setForums(Array.isArray(data) ? data : []))
-                      .catch(() => setForumsError(true))
-                      .finally(() => setForumsLoading(false))
-                  }}
-                  className="mt-2 text-xs font-semibold text-red-700 hover:underline font-sans"
-                >
+                <p className="text-sm font-bold text-error font-sans">Não foi possível carregar os fóruns</p>
+                <p className="text-body-md text-secondary font-body mt-0.5">Verifique a sua ligação e tente novamente.</p>
+                <button onClick={reloadForums} className="mt-2 text-xs font-bold text-error hover:underline font-sans">
                   Tentar novamente
                 </button>
               </div>
@@ -106,65 +98,60 @@ export default function SubmeterTopico() {
           )}
 
           {noForumsAvailable && (
-            <div className="flex items-start gap-3 bg-[#fff8f7] border border-[#8B1A1A]/20 rounded-xl p-4 mb-6">
-              <span className="material-symbols-outlined text-[#8B1A1A] text-[18px] mt-0.5 flex-shrink-0">info</span>
+            <div className="alert-info rounded-card mb-6">
+              <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0">info</span>
               <div>
-                <p className="text-sm font-semibold text-[#1c1b1b] font-sans">Nenhum fórum disponível</p>
-                <p className="text-xs text-[#5d5f5d] font-serif mt-0.5">
-                  Ainda não existem fóruns públicos criados no sistema. Os fóruns são criados pelo administrador da plataforma directamente na base de dados.
+                <p className="text-sm font-bold text-text font-sans">Nenhum fórum disponível</p>
+                <p className="text-body-md text-secondary font-body mt-0.5">
+                  Os fóruns são criados pelo administrador da plataforma. Tente mais tarde.
                 </p>
               </div>
             </div>
           )}
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-[#58413f]">Título do Tópico</label>
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div>
+              <label className="block text-label-lg text-text-muted font-sans mb-1.5">Título do Tópico</label>
               <input
                 type="text"
                 placeholder="Ex: O impacto do café na economia do Huambo..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
-                className="w-full bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg p-4 focus:ring-1 focus:ring-[#8B1A1A] outline-none transition-all font-serif"
+                className="input"
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-[#58413f]">Conteúdo</label>
+            <div>
+              <label className="block text-label-lg text-text-muted font-sans mb-1.5">Conteúdo</label>
               <textarea
                 rows={8}
                 placeholder="Desenvolva o seu tópico aqui. Seja específico e fundamentado nas fontes..."
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 required
-                className="w-full bg-[#f6f3f2] border border-[#e0bfbc] rounded-lg p-4 focus:ring-1 focus:ring-[#8B1A1A] outline-none transition-all resize-none font-serif"
+                className="input resize-none"
               />
             </div>
 
             {error && (
-              <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 font-sans">{error}</p>
+              <div className="alert-error rounded-button">
+                <span className="material-symbols-outlined text-error text-[16px]">error_outline</span>
+                <p className="text-sm text-error font-body">{error}</p>
+              </div>
             )}
 
-            <div className="flex gap-4 pt-4">
-              <button
-                type="button"
-                onClick={() => navigate('/forum')}
-                className="flex-1 border border-[#8B1A1A] text-[#8B1A1A] text-sm font-semibold py-4 rounded-full hover:bg-[#f0eded] transition-colors"
-              >
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => navigate('/forum')} className="btn-secondary flex-1 justify-center">
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading || forumsLoading || forums.length === 0}
-                className="flex-1 bg-[#8B1A1A] text-white text-sm font-semibold py-4 rounded-full hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                title={forums.length === 0 && !forumsLoading ? 'Nenhum fórum disponível no sistema' : undefined}
+                className="btn-primary flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    A publicar...
-                  </>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     Publicar Tópico

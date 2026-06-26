@@ -1,42 +1,42 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 
 export default function MeusFavoritos() {
   const navigate = useNavigate()
 
   return (
-    <AppShell title="Favoritos e Marcadores" searchPlaceholder="Pesquisar favoritos...">
-      <div className="px-10 py-8 max-w-[1160px] mx-auto">
-        <div className="flex items-center justify-between mb-8">
+    <AppShell searchPlaceholder="Pesquisar favoritos...">
+      <div className="page-content animate-fade-in">
+        <div className="section-header mb-8">
           <div>
-            <h2 className="text-[40px] font-extrabold text-[#1c1b1b] mb-1 font-sans">Favoritos e Marcadores</h2>
-            <p className="text-base text-[#5d5f5d] font-serif">Os seus conteúdos guardados.</p>
+            <h2 className="section-title">Favoritos</h2>
+            <p className="section-subtitle">Os seus conteúdos guardados para leitura posterior.</p>
           </div>
-          <button onClick={() => navigate('/explorar')}
-            className="flex items-center gap-2 bg-[#8B1A1A] text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:opacity-90 transition-all">
+          <button onClick={() => navigate('/explorar')} className="btn-primary">
             <span className="material-symbols-outlined text-[18px]">add</span>
-            Explorar mais
+            Explorar Arquivo
           </button>
         </div>
 
-        {/* Backend gap notice */}
-        <div className="bg-[#fff8f7] border border-[#8B1A1A]/15 rounded-xl p-4 mb-6 flex items-start gap-3">
-          <span className="material-symbols-outlined text-[#8B1A1A] text-[18px] mt-0.5 flex-shrink-0">info</span>
-          <p className="text-xs text-[#5d5f5d] font-serif">
-            Para guardar um artigo nos favoritos, clique no ícone de marcador
+        <div className="alert-info rounded-card mb-7">
+          <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0 mt-0.5">info</span>
+          <p className="text-body-md text-secondary font-body">
+            Para guardar um artigo, clique no ícone{' '}
             <span className="material-symbols-outlined text-[12px] mx-0.5 align-middle">bookmark</span>
-            em qualquer artigo. A listagem dos seus favoritos estará disponível em breve.
+            {' '}em qualquer conteúdo. A listagem dos seus favoritos estará disponível em breve.
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-[#ebe5e4] p-14 text-center">
-          <span className="material-symbols-outlined text-[#8B1A1A]/20 mb-4 block" style={{ fontSize: '72px' }}>bookmark</span>
-          <p className="text-lg font-bold text-[#1c1b1b] mb-2 font-sans">Nenhum favorito para mostrar</p>
-          <p className="text-sm text-[#5d5f5d] font-serif mb-6 max-w-sm mx-auto">
-            A listagem de favoritos estará disponível em breve. Entretanto, explore o arquivo e use o ícone de marcador para guardar artigos.
+        <div className="empty-state py-20">
+          <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center">
+            <span className="material-symbols-outlined text-primary/30 text-[36px]">bookmark</span>
+          </div>
+          <p className="text-headline-md font-bold text-text font-sans">Nenhum favorito ainda</p>
+          <p className="text-body-md text-secondary font-body max-w-sm text-center leading-relaxed">
+            Explore o arquivo e guarde artigos que queira reler mais tarde.
           </p>
-          <button onClick={() => navigate('/explorar')}
-            className="bg-[#8B1A1A] text-white px-8 py-3 rounded-full text-sm font-semibold font-sans hover:bg-[#7a1616] transition-all">
+          <button onClick={() => navigate('/explorar')} className="btn-primary">
+            <span className="material-symbols-outlined text-[18px]">explore</span>
             Explorar Conteúdos
           </button>
         </div>

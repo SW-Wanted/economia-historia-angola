@@ -36,23 +36,23 @@ export default function PainelEstatisticas() {
 
   return (
     <AppShell title="Painel de Estatísticas" showSearch={false}>
-      <div className="px-10 py-10 max-w-[1160px] mx-auto">
+      <div className="page-content animate-fade-in">
         <div className="mb-8">
-          <h2 className="text-[40px] font-extrabold text-[#1c1b1b] mb-2 font-sans tracking-tight">As Suas Estatísticas</h2>
-          <p className="text-sm text-[#5d5f5d] font-serif leading-relaxed">
+          <h2 className="text-display-web font-extrabold text-text font-sans tracking-tight mb-2">As Suas Estatísticas</h2>
+          <p className="text-body-md font-body text-secondary leading-relaxed">
             Acompanhe o seu progresso e impacto na plataforma.
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-[#ebe5e4] mb-8">
+        <div className="border-b border-outline-variant/40 mb-8">
           <div className="flex gap-6">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`pb-3.5 text-sm font-semibold font-sans transition-all duration-150 border-b-2 -mb-px ${
-                  activeTab === tab ? 'border-[#8B1A1A] text-[#8B1A1A]' : 'border-transparent text-[#5d5f5d] hover:text-[#1c1b1b]'
+                  activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-text'
                 }`}
               >
                 {tab}
@@ -71,30 +71,30 @@ export default function PainelEstatisticas() {
                 { icon: 'quiz', value: '—', label: 'Quizzes Feitos' },
                 { icon: 'forum', value: '—', label: 'Contribuições' },
               ].map((s) => (
-                <div key={s.label} className="bg-white rounded-xl p-6 border border-[#ebe5e4] shadow-card text-center">
-                  <span className="w-9 h-9 rounded-lg bg-[#fff5f4] flex items-center justify-center mx-auto mb-4">
-                    <span className="material-symbols-outlined text-[#8B1A1A] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
+                <div key={s.label} className="card p-6 text-center">
+                  <span className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center mx-auto mb-4">
+                    <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
                   </span>
-                  <p className="text-[36px] font-extrabold text-[#1c1b1b] leading-none font-sans mb-1">{s.value}</p>
-                  <p className="text-[10px] text-[#8c716e] uppercase tracking-[0.08em] font-sans">{s.label}</p>
+                  <p className="text-[36px] font-extrabold text-text leading-none font-sans mb-1">{s.value}</p>
+                  <p className="text-label-md text-text-muted uppercase tracking-[0.08em] font-sans">{s.label}</p>
                 </div>
               ))}
             </div>
 
             {/* Reading progress */}
-            <div className="bg-white rounded-xl p-7 border border-[#ebe5e4] shadow-card mb-5">
-              <h3 className="text-base font-bold text-[#1c1b1b] mb-6 font-sans">Leituras em Curso</h3>
+            <div className="card p-7 mb-5">
+              <h3 className="text-base font-bold text-text mb-6 font-sans">Leituras em Curso</h3>
               {loading ? (
                 <div className="space-y-4">
                   {[0, 1, 2].map((i) => (
-                    <div key={i} className="h-10 bg-[#f0eded] rounded-lg animate-pulse" />
+                    <div key={i} className="h-10 bg-surface-container rounded-lg animate-pulse" />
                   ))}
                 </div>
               ) : inProgress.length === 0 ? (
                 <div className="text-center py-6">
-                  <span className="material-symbols-outlined text-[#8B1A1A]/20 text-4xl mb-2 block">auto_stories</span>
-                  <p className="text-sm text-[#5d5f5d] font-serif">Nenhuma leitura em curso. Explore o arquivo para começar.</p>
-                  <button onClick={() => navigate('/explorar')} className="mt-3 text-sm font-semibold text-[#8B1A1A] font-sans hover:underline">
+                  <span className="material-symbols-outlined text-primary/20 text-4xl mb-2 block">auto_stories</span>
+                  <p className="text-body-md font-body text-secondary">Nenhuma leitura em curso. Explore o arquivo para começar.</p>
+                  <button onClick={() => navigate('/explorar')} className="mt-3 text-sm font-semibold text-primary font-sans hover:underline">
                     Explorar conteúdos →
                   </button>
                 </div>
@@ -103,13 +103,13 @@ export default function PainelEstatisticas() {
                   {inProgress.slice(0, 5).map((p) => (
                     <div key={p.id}>
                       <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-sm font-semibold text-[#1c1b1b] font-sans truncate max-w-[70%]">{p.content.title}</span>
-                        <span className="text-xs text-[#8c716e] font-sans flex-shrink-0 ml-2">{TYPE_LABELS[p.content.type] ?? p.content.type}</span>
+                        <span className="text-sm font-semibold text-text font-sans truncate max-w-[70%]">{p.content.title}</span>
+                        <span className="text-xs text-text-muted font-sans flex-shrink-0 ml-2">{TYPE_LABELS[p.content.type] ?? p.content.type}</span>
                       </div>
-                      <div className="w-full bg-[#f0eded] h-1.5 rounded-full">
-                        <div className="bg-[#8B1A1A] h-1.5 rounded-full transition-all" style={{ width: `${p.percentage}%` }} />
+                      <div className="w-full bg-surface-container h-1.5 rounded-full">
+                        <div className="bg-primary h-1.5 rounded-full transition-all" style={{ width: `${p.percentage}%` }} />
                       </div>
-                      <span className="text-xs text-[#8B1A1A] font-semibold font-sans mt-1 block">{p.percentage}%</span>
+                      <span className="text-xs text-primary font-semibold font-sans mt-1 block">{p.percentage}%</span>
                     </div>
                   ))}
                 </div>
@@ -125,14 +125,14 @@ export default function PainelEstatisticas() {
                 <button
                   key={a.label}
                   onClick={() => navigate(a.route)}
-                  className="bg-white rounded-xl p-5 border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 text-left flex items-center gap-4"
+                  className="bg-surface rounded-card p-5 border border-outline-variant/45 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 text-left flex items-center gap-4"
                 >
-                  <div className="w-10 h-10 bg-[#fff5f4] rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-[#8B1A1A] text-[22px]">{a.icon}</span>
+                  <div className="w-10 h-10 bg-surface-container rounded-xl flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-primary text-[22px]">{a.icon}</span>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-[#1c1b1b] font-sans">{a.label}</p>
-                    <p className="text-xs text-[#8c716e] font-sans">{a.desc}</p>
+                    <p className="text-sm font-bold text-text font-sans">{a.label}</p>
+                    <p className="text-xs text-text-muted font-body">{a.desc}</p>
                   </div>
                 </button>
               ))}
@@ -145,14 +145,14 @@ export default function PainelEstatisticas() {
             {loading ? (
               <div className="space-y-3">
                 {[0, 1, 2, 3].map((i) => (
-                  <div key={i} className="h-20 bg-white border border-[#ebe5e4] rounded-xl animate-pulse" />
+                  <div key={i} className="h-20 bg-surface border border-outline-variant/45 rounded-card animate-pulse" />
                 ))}
               </div>
             ) : progress.length === 0 ? (
-              <div className="bg-white rounded-xl border border-[#ebe5e4] p-10 text-center">
-                <span className="material-symbols-outlined text-[#8B1A1A]/20 text-5xl mb-3 block">library_books</span>
-                <p className="text-sm text-[#5d5f5d] font-serif">Ainda não iniciou nenhuma leitura.</p>
-                <button onClick={() => navigate('/explorar')} className="mt-4 text-sm font-semibold text-[#8B1A1A] font-sans hover:underline">
+              <div className="bg-surface rounded-card border border-outline-variant/45 p-10 text-center">
+                <span className="material-symbols-outlined text-primary/20 text-5xl mb-3 block">library_books</span>
+                <p className="text-body-md font-body text-secondary">Ainda não iniciou nenhuma leitura.</p>
+                <button onClick={() => navigate('/explorar')} className="mt-4 text-sm font-semibold text-primary font-sans hover:underline">
                   Explorar conteúdos →
                 </button>
               </div>
@@ -162,28 +162,28 @@ export default function PainelEstatisticas() {
                   <div
                     key={item.id}
                     onClick={() => navigate(getContentRoute(item.content.type), { state: { contentId: item.contentId } })}
-                    className="bg-white rounded-xl p-4 border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex items-center gap-4"
+                    className="bg-surface rounded-card p-4 border border-outline-variant/45 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex items-center gap-4"
                   >
-                    <div className="w-9 h-9 bg-[#fff5f4] rounded-lg flex items-center justify-center flex-shrink-0">
-                      <span className="material-symbols-outlined text-[#8B1A1A] text-[18px]">article</span>
+                    <div className="w-9 h-9 bg-surface-container rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="material-symbols-outlined text-primary text-[18px]">article</span>
                     </div>
                     <div className="flex-grow min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-bold text-[#8B1A1A] bg-[#fff5f4] px-2 py-0.5 rounded-full font-sans">
+                        <span className="text-[10px] font-bold text-primary bg-surface-container px-2 py-0.5 rounded-full font-sans">
                           {TYPE_LABELS[item.content.type] ?? item.content.type}
                         </span>
                       </div>
-                      <h4 className="text-sm font-semibold text-[#1c1b1b] font-sans leading-snug truncate">{item.content.title}</h4>
-                      <div className="w-full bg-[#f0eded] h-1.5 rounded-full mt-2">
-                        <div className="bg-[#8B1A1A] h-1.5 rounded-full" style={{ width: `${item.percentage}%` }} />
+                      <h4 className="text-sm font-semibold text-text font-sans leading-snug truncate">{item.content.title}</h4>
+                      <div className="w-full bg-surface-container h-1.5 rounded-full mt-2">
+                        <div className="bg-primary h-1.5 rounded-full" style={{ width: `${item.percentage}%` }} />
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-[#8B1A1A] font-sans flex-shrink-0">{item.percentage}%</span>
+                    <span className="text-xs font-bold text-primary font-sans flex-shrink-0">{item.percentage}%</span>
                   </div>
                 ))}
                 <button
                   onClick={() => navigate('/biblioteca')}
-                  className="w-full py-3 text-sm font-semibold text-[#8B1A1A] hover:text-[#7a1616] transition-colors duration-150 font-sans"
+                  className="w-full py-3 text-sm font-semibold text-primary hover:text-primary-dark transition-colors duration-150 font-sans"
                 >
                   Ver toda a biblioteca →
                 </button>
@@ -193,13 +193,13 @@ export default function PainelEstatisticas() {
         )}
 
         {activeTab === 'Quizzes' && (
-          <div className="bg-white rounded-xl border border-[#ebe5e4] p-10 text-center">
-            <span className="material-symbols-outlined text-[#8B1A1A]/20 text-5xl mb-3 block">quiz</span>
-            <p className="text-base font-bold text-[#1c1b1b] mb-1 font-sans">Histórico de Quizzes</p>
-            <p className="text-sm text-[#5d5f5d] font-serif mb-5">O histórico detalhado de quizzes estará disponível em breve.</p>
+          <div className="bg-surface rounded-card border border-outline-variant/45 p-10 text-center">
+            <span className="material-symbols-outlined text-primary/20 text-5xl mb-3 block">quiz</span>
+            <p className="text-base font-bold text-text mb-1 font-sans">Histórico de Quizzes</p>
+            <p className="text-body-md font-body text-secondary mb-5">O histórico detalhado de quizzes estará disponível em breve.</p>
             <button
               onClick={() => navigate('/quiz')}
-              className="bg-[#8B1A1A] text-white px-6 py-2.5 rounded-full text-sm font-semibold font-sans hover:bg-[#7a1616] transition-all"
+              className="btn-primary mx-auto"
             >
               Fazer um Quiz
             </button>
@@ -207,13 +207,13 @@ export default function PainelEstatisticas() {
         )}
 
         {activeTab === 'Comunidade' && (
-          <div className="bg-white rounded-xl border border-[#ebe5e4] p-10 text-center">
-            <span className="material-symbols-outlined text-[#8B1A1A]/20 text-5xl mb-3 block">forum</span>
-            <p className="text-base font-bold text-[#1c1b1b] mb-1 font-sans">Atividade na Comunidade</p>
-            <p className="text-sm text-[#5d5f5d] font-serif mb-5">As suas contribuições e atividade no fórum estarão disponíveis em breve.</p>
+          <div className="bg-surface rounded-card border border-outline-variant/45 p-10 text-center">
+            <span className="material-symbols-outlined text-primary/20 text-5xl mb-3 block">forum</span>
+            <p className="text-base font-bold text-text mb-1 font-sans">Atividade na Comunidade</p>
+            <p className="text-body-md font-body text-secondary mb-5">As suas contribuições e atividade no fórum estarão disponíveis em breve.</p>
             <button
               onClick={() => navigate('/forum')}
-              className="bg-[#8B1A1A] text-white px-6 py-2.5 rounded-full text-sm font-semibold font-sans hover:bg-[#7a1616] transition-all"
+              className="btn-primary mx-auto"
             >
               Ir ao Fórum
             </button>

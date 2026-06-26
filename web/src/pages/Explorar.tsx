@@ -7,6 +7,16 @@ import type { Content } from '../services/types/api.types'
 
 const FILTERS = ['Todos', 'História', 'Agricultura', 'Petróleo', 'Comércio', 'Arquivo']
 
+const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
+  VIDEO:     { label: 'Aula em Vídeo', icon: 'play_circle',  color: 'navy' },
+  PODCAST:   { label: 'Podcast',       icon: 'podcasts',     color: 'navy' },
+  AUDIO:     { label: 'Áudio',         icon: 'headphones',   color: 'navy' },
+  TEXT:      { label: 'Microtexto',    icon: 'article',      color: 'primary' },
+  MICROTEXT: { label: 'Microtexto',    icon: 'article',      color: 'primary' },
+  PDF:       { label: 'Arquivo',       icon: 'description',  color: 'tertiary' },
+  ARTICLE:   { label: 'Análise',       icon: 'history_edu',  color: 'primary' },
+}
+
 function getContentRoute(content: Content): string {
   if (content.type === 'VIDEO' || content.type === 'PODCAST' || content.type === 'AUDIO') return '/aula-video'
   if (content.type === 'PDF') return '/documento/detalhe'
@@ -14,17 +24,64 @@ function getContentRoute(content: Content): string {
   return '/leitura/microtexto'
 }
 
-function getContentTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
-    VIDEO: 'Aula em Vídeo',
-    PODCAST: 'Podcast',
-    AUDIO: 'Áudio',
-    TEXT: 'Microtexto',
-    MICROTEXT: 'Microtexto',
-    PDF: 'Arquivo',
-    ARTICLE: 'Análise',
+function TypeBadge({ type }: { type: string }) {
+  const cfg = TYPE_CONFIG[type] ?? { label: type, icon: 'article', color: 'primary' }
+  const colorClass = cfg.color === 'navy' ? 'badge-navy' : cfg.color === 'tertiary' ? 'bg-tertiary/10 text-tertiary' : 'badge-primary'
+  return <span className={`badge ${colorClass}`}>{cfg.label}</span>
+}
+
+function ContentThumbnail({ content, size = 'md' }: { content: Content; size?: 'sm' | 'md' | 'lg' }) {
+  const cfg = TYPE_CONFIG[content.type] ?? { icon: 'article', color: 'primary' }
+  const heightClass = size === 'lg' ? 'h-56' : size === 'md' ? 'h-44' : 'h-36'
+  const isVideo = content.type === 'VIDEO' || content.type === 'PODCAST' || content.type === 'AUDIO'
+  const isArchive = content.type === 'PDF'
+
+  if (content.thumbnailUrl) {
+    return (
+      <div className={`w-full ${heightClass} overflow-hidden`}>
+        <img src={content.thumbnailUrl} alt={content.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      </div>
+    )
   }
-  return labels[type] ?? type
+
+  if (isVideo) {
+    return (
+      <div className={`w-full ${heightClass} bg-navy flex items-center justify-center relative overflow-hidden`}>
+        <div className="absolute inset-0 opacity-20"
+          style={{ backgroundImage: 'radial-gradient(circle at 30% 40%, rgba(255,255,255,0.3) 0%, transparent 60%)' }} />
+        <div className="w-14 h-14 rounded-full bg-white/15 flex items-center justify-center border border-white/20 group-hover:scale-110 transition-transform duration-300">
+          <span className="material-symbols-outlined text-white text-[28px]"
+            style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (isArchive) {
+    return (
+      <div className={`w-full ${heightClass} flex items-center justify-center relative overflow-hidden`}
+        style={{ background: 'linear-gradient(135deg, #4A2800 0%, #7A4800 100%)' }}>
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle at 70% 30%, white 0%, transparent 50%)' }} />
+        <span className="material-symbols-outlined text-white/25 group-hover:scale-105 transition-transform duration-300"
+          style={{ fontSize: '52px', fontVariationSettings: "'FILL' 1" }}>description</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`w-full ${heightClass} relative overflow-hidden`}
+      style={{ background: 'linear-gradient(135deg, #F7DEDA 0%, #E8CECA 100%)' }}>
+      <div className="absolute inset-0 opacity-[0.06]"
+        style={{ backgroundImage: 'radial-gradient(#8B1A1A 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="material-symbols-outlined text-primary/20 group-hover:scale-105 transition-transform duration-300"
+          style={{ fontSize: size === 'lg' ? '72px' : '52px' }}>
+          {cfg.icon}
+        </span>
+      </div>
+    </div>
+  )
 }
 
 export default function Explorar() {
@@ -38,7 +95,7 @@ export default function Explorar() {
     setLoading(true)
     setError('')
     contentService
-      .list({ limit: 20 })
+      .list({ limit: 24 })
       .then((res) => setContents(extractList(res)))
       .catch(() => setError('Não foi possível carregar os conteúdos. Tente novamente.'))
       .finally(() => setLoading(false))
@@ -53,48 +110,51 @@ export default function Explorar() {
 
   return (
     <AppShell searchPlaceholder="Pesquisar por eras, setores ou eventos...">
-      <div className="px-10 py-10 max-w-[1160px] mx-auto">
-        <div className="mb-10">
-          <h2 className="text-[40px] font-extrabold mb-3 leading-tight text-[#1c1b1b] tracking-tight font-sans">Explorar Conteúdos</h2>
-          <p className="text-sm text-[#5d5f5d] max-w-2xl font-serif leading-relaxed">
-            Mergulhe na complexa tapeçaria económica de Angola através de análises profundas, dados históricos e perspectivas setoriais.
+      <div className="page-content animate-fade-in">
+
+        {/* Page header */}
+        <div className="mb-8">
+          <h1 className="text-display-web font-extrabold text-text font-sans tracking-tighter leading-tight">
+            Explorar Arquivo
+          </h1>
+          <p className="text-body-lg text-secondary font-body mt-2 max-w-xl leading-relaxed">
+            Artigos, análises, documentos e aulas sobre a história económica de Angola.
           </p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2 mb-10">
+        <div className="flex flex-wrap items-center gap-2 mb-8">
           {FILTERS.map((f) => (
             <button
               key={f}
               onClick={() => setActiveFilter(f)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold font-sans transition-all duration-150 active:scale-[0.98] ${
-                activeFilter === f
-                  ? 'bg-[#8B1A1A] text-white shadow-xs'
-                  : 'bg-white border border-[#ebe5e4] text-[#4a4a4a] hover:border-[#8B1A1A]/40 hover:text-[#8B1A1A]'
-              }`}
+              className={activeFilter === f ? 'filter-chip-active' : 'filter-chip-inactive'}
             >
               {f}
             </button>
           ))}
+          <span className="ml-auto text-label-lg text-secondary font-body">
+            {!loading && !error && `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''}`}
+          </span>
         </div>
 
         {/* Loading */}
         {loading && (
           <div className="grid grid-cols-12 gap-5">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className={`${i % 3 === 0 ? 'col-span-12 md:col-span-8' : 'col-span-12 md:col-span-4'} bg-white rounded-xl h-56 border border-[#ebe5e4] animate-pulse`} />
+            {[8, 4, 4, 4, 8].map((span, i) => (
+              <div key={i} className={`col-span-12 md:col-span-${span} skeleton rounded-card`} style={{ height: i % 2 === 0 ? 280 : 240 }} />
             ))}
           </div>
         )}
 
         {/* Error */}
         {!loading && error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-            <span className="material-symbols-outlined text-red-400 text-3xl mb-2 block">error_outline</span>
-            <p className="text-sm text-red-700 font-sans">{error}</p>
+          <div className="alert-error rounded-card p-6 text-center flex-col">
+            <span className="material-symbols-outlined text-error/60 text-4xl mb-2 block">error_outline</span>
+            <p className="text-sm text-error font-body mb-3">{error}</p>
             <button
-              onClick={() => { setLoading(true); contentService.list({ limit: 20 }).then((r) => setContents(extractList(r))).catch(() => setError('Erro ao carregar.')).finally(() => setLoading(false)) }}
-              className="mt-3 text-xs font-semibold text-red-700 hover:underline"
+              onClick={() => { setLoading(true); contentService.list({ limit: 24 }).then((r) => setContents(extractList(r))).catch(() => setError('Erro ao carregar.')).finally(() => setLoading(false)) }}
+              className="btn-secondary text-error border-error/40 hover:bg-error/5"
             >
               Tentar novamente
             </button>
@@ -103,9 +163,17 @@ export default function Explorar() {
 
         {/* Empty */}
         {!loading && !error && filtered.length === 0 && (
-          <div className="bg-white rounded-xl p-10 border border-[#ebe5e4] text-center">
-            <span className="material-symbols-outlined text-[#8B1A1A]/30 text-5xl mb-3 block">search_off</span>
-            <p className="text-sm text-[#5d5f5d] font-serif">Nenhum conteúdo encontrado para este filtro.</p>
+          <div className="empty-state">
+            <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary/40 text-[30px]">search_off</span>
+            </div>
+            <p className="text-headline-md font-bold text-text font-sans">Nenhum resultado</p>
+            <p className="text-body-md text-secondary font-body max-w-xs">
+              Não encontrámos conteúdos para "{activeFilter}". Tente outro filtro.
+            </p>
+            <button onClick={() => setActiveFilter('Todos')} className="btn-secondary">
+              Ver todos os conteúdos
+            </button>
           </div>
         )}
 
@@ -113,81 +181,48 @@ export default function Explorar() {
         {!loading && !error && filtered.length > 0 && (
           <div className="grid grid-cols-12 gap-5">
             {filtered.map((content, idx) => {
-              const isFeatured = idx % 3 === 0
-              const isVideo = content.type === 'VIDEO' || content.type === 'PODCAST' || content.type === 'AUDIO'
-              const isArchive = content.type === 'PDF'
+              const isFeatured = idx % 7 === 0
               const route = getContentRoute(content)
-              const typeLabel = getContentTypeLabel(content.type)
-              const span = isFeatured ? 'col-span-12 md:col-span-8' : 'col-span-12 md:col-span-4'
 
               if (isFeatured) {
                 return (
                   <article
                     key={content.id}
                     onClick={() => navigate(route, { state: { contentId: content.id } })}
-                    className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col md:flex-row group`}
+                    className="col-span-12 md:col-span-8 card overflow-hidden cursor-pointer group hover:shadow-card-hover hover:-translate-y-0.5 hover:border-outline-variant/55 transition-all duration-200 flex flex-col md:flex-row"
                   >
-                    <div className="md:w-1/2 bg-gradient-to-br from-[#f0eded] to-[#e5e2e1] flex items-center justify-center min-h-[200px]">
-                      <span className="material-symbols-outlined text-[#8B1A1A]/20 group-hover:scale-105 transition-transform duration-300" style={{ fontSize: '90px' }}>history_edu</span>
+                    <div className="md:w-5/12 flex-shrink-0 overflow-hidden">
+                      <ContentThumbnail content={content} size="lg" />
                     </div>
-                    <div className="md:w-1/2 p-7 flex flex-col justify-center">
-                      <span className="text-[#8B1A1A] text-[10px] font-bold mb-2 tracking-[0.1em] uppercase font-sans">{content.category?.name ?? typeLabel}</span>
-                      <h3 className="text-xl font-bold mb-3 text-[#1c1b1b] font-sans leading-snug">{content.title}</h3>
-                      {content.summary && <p className="text-sm text-[#5d5f5d] mb-5 font-serif leading-relaxed line-clamp-3">{content.summary}</p>}
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[#8B1A1A] text-[16px]">person</span>
-                        <span className="text-xs text-[#8c716e]">{content.author?.name}</span>
+                    <div className="flex-1 p-7 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <TypeBadge type={content.type} />
+                          {content.category?.name && (
+                            <span className="text-[11px] text-secondary font-body">{content.category.name}</span>
+                          )}
+                        </div>
+                        <h3 className="text-headline-xl font-bold text-text font-sans leading-snug mb-3 group-hover:text-primary transition-colors duration-150">
+                          {content.title}
+                        </h3>
+                        {content.summary && (
+                          <p className="text-body-md text-secondary font-reading leading-relaxed line-clamp-3">{content.summary}</p>
+                        )}
                       </div>
-                    </div>
-                  </article>
-                )
-              }
-
-              if (isArchive) {
-                return (
-                  <article
-                    key={content.id}
-                    onClick={() => navigate(route, { state: { contentId: content.id } })}
-                    className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col group`}
-                  >
-                    <div className="h-44 bg-[#8B1A1A] flex items-center justify-center">
-                      <span className="material-symbols-outlined text-white/30 group-hover:scale-105 transition-transform duration-300" style={{ fontSize: '52px' }}>history_edu</span>
-                    </div>
-                    <div className="p-5 flex flex-col flex-grow">
-                      <div className="flex justify-between items-start mb-2.5">
-                        <span className="bg-[#fff5f4] text-[#8B1A1A] px-2.5 py-0.5 rounded-full text-[10px] font-bold font-sans">Arquivo</span>
-                        <span className="text-[#b8a5a3] text-xs">{content.author?.name}</span>
-                      </div>
-                      <h3 className="text-base font-semibold mb-2 text-[#1c1b1b] font-sans leading-snug">{content.title}</h3>
-                      {content.summary && <p className="text-sm text-[#5d5f5d] line-clamp-3 flex-grow font-serif leading-relaxed">{content.summary}</p>}
-                      <div className="mt-auto pt-4 text-[#8B1A1A] text-sm font-semibold font-sans flex items-center gap-1">
-                        Ver Arquivo <span className="material-symbols-outlined text-[16px]">download</span>
-                      </div>
-                    </div>
-                  </article>
-                )
-              }
-
-              if (isVideo) {
-                return (
-                  <article
-                    key={content.id}
-                    onClick={() => navigate(route, { state: { contentId: content.id } })}
-                    className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col group`}
-                  >
-                    <div className="h-44 bg-[#1c1b1b] flex items-center justify-center overflow-hidden relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-[#8B1A1A]/25 to-transparent" />
-                      <span className="material-symbols-outlined text-white/25 group-hover:scale-105 transition-transform duration-300 relative z-10" style={{ fontSize: '64px', fontVariationSettings: "'FILL' 1" }}>play_circle</span>
-                    </div>
-                    <div className="p-5 flex flex-col flex-grow">
-                      <div className="flex justify-between items-start mb-2.5">
-                        <span className="bg-[#fff5f4] text-[#8B1A1A] px-2.5 py-0.5 rounded-full text-[10px] font-bold font-sans">{typeLabel}</span>
-                        {content.durationSeconds && <span className="text-[#b8a5a3] text-xs">{Math.round(content.durationSeconds / 60)} min</span>}
-                      </div>
-                      <h3 className="text-base font-semibold mb-2 text-[#1c1b1b] font-sans leading-snug">{content.title}</h3>
-                      {content.summary && <p className="text-sm text-[#5d5f5d] line-clamp-3 flex-grow font-serif leading-relaxed">{content.summary}</p>}
-                      <div className="mt-auto pt-4 text-[#8B1A1A] text-sm font-semibold font-sans flex items-center gap-1">
-                        Ver Aula <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                      <div className="flex items-center gap-3 mt-5 pt-4 border-t border-outline-variant/20">
+                        {content.author && (
+                          <>
+                            <div className="w-7 h-7 rounded-full bg-surface-container border border-outline-variant/40 flex items-center justify-center flex-shrink-0">
+                              <span className="text-[9px] font-bold text-primary font-sans leading-none">
+                                {content.author.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="text-sm font-semibold text-text font-sans">{content.author.name}</span>
+                          </>
+                        )}
+                        <span className="ml-auto text-sm font-semibold text-primary font-sans flex items-center gap-1">
+                          Ler agora <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                        </span>
                       </div>
                     </div>
                   </article>
@@ -198,33 +233,51 @@ export default function Explorar() {
                 <article
                   key={content.id}
                   onClick={() => navigate(route, { state: { contentId: content.id } })}
-                  className={`${span} bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col group`}
+                  className="col-span-12 md:col-span-4 content-card group"
                 >
-                  <div className="h-44 bg-gradient-to-br from-[#f0eded] to-[#e8e2e1] flex items-center justify-center overflow-hidden">
-                    <span className="material-symbols-outlined text-[#8B1A1A]/20 group-hover:scale-105 transition-transform duration-300" style={{ fontSize: '64px' }}>article</span>
+                  <div className="overflow-hidden">
+                    <ContentThumbnail content={content} size="md" />
                   </div>
                   <div className="p-5 flex flex-col flex-grow">
-                    <div className="flex justify-between items-start mb-2.5">
-                      <span className="bg-[#fff5f4] text-[#8B1A1A] px-2.5 py-0.5 rounded-full text-[10px] font-bold font-sans">{content.category?.name ?? typeLabel}</span>
-                      <span className="text-[#b8a5a3] text-xs">{content.author?.name}</span>
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <TypeBadge type={content.type} />
+                      {content.author && (
+                        <span className="text-[11px] text-secondary font-body truncate">{content.author.name}</span>
+                      )}
                     </div>
-                    <h3 className="text-base font-semibold mb-2 text-[#1c1b1b] font-sans leading-snug">{content.title}</h3>
-                    {content.summary && <p className="text-sm text-[#5d5f5d] line-clamp-3 flex-grow font-serif leading-relaxed">{content.summary}</p>}
-                    <div className="mt-auto pt-4 text-[#8B1A1A] text-sm font-semibold font-sans flex items-center gap-1">
-                      Ler Agora <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    <h3 className="text-title-lg font-semibold text-text font-sans leading-snug mb-2 group-hover:text-primary transition-colors duration-150">
+                      {content.title}
+                    </h3>
+                    {content.summary && (
+                      <p className="text-body-md text-secondary font-reading line-clamp-2 flex-grow leading-relaxed">{content.summary}</p>
+                    )}
+                    <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between">
+                      {content.category?.name ? (
+                        <span className="text-[11px] text-secondary font-body">{content.category.name}</span>
+                      ) : <span />}
+                      <span className="text-sm font-semibold text-primary font-sans flex items-center gap-1">
+                        {content.type === 'PDF' ? 'Ver' : content.type === 'VIDEO' ? 'Assistir' : 'Ler'}
+                        <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                      </span>
                     </div>
                   </div>
                 </article>
               )
             })}
 
-            {/* Static quote card */}
-            <article className="col-span-12 md:col-span-4 bg-[#8B1A1A] rounded-xl p-7 flex flex-col justify-center text-white shadow-card">
-              <span className="material-symbols-outlined text-3xl mb-4 opacity-60" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
-              <blockquote className="text-base italic mb-5 leading-relaxed font-serif">
-                "A economia de amanhã é construída sobre as fundações das lições que decidimos ignorar no passado."
-              </blockquote>
-              <cite className="text-xs not-italic text-white/60 font-sans">— Análise Editorial, 2024</cite>
+            {/* Editorial pull quote */}
+            <article className="col-span-12 md:col-span-4 rounded-card overflow-hidden flex flex-col justify-end min-h-[280px] relative"
+              style={{ background: 'linear-gradient(145deg, #8B1A1A 0%, #5A1010 100%)' }}>
+              <div className="absolute inset-0 opacity-[0.04]"
+                style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+              <div className="relative z-10 p-7">
+                <span className="material-symbols-outlined text-4xl mb-4 text-white/30 block"
+                  style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
+                <blockquote className="text-base italic leading-relaxed text-white/85 mb-4 font-reading">
+                  "A economia de amanhã é construída sobre as fundações das lições que decidimos ignorar no passado."
+                </blockquote>
+                <cite className="text-[11px] not-italic text-white/45 font-body tracking-wide">— Análise Editorial, 2024</cite>
+              </div>
             </article>
           </div>
         )}

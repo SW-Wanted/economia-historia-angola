@@ -10,9 +10,22 @@ function timeAgo(dateStr: string): string {
   const mins = Math.floor(diff / 60000)
   if (mins < 60) return `Há ${mins} min`
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `Há ${hours} hora${hours > 1 ? 's' : ''}`
-  const days = Math.floor(hours / 24)
-  return `Há ${days} dia${days > 1 ? 's' : ''}`
+  if (hours < 24) return `Há ${hours}h`
+  return `Há ${Math.floor(hours / 24)} dia${Math.floor(hours / 24) > 1 ? 's' : ''}`
+}
+
+function AuthorAvatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' | 'lg' }) {
+  const initials = name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+  const hue = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360
+  const sizeClass = size === 'sm' ? 'w-8 h-8 text-[10px]' : size === 'lg' ? 'w-12 h-12 text-sm' : 'w-10 h-10 text-[11px]'
+  return (
+    <div
+      className={`${sizeClass} rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold font-sans`}
+      style={{ background: `hsl(${hue}, 35%, 45%)` }}
+    >
+      {initials}
+    </div>
+  )
 }
 
 export default function ForumDetalhe() {
@@ -28,8 +41,7 @@ export default function ForumDetalhe() {
   async function handleReply(e: React.FormEvent) {
     e.preventDefault()
     if (!replyBody.trim()) { setReplyError('A resposta não pode estar vazia.'); return }
-    if (!topic) { setReplyError('Tópico não identificado. Volte ao fórum e tente novamente.'); return }
-
+    if (!topic) { setReplyError('Tópico não identificado.'); return }
     setSubmitting(true)
     setReplyError('')
     try {
@@ -45,114 +57,187 @@ export default function ForumDetalhe() {
 
   if (!topic) {
     return (
-      <AppShell title="Fórum" searchPlaceholder="Pesquisar no fórum...">
-        <div className="px-10 py-10 max-w-[1160px] mx-auto">
-          <button
-            onClick={() => navigate('/forum')}
-            className="flex items-center gap-2 text-[#5d5f5d] hover:text-[#8B1A1A] transition-colors duration-150 mb-8 text-sm font-semibold font-sans"
-          >
+      <AppShell title="Fórum">
+        <div className="page-content">
+          <button onClick={() => navigate('/forum')} className="btn-ghost mb-6">
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             Voltar ao Fórum
           </button>
-          <div className="bg-white rounded-xl p-10 border border-[#ebe5e4] text-center">
-            <span className="material-symbols-outlined text-[#8B1A1A]/30 text-5xl mb-3 block">forum</span>
-            <p className="text-sm text-[#5d5f5d] font-serif">Tópico não encontrado. Volte ao fórum e selecione um tópico.</p>
-            <button onClick={() => navigate('/forum')} className="mt-4 text-sm font-semibold text-[#8B1A1A] hover:underline font-sans">
-              Ir para o Fórum
-            </button>
+          <div className="empty-state">
+            <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary/40 text-[30px]">forum</span>
+            </div>
+            <p className="text-headline-md font-bold text-text font-sans">Tópico não encontrado</p>
+            <p className="text-body-md text-secondary font-body">Volte ao fórum e selecione um tópico.</p>
+            <button onClick={() => navigate('/forum')} className="btn-primary">Ir para o Fórum</button>
           </div>
         </div>
       </AppShell>
     )
   }
 
+  const replies = topic._count?.replies ?? 0
+
   return (
-    <AppShell title="Fórum" searchPlaceholder="Pesquisar no fórum...">
-      <div className="px-10 py-10 max-w-[1160px] mx-auto">
-        {/* Back */}
+    <AppShell title="Fórum">
+      <div className="page-content animate-fade-in">
         <button
           onClick={() => navigate('/forum')}
-          className="flex items-center gap-2 text-[#5d5f5d] hover:text-[#8B1A1A] transition-colors duration-150 mb-8 text-sm font-semibold font-sans"
+          className="flex items-center gap-2 text-secondary hover:text-primary transition-colors duration-150 mb-8 text-sm font-semibold font-sans"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Voltar ao Fórum
         </button>
 
-        {/* Topic header */}
-        <div className="bg-white rounded-xl p-7 border border-[#ebe5e4] shadow-card mb-6">
-          <div className="flex items-center gap-2.5 mb-4">
-            {topic.category && (
-              <span className="px-2 py-0.5 bg-[#fff5f4] text-[#8B1A1A] rounded text-[10px] font-bold uppercase tracking-[0.06em] font-sans">{topic.category.name}</span>
-            )}
-            <span className="text-[#b8a5a3] text-xs">{timeAgo(topic.createdAt)}</span>
-          </div>
-          <h1 className="text-[28px] font-bold text-[#1c1b1b] mb-4 font-sans tracking-tight leading-tight">{topic.title}</h1>
-          <p className="text-sm text-[#5d5f5d] leading-relaxed mb-6 font-serif">{topic.body}</p>
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#f0eded] to-[#e5e2e1] border border-[#ebe5e4] flex items-center justify-center flex-shrink-0">
-                <span className="text-[10px] font-bold text-[#8B1A1A] font-sans">
-                  {topic.author.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+        <div className="grid grid-cols-12 gap-8">
+          {/* Main column */}
+          <div className="col-span-12 lg:col-span-8 flex flex-col gap-5">
+            {/* Topic header */}
+            <div className="card p-7">
+              {/* Meta */}
+              <div className="flex items-center gap-2.5 flex-wrap mb-5">
+                {topic.category && <span className="badge-primary">{topic.category.name}</span>}
+                <span className="text-[12px] text-secondary font-body flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[13px]">schedule</span>
+                  {timeAgo(topic.createdAt)}
                 </span>
+                {topic.tags?.slice(0, 2).map((t) => (
+                  <span key={t.tag.id} className="badge-outline">{t.tag.name}</span>
+                ))}
+              </div>
+
+              {/* Title */}
+              <h1 className="text-headline-xl font-bold text-text font-sans tracking-tight leading-snug mb-4">
+                {topic.title}
+              </h1>
+
+              {/* Body */}
+              <p className="text-body-lg text-secondary font-reading leading-relaxed mb-6">{topic.body}</p>
+
+              {/* Author */}
+              <div className="flex items-center gap-3 pt-5 border-t border-outline-variant/20">
+                <AuthorAvatar name={topic.author.name} size="md" />
+                <div>
+                  <p className="text-sm font-bold text-text font-sans">{topic.author.name}</p>
+                  <p className="text-[11px] text-secondary font-body">Investigador</p>
+                </div>
+                <div className="ml-auto flex items-center gap-1.5 text-secondary">
+                  <span className="material-symbols-outlined text-[16px]">chat_bubble_outline</span>
+                  <span className="text-sm font-semibold font-sans">{replies}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* API info notice */}
+            <div className="alert-info rounded-card">
+              <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0 mt-0.5">info</span>
+              <p className="text-body-md text-secondary font-body">
+                O carregamento de respostas existentes requer um endpoint ainda não disponível. Pode submeter uma nova resposta abaixo.
+              </p>
+            </div>
+
+            {/* Reply form */}
+            <div className="card p-6">
+              <h3 className="text-headline-md font-bold text-text font-sans mb-5">
+                Adicionar Resposta
+              </h3>
+              {replySuccess ? (
+                <div className="alert-success rounded-xl">
+                  <span className="material-symbols-outlined text-success text-[20px]"
+                    style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  <div>
+                    <p className="text-sm font-bold text-success font-sans">Resposta publicada!</p>
+                    <p className="text-body-md text-secondary font-body mt-0.5">
+                      A sua resposta foi submetida com sucesso.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleReply} className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-surface-container border border-outline-variant/40 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-[10px] font-bold text-primary font-sans">Eu</span>
+                    </div>
+                    <textarea
+                      rows={4}
+                      placeholder="Partilhe a sua perspectiva sobre este tema..."
+                      value={replyBody}
+                      onChange={(e) => setReplyBody(e.target.value)}
+                      className="flex-1 bg-background border border-outline-variant/50 rounded-xl p-4 focus:bg-surface focus:border-primary focus:ring-2 focus:ring-primary/8 outline-none transition-all duration-150 resize-none text-sm font-body text-text placeholder:text-outline/50 leading-relaxed"
+                    />
+                  </div>
+                  {replyError && (
+                    <div className="alert-error rounded-button">
+                      <span className="material-symbols-outlined text-error text-[16px]">error_outline</span>
+                      <p className="text-sm text-error font-body">{replyError}</p>
+                    </div>
+                  )}
+                  <div className="flex justify-end">
+                    <button type="submit" disabled={submitting} className="btn-primary">
+                      {submitting ? (
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-[18px]">send</span>
+                          Publicar Resposta
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="col-span-12 lg:col-span-4 flex flex-col gap-4">
+            {/* Topic stats */}
+            <div className="card p-5">
+              <h4 className="text-label-lg uppercase tracking-wider text-secondary font-sans mb-4">
+                Sobre este Tópico
+              </h4>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-secondary font-body flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[16px]">chat_bubble_outline</span>
+                    Respostas
+                  </span>
+                  <span className="font-bold text-text font-sans">{replies}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-secondary font-body flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[16px]">schedule</span>
+                    Publicado
+                  </span>
+                  <span className="font-semibold text-text font-sans">{timeAgo(topic.createdAt)}</span>
+                </div>
+                {topic.category && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-secondary font-body flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px]">label</span>
+                      Categoria
+                    </span>
+                    <span className="badge-primary">{topic.category.name}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Back CTA */}
+            <button
+              onClick={() => navigate('/forum')}
+              className="card p-4 text-left hover:shadow-card-hover hover:-translate-y-px hover:border-primary/20 transition-all duration-200 flex items-center gap-3"
+            >
+              <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0">
+                <span className="material-symbols-outlined text-primary text-[18px]">forum</span>
               </div>
               <div>
-                <span className="text-sm font-bold text-[#1c1b1b] font-sans">{topic.author.name}</span>
-                <p className="text-[10px] text-[#8c716e] font-sans">Investigador</p>
+                <p className="text-sm font-bold text-text font-sans">Ver todos os tópicos</p>
+                <p className="text-[12px] text-secondary font-body">Voltar ao Fórum</p>
               </div>
-            </div>
-            <div className="flex items-center gap-3 ml-auto text-[#5d5f5d]">
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm">
-                <span className="material-symbols-outlined text-[16px]">forum</span>
-                <span className="text-xs font-sans font-semibold">{topic._count?.replies ?? 0} respostas</span>
-              </div>
-            </div>
+              <span className="material-symbols-outlined text-outline/40 text-[18px] ml-auto">chevron_right</span>
+            </button>
           </div>
-        </div>
-
-        {/* Backend issue note — no GET replies endpoint available */}
-        <div className="bg-[#fff8f7] border border-[#8B1A1A]/15 rounded-xl p-4 mb-6 flex items-start gap-3">
-          <span className="material-symbols-outlined text-[#8B1A1A] text-[18px] mt-0.5">info</span>
-          <p className="text-xs text-[#5d5f5d] font-serif">
-            O carregamento das respostas existentes requer um endpoint que ainda não está disponível no servidor. Pode submeter uma nova resposta abaixo.
-          </p>
-        </div>
-
-        {/* Reply box */}
-        <div className="bg-white rounded-xl p-6 border border-[#ebe5e4] shadow-card">
-          <h3 className="text-base font-bold text-[#1c1b1b] mb-4 font-sans">Adicionar Resposta</h3>
-          {replySuccess ? (
-            <div className="flex items-center gap-3 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-              <span className="material-symbols-outlined text-[20px]">check_circle</span>
-              <p className="text-sm font-semibold font-sans">Resposta publicada com sucesso!</p>
-            </div>
-          ) : (
-            <form onSubmit={handleReply}>
-              <textarea
-                rows={4}
-                placeholder="Partilhe a sua perspectiva sobre este tema..."
-                value={replyBody}
-                onChange={(e) => setReplyBody(e.target.value)}
-                className="w-full bg-[#f8f5f4] border border-[#ebe5e4] rounded-lg p-3.5 focus:bg-white focus:border-[#8B1A1A]/40 focus:ring-2 focus:ring-[#8B1A1A]/10 outline-none transition-all duration-150 resize-none text-sm font-serif placeholder:text-[#c4b5b3]"
-              />
-              {replyError && (
-                <p className="mt-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 font-sans">{replyError}</p>
-              )}
-              <div className="flex justify-end mt-3">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="bg-[#8B1A1A] text-white px-6 py-2.5 rounded-full text-sm font-semibold font-sans hover:bg-[#7a1616] hover:shadow-md active:scale-[0.98] transition-all duration-150 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {submitting ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      A publicar...
-                    </>
-                  ) : 'Publicar Resposta'}
-                </button>
-              </div>
-            </form>
-          )}
         </div>
       </div>
     </AppShell>

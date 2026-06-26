@@ -6,7 +6,6 @@ export default function Cadastro1() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
-  const [oauthInfo, setOauthInfo] = useState('')
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -19,82 +18,83 @@ export default function Cadastro1() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 font-sans" style={{ backgroundColor: '#F2F2F0' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 font-body bg-background">
+      {/* Logo */}
       <div className="mb-7 flex flex-col items-center text-center">
-        <div className="w-10 h-10 rounded-xl bg-[#fff5f4] flex items-center justify-center mb-3">
-          <span className="material-symbols-outlined text-[#8B1A1A]" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>account_balance</span>
+        <div className="w-12 h-12 rounded-card bg-surface-container flex items-center justify-center mb-3">
+          <span className="material-symbols-outlined text-primary" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>account_balance</span>
         </div>
-        <h2 className="text-base font-bold text-[#8B1A1A] font-sans tracking-tight">Economia com História</h2>
-        <p className="text-[10px] text-[#8c716e] tracking-[0.12em] uppercase font-sans mt-0.5">Angola</p>
+        <h2 className="text-base font-bold text-primary font-sans tracking-tight">Economia com História</h2>
+        <p className="text-[10px] text-outline tracking-[0.12em] uppercase font-sans mt-0.5">Angola</p>
       </div>
 
-      <main className="w-full max-w-[440px] bg-white rounded-2xl shadow-lg border border-[#ebe5e4] overflow-hidden">
-        <div className="h-1 w-full bg-[#f0eded]">
-          <div className="h-full bg-[#8B1A1A] transition-all duration-500" style={{ width: '33.33%' }} />
+      <main className="w-full max-w-[440px] bg-surface rounded-card shadow-card border border-outline-variant/45 overflow-hidden">
+        {/* Barra de progresso */}
+        <div className="h-1 w-full bg-surface-container-high">
+          <div className="h-full bg-primary transition-all duration-500" style={{ width: '33.33%' }} />
         </div>
 
         <div className="px-8 py-8 flex flex-col gap-6">
           <header className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-bold text-[#8B1A1A] uppercase tracking-[0.1em] font-sans">Passo 1 de 3</span>
-            <h1 className="text-2xl font-bold text-[#1c1b1b] font-sans tracking-tight">Criar Conta</h1>
-            <p className="text-sm text-[#5d5f5d] font-serif leading-relaxed">
+            <span className="text-label-md font-bold text-primary uppercase tracking-[0.1em] font-sans">Passo 1 de 3</span>
+            <h1 className="text-headline-md font-bold text-text font-sans tracking-tight">Criar Conta</h1>
+            <p className="text-body-md font-body text-secondary leading-relaxed">
               Comece a sua jornada pela história económica de Angola registando os seus dados.
             </p>
           </header>
 
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-[#58413f] font-sans uppercase tracking-[0.05em]">Nome Completo</label>
+              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Nome Completo</label>
               <input
                 type="text"
                 placeholder="Ex: Manuel dos Santos"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full bg-[#f8f5f4] border border-[#e8e0de] rounded-lg px-4 py-2.5 focus:bg-white focus:border-[#8B1A1A] focus:ring-2 focus:ring-[#8B1A1A]/10 outline-none transition-all duration-150 text-sm font-serif placeholder:text-[#c4b5b3]"
+                className="input"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-[#58413f] font-sans uppercase tracking-[0.05em]">Email</label>
+              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Email</label>
               <input
                 type="email"
                 placeholder="nome@exemplo.ao"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-[#f8f5f4] border border-[#e8e0de] rounded-lg px-4 py-2.5 focus:bg-white focus:border-[#8B1A1A] focus:ring-2 focus:ring-[#8B1A1A]/10 outline-none transition-all duration-150 text-sm font-serif placeholder:text-[#c4b5b3]"
+                className="input"
               />
             </div>
 
             {error && (
-              <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 font-sans">{error}</p>
+              <div className="alert-error rounded-button">
+                <p className="text-sm text-error font-body">{error}</p>
+              </div>
             )}
 
             <div className="mt-1 flex flex-col gap-3">
-              <button
-                type="submit"
-                className="w-full bg-[#8B1A1A] text-white text-sm font-semibold font-sans py-3 rounded-full hover:bg-[#7a1616] hover:shadow-md active:scale-[0.98] transition-all duration-150"
-              >
+              <button type="submit" className="btn-primary w-full justify-center">
                 Continuar
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </button>
-              <button
-                type="button"
-                onClick={() => setOauthInfo('O registo via Google ainda não está disponível. Por favor, preencha o formulário.')}
-                className="w-full flex items-center justify-center gap-2.5 border border-[#e8e0de] text-[#8c716e] py-3 rounded-full text-sm font-semibold font-sans hover:bg-[#f8f5f4] transition-all duration-150 opacity-60 cursor-not-allowed"
-              >
-                <span className="material-symbols-outlined text-[18px] text-[#5d5f5d]">language</span>
-                Registar com Google
-              </button>
-              {oauthInfo && (
-                <p className="text-xs text-[#8c716e] bg-[#f8f5f4] border border-[#e8e0de] rounded-lg px-3 py-2 text-center font-sans">{oauthInfo}</p>
-              )}
+              <div className="relative">
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-center gap-2.5 border border-outline-variant/50 text-secondary py-[14px] rounded-button text-sm font-semibold font-sans transition-all duration-150"
+                >
+                  <span className="material-symbols-outlined text-[18px]">language</span>
+                  Registar com Google
+                </button>
+                <span className="absolute -top-2 -right-2 bg-surface-container text-primary text-[9px] font-bold font-sans px-1.5 py-0.5 rounded-full border border-primary/20 uppercase tracking-wider">Em breve</span>
+              </div>
             </div>
           </form>
 
-          <footer className="pt-5 border-t border-[#ebe5e4] text-center">
-            <p className="text-sm text-[#5d5f5d] font-serif">
+          <footer className="pt-5 border-t border-outline-variant/40 text-center">
+            <p className="text-sm text-secondary font-body">
               Já tem conta?{' '}
-              <button onClick={() => navigate('/login')} className="text-[#8B1A1A] font-bold hover:text-[#7a1616] font-sans transition-colors duration-150">
+              <button onClick={() => navigate('/login')} className="text-primary font-bold hover:text-primary-dark font-sans transition-colors duration-150">
                 Iniciar Sessão
               </button>
             </p>

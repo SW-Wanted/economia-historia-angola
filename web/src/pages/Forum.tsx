@@ -9,11 +9,24 @@ const FILTERS = ['Todos os Tópicos', 'Microtextos', 'Economia Colonial', 'Pós-
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `Há ${mins} min`
+  if (mins < 60) return `${mins}m`
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `Há ${hours} hora${hours > 1 ? 's' : ''}`
+  if (hours < 24) return `${hours}h`
   const days = Math.floor(hours / 24)
-  return `Há ${days} dia${days > 1 ? 's' : ''}`
+  return `${days}d`
+}
+
+function AuthorAvatar({ name }: { name: string }) {
+  const initials = name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+  const hue = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360
+  return (
+    <div
+      className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-white text-[11px] font-bold font-sans"
+      style={{ background: `hsl(${hue}, 35%, 45%)` }}
+    >
+      {initials}
+    </div>
+  )
 }
 
 export default function Forum() {
@@ -24,7 +37,7 @@ export default function Forum() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
-  const PAGE_SIZE = 5
+  const PAGE_SIZE = 8
 
   useEffect(() => {
     async function load() {
@@ -35,14 +48,12 @@ export default function Forum() {
         const fList = Array.isArray(forumList) ? forumList : []
         setForums(fList)
         if (fList.length === 0) { setTopics([]); return }
-        // Fetch topics from all forums concurrently (capped at 3 to avoid N+1 blowout)
-        const slice = fList.slice(0, 3)
-        const results = await Promise.all(slice.map((f) => forumService.listTopics(f.id).catch(() => [] as Topic[])))
+        const results = await Promise.all(fList.slice(0, 3).map((f) => forumService.listTopics(f.id).catch(() => [] as Topic[])))
         const all: Topic[] = results.flat()
         all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         setTopics(all)
       } catch {
-        setError('Não foi possível carregar os tópicos. Tente novamente.')
+        setError('Não foi possível carregar os tópicos.')
       } finally {
         setLoading(false)
       }
@@ -61,34 +72,52 @@ export default function Forum() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
-    <AppShell title="Fórum de Discussão" searchPlaceholder="Pesquisar tópicos ou autores...">
-      <div className="px-10 py-14 max-w-[1160px] mx-auto space-y-6">
+    <AppShell title="Fórum" searchPlaceholder="Pesquisar tópicos ou autores...">
+      <div className="page-content animate-fade-in">
+
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-start justify-between mb-8">
           <div>
-            <h2 className="text-[44px] font-extrabold text-[#8B1A1A] leading-tight tracking-tight font-sans">Comunidade</h2>
-            <p className="text-sm text-[#5d5f5d] mt-1 font-serif">Debate, partilha e aprende com outros investigadores.</p>
+            <h1 className="text-display-web font-extrabold text-text font-sans tracking-tighter leading-tight">Comunidade</h1>
+            <p className="text-body-lg text-secondary font-body mt-2">
+              Debate, partilha e aprende com outros investigadores.
+            </p>
           </div>
           <button
             onClick={() => navigate('/forum/novo-topico')}
-            className="bg-[#8B1A1A] text-white px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 hover:bg-[#7a1616] hover:shadow-md active:scale-[0.98] transition-all duration-150 font-sans"
+            className="btn-primary flex-shrink-0 mt-1"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
             Novo Tópico
           </button>
         </div>
 
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          {[
+            { icon: 'forum',   label: 'Tópicos Activos',  value: loading ? '…' : String(forums.length > 0 ? topics.length : 0) },
+            { icon: 'groups',  label: 'Fóruns',            value: loading ? '…' : String(forums.length) },
+            { icon: 'comment', label: 'Respostas Totais',  value: loading ? '…' : String(topics.reduce((acc, t) => acc + (t._count?.replies ?? 0), 0)) },
+          ].map((s) => (
+            <div key={s.label} className="card p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0">
+                <span className="material-symbols-outlined text-primary text-[20px]">{s.icon}</span>
+              </div>
+              <div>
+                <p className="text-headline-lg font-bold text-text font-sans leading-none">{s.value}</p>
+                <p className="text-label-md uppercase tracking-wider text-secondary font-sans mt-0.5">{s.label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Filters */}
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2 overflow-x-auto pb-1 mb-6">
           {FILTERS.map((f) => (
             <button
               key={f}
               onClick={() => { setActiveFilter(f); setPage(1) }}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 font-sans ${
-                activeFilter === f
-                  ? 'bg-[#8B1A1A] text-white shadow-xs'
-                  : 'bg-white border border-[#e8e0de] text-[#5d5f5d] hover:border-[#8B1A1A]/40 hover:text-[#8B1A1A]'
-              }`}
+              className={activeFilter === f ? 'filter-chip-active' : 'filter-chip-inactive'}
             >
               {f}
             </button>
@@ -98,24 +127,27 @@ export default function Forum() {
         {/* Loading */}
         {loading && (
           <div className="flex flex-col gap-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl h-24 border border-[#ebe5e4] animate-pulse" />
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="skeleton h-24 rounded-card" />
             ))}
           </div>
         )}
 
         {/* Error */}
         {!loading && error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-            <p className="text-sm text-red-700 font-sans">{error}</p>
+          <div className="alert-error rounded-card p-6 text-center flex-col">
+            <p className="text-sm text-error font-body">{error}</p>
           </div>
         )}
 
-        {/* No forums */}
+        {/* Empty */}
         {!loading && !error && forums.length === 0 && (
-          <div className="bg-white rounded-xl p-10 border border-[#ebe5e4] text-center">
-            <span className="material-symbols-outlined text-[#8B1A1A]/30 text-5xl mb-3 block">forum</span>
-            <p className="text-sm text-[#5d5f5d] font-serif">Nenhum fórum disponível de momento.</p>
+          <div className="empty-state">
+            <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary/40 text-[30px]">forum</span>
+            </div>
+            <p className="text-headline-md font-bold text-text font-sans">Nenhum fórum disponível</p>
+            <p className="text-body-md text-secondary font-body">Os fóruns ainda estão a ser configurados.</p>
           </div>
         )}
 
@@ -123,55 +155,76 @@ export default function Forum() {
         {!loading && !error && forums.length > 0 && (
           <>
             {paginated.length === 0 ? (
-              <div className="bg-white rounded-xl p-10 border border-[#ebe5e4] text-center">
-                <span className="material-symbols-outlined text-[#8B1A1A]/30 text-5xl mb-3 block">search_off</span>
-                <p className="text-sm text-[#5d5f5d] font-serif">Nenhum tópico encontrado para este filtro.</p>
+              <div className="empty-state">
+                <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary/40 text-[30px]">search_off</span>
+                </div>
+                <p className="text-headline-md font-bold text-text font-sans">Sem tópicos neste filtro</p>
+                <button onClick={() => setActiveFilter('Todos os Tópicos')} className="btn-secondary">
+                  Ver todos os tópicos
+                </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-3 mt-2">
-                {paginated.map((topic) => (
-                  <div
-                    key={topic.id}
-                    onClick={() => navigate('/forum/detalhe', { state: { topic } })}
-                    className="bg-white px-5 py-4 rounded-xl border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 flex flex-col md:flex-row gap-4 items-start group cursor-pointer"
-                  >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-[#f0eded] to-[#e8e0de] flex items-center justify-center">
-                      <span className="text-xs font-bold text-[#8B1A1A] font-sans leading-none">
-                        {topic.author.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
-                      </span>
-                    </div>
-                    <div className="flex-grow space-y-1.5 min-w-0">
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        {topic.category && (
-                          <span className="px-2 py-0.5 bg-[#fff5f4] text-[#8B1A1A] rounded text-[10px] font-bold uppercase tracking-[0.06em] font-sans">{topic.category.name}</span>
-                        )}
-                        <span className="text-[#b8a5a3] text-xs">{timeAgo(topic.createdAt)}</span>
-                      </div>
-                      <h3 className="text-base font-semibold text-[#1c1b1b] group-hover:text-[#8B1A1A] transition-colors duration-150 leading-snug font-sans">{topic.title}</h3>
-                      <p className="text-sm text-[#5d5f5d] line-clamp-2 font-serif leading-relaxed">{topic.body}</p>
-                      <div className="pt-1 flex items-center gap-4 text-[#8c716e] flex-wrap">
-                        <span className="text-sm font-semibold text-[#1c1b1b] font-sans">{topic.author.name}</span>
-                        <div className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[15px]">forum</span>
-                          <span className="text-xs">{topic._count?.replies ?? 0} respostas</span>
+              <div className="flex flex-col gap-2.5">
+                {paginated.map((topic, idx) => {
+                  const replies = topic._count?.replies ?? 0
+                  const isHot = replies >= 5
+                  return (
+                    <div
+                      key={topic.id}
+                      onClick={() => navigate('/forum/detalhe', { state: { topic } })}
+                      className="topic-card group"
+                    >
+                      <div className="flex items-start gap-4">
+                        <AuthorAvatar name={topic.author.name} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                            {topic.category && (
+                              <span className="badge-primary">{topic.category.name}</span>
+                            )}
+                            {isHot && (
+                              <span className="badge" style={{ background: 'rgba(180,83,9,0.10)', color: '#B45309' }}>
+                                <span className="material-symbols-outlined text-[10px] mr-0.5">local_fire_department</span>
+                                Em destaque
+                              </span>
+                            )}
+                            <span className="text-[11px] text-secondary font-body ml-auto flex-shrink-0">
+                              {timeAgo(topic.createdAt)}
+                            </span>
+                          </div>
+                          <h3 className="text-title-lg font-semibold text-text group-hover:text-primary transition-colors duration-150 font-sans leading-snug mb-1.5">
+                            {topic.title}
+                          </h3>
+                          <p className="text-body-md text-secondary font-reading line-clamp-2 leading-relaxed">
+                            {topic.body}
+                          </p>
+                          <div className="flex items-center gap-4 mt-3">
+                            <span className="text-sm font-semibold text-text font-sans">{topic.author.name}</span>
+                            <div className="flex items-center gap-1.5 text-secondary">
+                              <span className="material-symbols-outlined text-[15px]">chat_bubble_outline</span>
+                              <span className="text-[12px] font-body">
+                                {replies} {replies === 1 ? 'resposta' : 'respostas'}
+                              </span>
+                            </div>
+                            <div className="ml-auto text-secondary hover:text-primary transition-colors duration-150 opacity-0 group-hover:opacity-100">
+                              <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="self-center p-1.5 rounded-full text-[#c4b5b3] group-hover:text-[#8B1A1A] group-hover:bg-[#fff5f4] transition-all duration-150 flex-shrink-0">
-                      <span className="material-symbols-outlined text-[20px]">chevron_right</span>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-1.5 pt-6">
+              <div className="flex justify-center items-center gap-1.5 pt-8">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#e8e0de] bg-white text-[#5d5f5d] hover:bg-[#f0eded] hover:border-[#d4c5c3] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="btn-icon disabled:opacity-40 disabled:cursor-not-allowed border border-outline-variant/40"
                 >
                   <span className="material-symbols-outlined text-[18px]">chevron_left</span>
                 </button>
@@ -181,8 +234,8 @@ export default function Forum() {
                     onClick={() => setPage(p)}
                     className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold text-sm font-sans transition-all duration-150 ${
                       p === page
-                        ? 'bg-[#8B1A1A] text-white shadow-xs'
-                        : 'border border-[#e8e0de] bg-white text-[#5d5f5d] hover:bg-[#f0eded]'
+                        ? 'bg-primary text-white shadow-xs'
+                        : 'border border-outline-variant/40 bg-surface text-secondary hover:bg-surface-container-low'
                     }`}
                   >
                     {p}
@@ -191,7 +244,7 @@ export default function Forum() {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#e8e0de] bg-white text-[#5d5f5d] hover:bg-[#f0eded] hover:border-[#d4c5c3] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="btn-icon disabled:opacity-40 disabled:cursor-not-allowed border border-outline-variant/40"
                 >
                   <span className="material-symbols-outlined text-[18px]">chevron_right</span>
                 </button>
