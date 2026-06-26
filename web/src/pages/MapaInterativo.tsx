@@ -8,13 +8,6 @@ const provinces = [
   'Huíla', 'Kwanza Sul', 'Kwanza Norte', 'Uíge', 'Zaire', 'Cabinda',
 ]
 
-const PROVINCE_ARTICLE_COUNT: Record<string, number> = {
-  'Luanda': 24, 'Benguela': 15, 'Huambo': 12, 'Bié': 8, 'Malanje': 7,
-  'Lunda Norte': 18, 'Lunda Sul': 14, 'Moxico': 6, 'Cuando Cubango': 5,
-  'Cunene': 4, 'Namibe': 9, 'Huíla': 11, 'Kwanza Sul': 10,
-  'Kwanza Norte': 7, 'Uíge': 8, 'Zaire': 6, 'Cabinda': 13,
-}
-
 const eras = ['Pré-Colonial', 'Era Colonial (1575–1975)', 'Pós-Independência (1975–2002)', 'Era Contemporânea (2002–)']
 
 export default function MapaInterativo() {
@@ -106,7 +99,7 @@ export default function MapaInterativo() {
                     {province}
                   </span>
                 </div>
-                <p className="text-xs text-secondary font-body">{PROVINCE_ARTICLE_COUNT[province] ?? 5} artigos</p>
+                <p className="text-xs text-secondary font-body">Explorar conteúdos</p>
               </button>
             ))}
           </div>

@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { useAuth, getUserInitials, getUserRole, canCreateContent } from '../contexts/AuthContext'
 import { userService } from '../services/api/user.service'
+import { quizService } from '../services/api/quiz.service'
 import { getErrorMessage } from '../utils/errors'
-import type { Progress } from '../services/types/api.types'
+import { extractList } from '../services/types/api.types'
+import type { Progress, RankingEntry, PaginatedResponse } from '../services/types/api.types'
 
 const tabs = ['Leituras', 'Contribuições', 'Medalhas', 'Atividade']
 
@@ -30,6 +32,8 @@ export default function Perfil() {
   const [activeTab, setActiveTab] = useState('Leituras')
   const [progress, setProgress] = useState<Progress[]>([])
   const [loadingProgress, setLoadingProgress] = useState(true)
+  const [myRank, setMyRank] = useState<RankingEntry | null>(null)
+  const [rankLoading, setRankLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [editBio, setEditBio] = useState('')
@@ -43,6 +47,17 @@ export default function Perfil() {
       .catch(() => setProgress([]))
       .finally(() => setLoadingProgress(false))
   }, [])
+
+  useEffect(() => {
+    if (!user) { setRankLoading(false); return }
+    quizService.getRankings()
+      .then((data) => {
+        const list = extractList(data as RankingEntry[] | PaginatedResponse<RankingEntry>)
+        setMyRank(list.find((r) => r.userId === user.id) ?? null)
+      })
+      .catch(() => {})
+      .finally(() => setRankLoading(false))
+  }, [user])
 
   function startEdit() {
     setEditName(user?.name ?? '')
@@ -316,13 +331,77 @@ export default function Perfil() {
 
         {/* Tab: Atividade */}
         {activeTab === 'Atividade' && (
-          <div className="empty-state">
-            <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary/40 text-[30px]">timeline</span>
+          rankLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[0, 1, 2].map((i) => <div key={i} className="skeleton h-28 rounded-card" />)}
             </div>
-            <p className="text-headline-md font-bold text-text font-sans">Em Breve</p>
-            <p className="text-body-md text-secondary font-body">O histórico de atividade estará disponível em breve.</p>
-          </div>
+          ) : (
+            <div className="space-y-5">
+              {/* Quiz stats card */}
+              <div className="card p-6">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary text-[22px]"
+                      style={{ fontVariationSettings: "'FILL' 1" }}>quiz</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-text font-sans">Desempenho em Quizzes</h3>
+                    <p className="text-[11px] text-secondary font-body">Ranking global</p>
+                  </div>
+                  {myRank?.rank && (
+                    <span className="ml-auto badge bg-primary/10 text-primary font-bold">
+                      #{myRank.rank}
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  {[
+                    { label: 'Pontos', value: myRank ? String(myRank.score) : '0', icon: 'stars' },
+                    { label: 'Quizzes', value: myRank ? String(myRank.attempts) : '0', icon: 'quiz' },
+                    { label: 'Posição', value: myRank?.rank ? `#${myRank.rank}` : '—', icon: 'emoji_events' },
+                  ].map((s) => (
+                    <div key={s.label} className="text-center p-3 bg-surface-container rounded-xl">
+                      <span className="material-symbols-outlined text-primary/60 text-[20px] mb-1 block">{s.icon}</span>
+                      <p className="text-lg font-bold text-text font-sans leading-none mb-1">{s.value}</p>
+                      <p className="text-[10px] text-secondary font-body uppercase tracking-wide">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+                {!myRank && (
+                  <div className="mt-4 pt-4 border-t border-outline-variant/20 text-center">
+                    <p className="text-sm text-secondary font-body mb-3">Complete quizzes para aparecer no ranking.</p>
+                    <button onClick={() => navigate('/quiz')} className="btn-primary mx-auto text-sm">
+                      <span className="material-symbols-outlined text-[16px]">quiz</span>
+                      Fazer um Quiz
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Reading stats card */}
+              <div className="card p-6">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary text-[22px]">auto_stories</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-text font-sans">Atividade de Leitura</h3>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  {[
+                    { label: 'Concluídos', value: loadingProgress ? '…' : String(progress.filter((p) => p.completedAt).length), icon: 'check_circle' },
+                    { label: 'Em Curso', value: loadingProgress ? '…' : String(progress.filter((p) => !p.completedAt && p.percentage > 0).length), icon: 'pending' },
+                    { label: 'Total', value: loadingProgress ? '…' : String(progress.length), icon: 'library_books' },
+                  ].map((s) => (
+                    <div key={s.label} className="text-center p-3 bg-surface-container rounded-xl">
+                      <span className="material-symbols-outlined text-primary/60 text-[20px] mb-1 block">{s.icon}</span>
+                      <p className="text-lg font-bold text-text font-sans leading-none mb-1">{s.value}</p>
+                      <p className="text-[10px] text-secondary font-body uppercase tracking-wide">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )
         )}
       </div>
     </AppShell>

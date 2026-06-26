@@ -5,7 +5,14 @@ import { contentService } from '../services/api/content.service'
 import { extractList } from '../services/types/api.types'
 import type { Content } from '../services/types/api.types'
 
-const FILTERS = ['Todos', 'História', 'Agricultura', 'Petróleo', 'Comércio', 'Arquivo']
+const TYPE_FILTERS: { label: string; type?: string }[] = [
+  { label: 'Todos' },
+  { label: 'Microtextos', type: 'MICROTEXT' },
+  { label: 'Análises', type: 'ARTICLE' },
+  { label: 'Vídeos', type: 'VIDEO' },
+  { label: 'Podcasts', type: 'PODCAST' },
+  { label: 'Documentos', type: 'PDF' },
+]
 
 const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
   VIDEO:     { label: 'Aula em Vídeo', icon: 'play_circle',  color: 'navy' },
@@ -91,22 +98,19 @@ export default function Explorar() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const activeType = TYPE_FILTERS.find((f) => f.label === activeFilter)?.type
+
   useEffect(() => {
     setLoading(true)
     setError('')
     contentService
-      .list({ limit: 24 })
+      .list({ limit: 24, type: activeType })
       .then((res) => setContents(extractList(res)))
       .catch(() => setError('Não foi possível carregar os conteúdos. Tente novamente.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [activeType])
 
-  const filtered = activeFilter === 'Todos'
-    ? contents
-    : contents.filter((c) =>
-        c.category?.name?.toLowerCase()?.includes(activeFilter.toLowerCase()) ||
-        c.tags.some((t) => t.tag.name?.toLowerCase()?.includes(activeFilter.toLowerCase()))
-      )
+  const filtered = contents
 
   return (
     <AppShell searchPlaceholder="Pesquisar por eras, setores ou eventos...">
@@ -124,13 +128,13 @@ export default function Explorar() {
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-2 mb-8">
-          {FILTERS.map((f) => (
+          {TYPE_FILTERS.map((f) => (
             <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              className={activeFilter === f ? 'filter-chip-active' : 'filter-chip-inactive'}
+              key={f.label}
+              onClick={() => setActiveFilter(f.label)}
+              className={activeFilter === f.label ? 'filter-chip-active' : 'filter-chip-inactive'}
             >
-              {f}
+              {f.label}
             </button>
           ))}
           <span className="ml-auto text-label-lg text-secondary font-body">
@@ -153,7 +157,10 @@ export default function Explorar() {
             <span className="material-symbols-outlined text-error/60 text-4xl mb-2 block">error_outline</span>
             <p className="text-sm text-error font-body mb-3">{error}</p>
             <button
-              onClick={() => { setLoading(true); contentService.list({ limit: 24 }).then((r) => setContents(extractList(r))).catch(() => setError('Erro ao carregar.')).finally(() => setLoading(false)) }}
+              onClick={() => {
+                setLoading(true)
+                contentService.list({ limit: 24, type: activeType }).then((r) => setContents(extractList(r))).catch(() => setError('Erro ao carregar.')).finally(() => setLoading(false))
+              }}
               className="btn-secondary text-error border-error/40 hover:bg-error/5"
             >
               Tentar novamente

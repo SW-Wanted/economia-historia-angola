@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { contentService } from '../services/api/content.service'
 import { slugify } from '../services/api/forum.service'
+import { extractList } from '../services/types/api.types'
 import type { ContentType } from '../services/types/api.types'
 import { getErrorMessage } from '../utils/errors'
 import { useAuth, canPublishContent } from '../contexts/AuthContext'
@@ -15,6 +16,8 @@ const TYPE_MAP: Record<FormType, { type: ContentType; isJindungo?: boolean }> = 
   'Documento de Arquivo': { type: 'PDF' },
 }
 
+interface Category { id: string; name: string; slug: string }
+
 export default function SubmeterArtigo() {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -23,8 +26,27 @@ export default function SubmeterArtigo() {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [summary, setSummary] = useState('')
+  const [categoryId, setCategoryId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [categories, setCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    contentService.list({ limit: 50 })
+      .then((res) => {
+        const items = extractList(res)
+        const seen = new Set<string>()
+        const cats: Category[] = []
+        for (const item of items) {
+          if (item.category && !seen.has(item.category.id)) {
+            seen.add(item.category.id)
+            cats.push(item.category)
+          }
+        }
+        setCategories(cats)
+      })
+      .catch(() => {})
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -43,6 +65,7 @@ export default function SubmeterArtigo() {
         body: body.trim(),
         visibility: mapped.isJindungo ? 'AUTHENTICATED' : 'PUBLIC',
         isJindungo: mapped.isJindungo,
+        categoryId: categoryId || undefined,
       })
       navigate('/confirmacao/publicacao', { state: { isPublisher } })
     } catch (err: unknown) {
@@ -117,6 +140,24 @@ export default function SubmeterArtigo() {
                 className="input"
               />
             </div>
+
+            {categories.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                  Categoria <span className="text-outline normal-case font-normal">(opcional)</span>
+                </label>
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="input"
+                >
+                  <option value="">Selecionar categoria...</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="flex flex-col gap-1.5">
               <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Conteúdo</label>

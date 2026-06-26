@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { api } from '../services/api/client'
+import { reportsService } from '../services/api/reports.service'
+import { useAuth } from '../contexts/AuthContext'
 import type { Topic } from '../services/types/api.types'
 import { getErrorMessage } from '../utils/errors'
 
@@ -31,12 +33,36 @@ function AuthorAvatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' 
 export default function ForumDetalhe() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user } = useAuth()
   const topic = (location.state as { topic?: Topic } | null)?.topic ?? null
 
   const [replyBody, setReplyBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [replyError, setReplyError] = useState('')
   const [replySuccess, setReplySuccess] = useState(false)
+
+  const [reportReason, setReportReason] = useState('')
+  const [showReportForm, setShowReportForm] = useState(false)
+  const [reportSubmitting, setReportSubmitting] = useState(false)
+  const [reportDone, setReportDone] = useState(false)
+  const [reportError, setReportError] = useState('')
+
+  async function handleReport(e: React.FormEvent) {
+    e.preventDefault()
+    if (!topic || !reportReason.trim()) return
+    setReportSubmitting(true)
+    setReportError('')
+    try {
+      await reportsService.create({ reason: reportReason.trim(), topicId: topic.id })
+      setReportDone(true)
+      setShowReportForm(false)
+      setReportReason('')
+    } catch (err: unknown) {
+      setReportError(getErrorMessage(err))
+    } finally {
+      setReportSubmitting(false)
+    }
+  }
 
   async function handleReply(e: React.FormEvent) {
     e.preventDefault()
@@ -121,11 +147,60 @@ export default function ForumDetalhe() {
                   <p className="text-sm font-bold text-text font-sans">{topic.author.name}</p>
                   <p className="text-[11px] text-secondary font-body">Investigador</p>
                 </div>
-                <div className="ml-auto flex items-center gap-1.5 text-secondary">
-                  <span className="material-symbols-outlined text-[16px]">chat_bubble_outline</span>
-                  <span className="text-sm font-semibold font-sans">{replies}</span>
+                <div className="ml-auto flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 text-secondary">
+                    <span className="material-symbols-outlined text-[16px]">chat_bubble_outline</span>
+                    <span className="text-sm font-semibold font-sans">{replies}</span>
+                  </div>
+                  {user && !reportDone && (
+                    <button
+                      onClick={() => setShowReportForm((v) => !v)}
+                      className="btn-icon text-secondary hover:text-error"
+                      title="Denunciar tópico"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">flag</span>
+                    </button>
+                  )}
                 </div>
               </div>
+
+              {/* Report form */}
+              {reportDone && (
+                <div className="alert-success rounded-xl mt-4">
+                  <span className="material-symbols-outlined text-success text-[18px]"
+                    style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  <p className="text-sm text-success font-body">Denúncia enviada. Obrigado pelo aviso.</p>
+                </div>
+              )}
+              {showReportForm && !reportDone && (
+                <form onSubmit={handleReport} className="mt-4 pt-4 border-t border-outline-variant/20 space-y-3">
+                  <p className="text-sm font-bold text-text font-sans">Denunciar este tópico</p>
+                  <textarea
+                    rows={2}
+                    placeholder="Descreva o motivo da denúncia..."
+                    value={reportReason}
+                    onChange={(e) => setReportReason(e.target.value)}
+                    className="input resize-none text-sm w-full"
+                  />
+                  {reportError && <p className="text-xs text-error font-body">{reportError}</p>}
+                  <div className="flex gap-2 justify-end">
+                    <button type="button" onClick={() => setShowReportForm(false)} className="btn-ghost text-sm">
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={reportSubmitting || !reportReason.trim()}
+                      className="btn-secondary text-error border-error/40 hover:bg-error/5 text-sm disabled:opacity-50"
+                    >
+                      {reportSubmitting ? (
+                        <span className="w-4 h-4 border-2 border-error/30 border-t-error rounded-full animate-spin" />
+                      ) : (
+                        <><span className="material-symbols-outlined text-[16px]">flag</span>Enviar Denúncia</>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
 
             {/* API info notice */}

@@ -1,14 +1,97 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, NavigateFunction } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { contentService } from '../services/api/content.service'
 import { useAuth, hasPermission } from '../contexts/AuthContext'
 import { getErrorMessage } from '../utils/errors'
-import type { Content } from '../services/types/api.types'
+import type { Content, User } from '../services/types/api.types'
 
 function readingMinutes(body: string | null): number {
   if (!body) return 1
   return Math.max(1, Math.round(body.trim().split(/\s+/).length / 200))
+}
+
+function JindungoLock({
+  contentId,
+  user,
+  onNavigate,
+}: {
+  contentId: string | undefined
+  user: User | null
+  onNavigate: NavigateFunction
+}) {
+  const [requesting, setRequesting] = useState(false)
+  const [requested, setRequested] = useState(false)
+  const [requestError, setRequestError] = useState('')
+
+  async function handleRequest() {
+    if (!contentId) return
+    setRequesting(true)
+    setRequestError('')
+    try {
+      await contentService.requestAccess(contentId)
+      setRequested(true)
+    } catch (err: unknown) {
+      setRequestError(getErrorMessage(err))
+    } finally {
+      setRequesting(false)
+    }
+  }
+
+  return (
+    <div className="card p-12 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-primary/8 flex items-center justify-center mx-auto mb-5">
+        <span className="material-symbols-outlined text-primary text-[32px]">lock</span>
+      </div>
+      <h3 className="text-headline-lg font-bold text-text font-sans mb-2">Conteúdo Exclusivo</h3>
+      <p className="text-body-md text-secondary font-reading mb-6 max-w-sm mx-auto leading-relaxed">
+        Os textos Jindungo são análises aprofundadas disponíveis para investigadores com conta verificada.
+      </p>
+
+      {requested ? (
+        <div className="alert-success rounded-xl max-w-sm mx-auto">
+          <span className="material-symbols-outlined text-success text-[20px] flex-shrink-0"
+            style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          <div className="text-left">
+            <p className="text-sm font-bold text-success font-sans">Pedido enviado!</p>
+            <p className="text-body-md text-secondary font-body mt-0.5">
+              O seu pedido de acesso foi enviado. Um moderador irá analisar brevemente.
+            </p>
+          </div>
+        </div>
+      ) : !user ? (
+        <div className="flex flex-col gap-3 items-center">
+          <button onClick={() => onNavigate('/cadastro')} className="btn-primary">
+            <span className="material-symbols-outlined text-[18px]">person_add</span>
+            Criar Conta Gratuita
+          </button>
+          <button onClick={() => onNavigate('/entrar')} className="btn-ghost text-sm">
+            Já tenho conta — Iniciar Sessão
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 items-center">
+          <button
+            onClick={handleRequest}
+            disabled={requesting}
+            className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {requesting ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-[18px]">key</span>
+                Solicitar Acesso
+              </>
+            )}
+          </button>
+          {requestError && (
+            <p className="text-sm text-error font-body">{requestError}</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function LeituraJindungo() {
@@ -165,21 +248,7 @@ export default function LeituraJindungo() {
                 )}
               </article>
             ) : (
-              <div className="card p-12 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-primary/8 flex items-center justify-center mx-auto mb-5">
-                  <span className="material-symbols-outlined text-primary text-[32px]">lock</span>
-                </div>
-                <h3 className="text-headline-lg font-bold text-text font-sans mb-2">Conteúdo Exclusivo</h3>
-                <p className="text-body-md text-secondary font-reading mb-6 max-w-sm mx-auto leading-relaxed">
-                  Os textos Jindungo são análises aprofundadas disponíveis para investigadores com conta verificada.
-                </p>
-                {!user && (
-                  <button onClick={() => navigate('/cadastro')} className="btn-primary mx-auto">
-                    <span className="material-symbols-outlined text-[18px]">person_add</span>
-                    Criar Conta Gratuita
-                  </button>
-                )}
-              </div>
+              <JindungoLock contentId={contentId} user={user} onNavigate={navigate} />
             )}
 
             <div className="flex justify-between items-center mt-12 pt-6 border-t border-outline-variant/20">
