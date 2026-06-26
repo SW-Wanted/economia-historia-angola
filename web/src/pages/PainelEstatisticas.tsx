@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
+import { useAuth } from '../contexts/AuthContext'
 import { userService } from '../services/api/user.service'
-import type { Progress } from '../services/types/api.types'
+import { quizService } from '../services/api/quiz.service'
+import { extractList } from '../services/types/api.types'
+import type { Progress, RankingEntry, PaginatedResponse } from '../services/types/api.types'
 
-const tabs = ['Visão Geral', 'Leituras', 'Quizzes', 'Comunidade']
+const tabs = ['Visão Geral', 'Leituras', 'Quizzes']
 
 const TYPE_LABELS: Record<string, string> = {
   VIDEO: 'Vídeo', PODCAST: 'Podcast', TEXT: 'Texto',
@@ -20,9 +23,13 @@ function getContentRoute(type: string): string {
 
 export default function PainelEstatisticas() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('Visão Geral')
   const [progress, setProgress] = useState<Progress[]>([])
   const [loading, setLoading] = useState(true)
+  const [rankings, setRankings] = useState<RankingEntry[]>([])
+  const [rankingsLoading, setRankingsLoading] = useState(true)
+  const [myRank, setMyRank] = useState<RankingEntry | null>(null)
 
   useEffect(() => {
     userService.getMyProgress()
@@ -30,6 +37,19 @@ export default function PainelEstatisticas() {
       .catch(() => setProgress([]))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    quizService.getRankings()
+      .then((data) => {
+        const list = extractList(data as RankingEntry[] | PaginatedResponse<RankingEntry>)
+        setRankings(list)
+        if (user) {
+          setMyRank(list.find((r) => r.userId === user.id) ?? null)
+        }
+      })
+      .catch(() => {})
+      .finally(() => setRankingsLoading(false))
+  }, [user])
 
   const completed = progress.filter((p) => p.completedAt || p.percentage === 100)
   const inProgress = progress.filter((p) => !p.completedAt && p.percentage > 0 && p.percentage < 100)
@@ -66,17 +86,39 @@ export default function PainelEstatisticas() {
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
               {[
-                { icon: 'stars', value: '—', label: 'Pontos de Mérito' },
-                { icon: 'library_books', value: loading ? '…' : String(completed.length), label: 'Artigos Lidos' },
-                { icon: 'quiz', value: '—', label: 'Quizzes Feitos' },
-                { icon: 'forum', value: '—', label: 'Contribuições' },
+                {
+                  icon: 'stars',
+                  value: rankingsLoading ? '…' : String(myRank?.score ?? 0),
+                  label: 'Pontos de Mérito',
+                  sub: myRank?.rank ? `Posição #${myRank.rank} no ranking` : undefined,
+                },
+                {
+                  icon: 'library_books',
+                  value: loading ? '…' : String(completed.length),
+                  label: 'Artigos Lidos',
+                  sub: undefined,
+                },
+                {
+                  icon: 'quiz',
+                  value: rankingsLoading ? '…' : String(myRank?.attempts ?? 0),
+                  label: 'Quizzes Feitos',
+                  sub: myRank?.attempts ? `${myRank.attempts} quiz${myRank.attempts !== 1 ? 'zes' : ''} completo${myRank.attempts !== 1 ? 's' : ''}` : undefined,
+                },
+                {
+                  icon: 'forum',
+                  value: String(progress.length),
+                  label: 'Conteúdos Iniciados',
+                  sub: undefined,
+                },
               ].map((s) => (
                 <div key={s.label} className="card p-6 text-center">
                   <span className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center mx-auto mb-4">
-                    <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
+                    <span className="material-symbols-outlined text-primary text-[20px]"
+                      style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
                   </span>
                   <p className="text-[36px] font-extrabold text-text leading-none font-sans mb-1">{s.value}</p>
                   <p className="text-label-md text-text-muted uppercase tracking-[0.08em] font-sans">{s.label}</p>
+                  {s.sub && <p className="text-[11px] text-secondary font-body mt-1">{s.sub}</p>}
                 </div>
               ))}
             </div>
@@ -172,6 +214,9 @@ export default function PainelEstatisticas() {
                         <span className="text-[10px] font-bold text-primary bg-surface-container px-2 py-0.5 rounded-full font-sans">
                           {TYPE_LABELS[item.content.type] ?? item.content.type}
                         </span>
+                        {item.completedAt && (
+                          <span className="text-[10px] font-bold text-success font-sans">✓ Concluído</span>
+                        )}
                       </div>
                       <h4 className="text-sm font-semibold text-text font-sans leading-snug truncate">{item.content.title}</h4>
                       <div className="w-full bg-surface-container h-1.5 rounded-full mt-2">
@@ -193,31 +238,97 @@ export default function PainelEstatisticas() {
         )}
 
         {activeTab === 'Quizzes' && (
-          <div className="bg-surface rounded-card border border-outline-variant/45 p-10 text-center">
-            <span className="material-symbols-outlined text-primary/20 text-5xl mb-3 block">quiz</span>
-            <p className="text-base font-bold text-text mb-1 font-sans">Histórico de Quizzes</p>
-            <p className="text-body-md font-body text-secondary mb-5">O histórico detalhado de quizzes estará disponível em breve.</p>
-            <button
-              onClick={() => navigate('/quiz')}
-              className="btn-primary mx-auto"
-            >
-              Fazer um Quiz
-            </button>
-          </div>
-        )}
+          rankingsLoading ? (
+            <div className="space-y-3">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-14 bg-surface border border-outline-variant/45 rounded-card animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* User's rank card */}
+              {myRank && (
+                <div className="card p-6 mb-6 bg-primary border-primary">
+                  <p className="text-label-md uppercase tracking-wider text-white/60 font-sans mb-3">A sua posição</p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-white/15 flex items-center justify-center text-white font-bold text-lg font-sans flex-shrink-0">
+                      #{myRank.rank ?? '—'}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-white font-bold font-sans">{myRank.user.name}</p>
+                      <p className="text-white/60 text-sm font-body">{myRank.attempts} quiz{myRank.attempts !== 1 ? 'zes' : ''} · {myRank.score} pontos</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[28px] font-extrabold text-white font-sans leading-none">{myRank.score}</p>
+                      <p className="text-white/60 text-[11px] font-body">pontos</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-        {activeTab === 'Comunidade' && (
-          <div className="bg-surface rounded-card border border-outline-variant/45 p-10 text-center">
-            <span className="material-symbols-outlined text-primary/20 text-5xl mb-3 block">forum</span>
-            <p className="text-base font-bold text-text mb-1 font-sans">Atividade na Comunidade</p>
-            <p className="text-body-md font-body text-secondary mb-5">As suas contribuições e atividade no fórum estarão disponíveis em breve.</p>
-            <button
-              onClick={() => navigate('/forum')}
-              className="btn-primary mx-auto"
-            >
-              Ir ao Fórum
-            </button>
-          </div>
+              {/* Full ranking */}
+              <div className="card overflow-hidden">
+                <div className="px-5 py-4 border-b border-outline-variant/20 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-[20px]"
+                    style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
+                  <h3 className="text-base font-bold text-text font-sans">Ranking Global de Quizzes</h3>
+                  <span className="ml-auto text-[11px] text-secondary font-body">{rankings.length} participantes</span>
+                </div>
+                {rankings.length === 0 ? (
+                  <div className="p-10 text-center">
+                    <span className="material-symbols-outlined text-primary/20 text-5xl mb-3 block">quiz</span>
+                    <p className="text-body-md font-body text-secondary mb-5">Ainda não há entradas no ranking. Seja o primeiro!</p>
+                    <button onClick={() => navigate('/quiz')} className="btn-primary mx-auto">
+                      Fazer um Quiz
+                    </button>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-outline-variant/20">
+                    {rankings.slice(0, 20).map((entry, idx) => {
+                      const isMe = user && entry.userId === user.id
+                      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null
+                      return (
+                        <div
+                          key={entry.id}
+                          className={`flex items-center gap-4 px-5 py-3.5 transition-colors ${isMe ? 'bg-primary/4' : 'hover:bg-surface-container-low/50'}`}
+                        >
+                          <div className={`w-8 text-center text-sm font-bold font-sans flex-shrink-0 ${isMe ? 'text-primary' : 'text-secondary'}`}>
+                            {medal ?? `#${entry.rank ?? idx + 1}`}
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-surface-container border border-outline-variant/40 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {entry.user.avatarUrl ? (
+                              <img src={entry.user.avatarUrl} alt={entry.user.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-[9px] font-bold text-primary font-sans">
+                                {entry.user.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-semibold font-sans truncate ${isMe ? 'text-primary' : 'text-text'}`}>
+                              {entry.user.name} {isMe && <span className="text-[10px] text-primary/60">(Eu)</span>}
+                            </p>
+                            <p className="text-[11px] text-secondary font-body">{entry.attempts} quiz{entry.attempts !== 1 ? 'zes' : ''}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className={`text-sm font-bold font-sans ${isMe ? 'text-primary' : 'text-text'}`}>{entry.score}</p>
+                            <p className="text-[10px] text-secondary font-body">pts</p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-5 text-center">
+                <button onClick={() => navigate('/quiz')} className="btn-primary mx-auto">
+                  <span className="material-symbols-outlined text-[18px]">quiz</span>
+                  Fazer um Quiz
+                </button>
+              </div>
+            </>
+          )
         )}
       </div>
     </AppShell>

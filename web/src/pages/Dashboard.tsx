@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { useAuth } from '../contexts/AuthContext'
 import { userService } from '../services/api/user.service'
-import type { Progress } from '../services/types/api.types'
+import { quizService } from '../services/api/quiz.service'
+import { extractList } from '../services/types/api.types'
+import type { Progress, RankingEntry, PaginatedResponse } from '../services/types/api.types'
 
 function getContentTypeRoute(type: string): string {
   if (type === 'VIDEO' || type === 'AUDIO' || type === 'PODCAST') return '/aula-video'
@@ -23,6 +25,7 @@ export default function Dashboard() {
   const { user } = useAuth()
   const [progress, setProgress] = useState<Progress[]>([])
   const [loadingProgress, setLoadingProgress] = useState(true)
+  const [myRank, setMyRank] = useState<RankingEntry | null>(null)
 
   const firstName = user?.name?.split(' ')[0] ?? 'Investigador'
   const hour = new Date().getHours()
@@ -35,6 +38,17 @@ export default function Dashboard() {
       .finally(() => setLoadingProgress(false))
   }, [])
 
+  useEffect(() => {
+    if (!user) return
+    quizService.getRankings()
+      .then((data) => {
+        const list = extractList(data as RankingEntry[] | PaginatedResponse<RankingEntry>)
+        const entry = list.find((r) => r.userId === user.id) ?? null
+        setMyRank(entry)
+      })
+      .catch(() => {})
+  }, [user])
+
   const completed = progress.filter((p) => p.completedAt)
   const inProgress = progress.filter((p) => !p.completedAt && p.percentage > 0)
 
@@ -46,12 +60,10 @@ export default function Dashboard() {
         <div className="relative rounded-2xl overflow-hidden mb-10 min-h-[200px] flex items-end"
           style={{ background: 'linear-gradient(135deg, #8B1A1A 0%, #5A1010 60%, #3A0808 100%)' }}
         >
-          {/* Decorative circles */}
           <div className="absolute top-0 right-0 w-80 h-80 rounded-full opacity-[0.07]"
             style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
           <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full opacity-[0.05]"
             style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)', transform: 'translate(-50%, 50%)' }} />
-          {/* Faint grid pattern */}
           <div className="absolute inset-0 opacity-[0.03]"
             style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
 
@@ -81,8 +93,8 @@ export default function Dashboard() {
             {
               icon: 'stars',
               label: 'Pontos de Mérito',
-              value: '—',
-              sub: 'Complete quizzes para ganhar pontos',
+              value: myRank ? String(myRank.score) : '0',
+              sub: myRank?.rank ? `Posição #${myRank.rank} no ranking` : 'Complete quizzes para ganhar pontos',
               accent: false,
             },
             {
@@ -101,9 +113,9 @@ export default function Dashboard() {
             },
             {
               icon: 'military_tech',
-              label: 'Nível',
-              value: 'I',
-              sub: 'Investigador Iniciante',
+              label: 'Quizzes Feitos',
+              value: myRank ? String(myRank.attempts) : '0',
+              sub: myRank?.attempts ? `${myRank.attempts} quiz${myRank.attempts !== 1 ? 'zes' : ''} completado${myRank.attempts !== 1 ? 's' : ''}` : 'Faça o seu primeiro quiz',
               accent: true,
             },
           ].map((s) => (
@@ -231,7 +243,7 @@ export default function Dashboard() {
               Explore o Arquivo Digital
             </h4>
             <p className="text-body-md text-secondary font-body leading-relaxed">
-              Mais de 500 documentos históricos, análises económicas e registos sobre Angola desde o período colonial até hoje.
+              Documentos históricos, análises económicas e registos sobre Angola desde o período colonial até hoje.
             </p>
           </div>
           <div className="flex gap-3 flex-shrink-0">

@@ -2,13 +2,24 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { contentService } from '../services/api/content.service'
+import { commentsService } from '../services/api/comments.service'
 import { useAuth } from '../contexts/AuthContext'
 import { getErrorMessage } from '../utils/errors'
-import type { Content } from '../services/types/api.types'
+import type { Content, Comment } from '../services/types/api.types'
 
 function readingMinutes(body: string | null): number {
   if (!body) return 1
   return Math.max(1, Math.round(body.trim().split(/\s+/).length / 200))
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 2) return 'agora mesmo'
+  if (mins < 60) return `há ${mins} min`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `há ${hours}h`
+  return `há ${Math.floor(hours / 24)}d`
 }
 
 export default function LeituraMicrotexto() {
@@ -25,12 +36,27 @@ export default function LeituraMicrotexto() {
   const [scrollPct, setScrollPct] = useState(0)
   const articleRef = useRef<HTMLDivElement>(null)
 
+  const [comments, setComments] = useState<Comment[]>([])
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentText, setCommentText] = useState('')
+  const [commentSubmitting, setCommentSubmitting] = useState(false)
+  const [commentError, setCommentError] = useState('')
+
   useEffect(() => {
     if (!contentId) { setError('Nenhum conteúdo selecionado.'); setLoading(false); return }
     contentService.get(contentId)
       .then(setContent)
       .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false))
+  }, [contentId])
+
+  useEffect(() => {
+    if (!contentId) return
+    setCommentsLoading(true)
+    commentsService.listForContent(contentId)
+      .then((data) => setComments(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setCommentsLoading(false))
   }, [contentId])
 
   const reportProgress = useCallback((pct: number) => {
@@ -61,6 +87,22 @@ export default function LeituraMicrotexto() {
     try { await contentService.favorite(contentId); setBookmarked((b) => !b) }
     catch { /* ignore */ }
     finally { setBookmarkLoading(false) }
+  }
+
+  async function handleComment(e: React.FormEvent) {
+    e.preventDefault()
+    if (!contentId || !commentText.trim()) return
+    setCommentSubmitting(true)
+    setCommentError('')
+    try {
+      const newComment = await commentsService.create({ text: commentText.trim(), contentId, visibility: 'PUBLIC' })
+      setComments((prev) => [newComment, ...prev])
+      setCommentText('')
+    } catch (err: unknown) {
+      setCommentError(getErrorMessage(err))
+    } finally {
+      setCommentSubmitting(false)
+    }
   }
 
   const paragraphs = content?.body?.split(/\n{2,}/).filter(Boolean) ?? []
@@ -195,6 +237,110 @@ export default function LeituraMicrotexto() {
                 <p style={{ color: '#8A706D', fontStyle: 'italic', fontFamily: 'Lexend' }}>Conteúdo não disponível.</p>
               )}
             </article>
+
+            {/* Comments section */}
+            <section className="mt-14 pt-10 border-t border-outline-variant/25">
+              <h2 className="text-headline-lg font-bold text-text font-sans mb-6 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[22px] text-primary">chat_bubble_outline</span>
+                Comentários
+                {!commentsLoading && comments.length > 0 && (
+                  <span className="text-label-lg text-secondary font-body font-normal ml-1">({comments.length})</span>
+                )}
+              </h2>
+
+              {/* Comment form */}
+              {user ? (
+                <form onSubmit={handleComment} className="mb-8">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/8 border border-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-[10px] font-bold text-primary font-sans">
+                        {user.name?.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase() ?? 'EU'}
+                      </span>
+                    </div>
+                    <div className="flex-1 flex flex-col gap-2">
+                      <textarea
+                        rows={3}
+                        placeholder="Partilhe a sua perspectiva sobre este artigo..."
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        className="input resize-none text-sm"
+                      />
+                      {commentError && (
+                        <p className="text-xs text-error font-body">{commentError}</p>
+                      )}
+                      <div className="flex justify-end">
+                        <button
+                          type="submit"
+                          disabled={commentSubmitting || !commentText.trim()}
+                          className="btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {commentSubmitting ? (
+                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          ) : (
+                            <>
+                              <span className="material-symbols-outlined text-[16px]">send</span>
+                              Comentar
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              ) : (
+                <div className="alert-info rounded-card mb-8">
+                  <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0">info</span>
+                  <p className="text-body-md text-secondary font-body">
+                    <button onClick={() => navigate('/entrar')} className="font-bold text-primary hover:underline">
+                      Inicie sessão
+                    </button>
+                    {' '}para deixar um comentário.
+                  </p>
+                </div>
+              )}
+
+              {/* Comments list */}
+              {commentsLoading ? (
+                <div className="space-y-4">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="flex gap-3">
+                      <div className="skeleton w-9 h-9 rounded-full flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="skeleton h-3 w-32 rounded" />
+                        <div className="skeleton h-4 w-full rounded" />
+                        <div className="skeleton h-4 w-3/4 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : comments.length === 0 ? (
+                <div className="text-center py-10">
+                  <span className="material-symbols-outlined text-primary/25 text-[40px] mb-2 block">chat_bubble_outline</span>
+                  <p className="text-body-md text-secondary font-body">Seja o primeiro a comentar este artigo.</p>
+                </div>
+              ) : (
+                <div className="flex flex-col divide-y divide-outline-variant/20">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="py-5 first:pt-0">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-full bg-surface-container border border-outline-variant/40 flex items-center justify-center flex-shrink-0">
+                          <span className="text-[9px] font-bold text-primary font-sans leading-none">
+                            {comment.author?.name?.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase() ?? '?'}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline gap-2 mb-1.5">
+                            <span className="text-sm font-bold text-text font-sans">{comment.author?.name ?? 'Utilizador'}</span>
+                            <span className="text-[11px] text-secondary font-body">{timeAgo(comment.createdAt)}</span>
+                          </div>
+                          <p className="text-body-md text-text font-reading leading-relaxed">{comment.text}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
 
             {/* Footer nav */}
             <div className="flex justify-between items-center mt-12 pt-6 border-t border-outline-variant/25">
