@@ -19,13 +19,16 @@ async function bootstrap() {
   app.use(cookieParser());
 
   const origins = config.get<string>('CORS_ORIGINS', '').split(',').filter(Boolean);
+  if (process.env.NODE_ENV === 'production' && origins.length === 0) {
+    throw new Error('CORS_ORIGINS must be configured in production');
+  }
   app.enableCors({
     origin: origins.length > 0 ? origins : true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
-  app.setGlobalPrefix(config.get<string>('API_PREFIX', '/api/v1').replace(/^\//, ''));
+  app.setGlobalPrefix((config.get<string>('apiPrefix') ?? 'api/v1').replace(/^\//, ''));
   app.enableVersioning({ type: VersioningType.URI });
   app.useGlobalPipes(
     new ValidationPipe({
