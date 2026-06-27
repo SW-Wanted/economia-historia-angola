@@ -1,120 +1,641 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import CadastroStepper from '../components/CadastroStepper'
+
+const INTEREST_AREAS = [
+  'História Económica',
+  'Economia Colonial',
+  'Economia Africana',
+  'Desenvolvimento Económico',
+  'Comércio Internacional',
+  'Políticas Públicas',
+  'Agricultura',
+  'Recursos Naturais',
+  'Industrialização',
+  'Finanças',
+  'Empreendedorismo',
+  'História de Angola',
+]
+
+const LANGUAGE_OPTIONS = [
+  { code: 'PT', label: 'Português' },
+  { code: 'EN', label: 'Inglês' },
+  { code: 'FR', label: 'Francês' },
+  { code: 'ES', label: 'Espanhol' },
+]
+
+const MAX_MOTIVATION = 500
 
 export default function Cadastro2() {
   const navigate = useNavigate()
-  const { register } = useAuth()
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [isWriter, setIsWriter] = useState(false)
+  const [selectedAreas, setSelectedAreas] = useState<string[]>([])
+  const [motivation, setMotivation] = useState('')
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (!sessionStorage.getItem('reg_name') || !sessionStorage.getItem('reg_email')) {
-      navigate('/cadastro')
-    }
-  }, [navigate])
+  // Multi-select dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    if (password.length < 8) {
-      setError('A palavra-passe deve ter pelo menos 8 caracteres.')
+  // Campos da candidatura de Escritor
+  const [biography, setBiography] = useState('')
+  const [academicBackground, setAcademicBackground] = useState('')
+  const [institution, setInstitution] = useState('')
+  const [specialization, setSpecialization] = useState('')
+  const [researchExperience, setResearchExperience] = useState('')
+  const [economicHistoryAreas, setEconomicHistoryAreas] = useState('')
+  const [interestTopics, setInterestTopics] = useState('')
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
+  const [previousPublications, setPreviousPublications] = useState('')
+  const [portfolio, setPortfolio] = useState('')
+
+  useEffect(() => {
+    const storedName = sessionStorage.getItem('reg_name')
+    const storedEmail = sessionStorage.getItem('reg_email')
+    if (!storedName || !storedEmail) {
+      navigate('/cadastro')
       return
     }
-    const name = sessionStorage.getItem('reg_name') ?? ''
-    const email = sessionStorage.getItem('reg_email') ?? ''
-    setLoading(true)
-    try {
-      await register({ name, email, password })
-      sessionStorage.removeItem('reg_name')
-      sessionStorage.removeItem('reg_email')
-      navigate('/cadastro/3')
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao criar conta. Tente novamente.'
-      setError(msg)
-    } finally {
-      setLoading(false)
+    setIsWriter(sessionStorage.getItem('reg_writer') === 'true')
+  }, [navigate])
+
+  // Fechar dropdown ao clicar fora ou pressionar Escape
+  useEffect(() => {
+    if (!isDropdownOpen) return
+    function onClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false)
+        setSearchQuery('')
+      }
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setIsDropdownOpen(false)
+        setSearchQuery('')
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onClickOutside)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [isDropdownOpen])
+
+  // Focar input de pesquisa quando dropdown abre
+  useEffect(() => {
+    if (isDropdownOpen) {
+      const raf = requestAnimationFrame(() => searchInputRef.current?.focus())
+      return () => cancelAnimationFrame(raf)
+    }
+  }, [isDropdownOpen])
+
+  const availableAreas = INTEREST_AREAS.filter((a) => !selectedAreas.includes(a))
+  const filteredAreas = searchQuery.trim()
+    ? availableAreas.filter((a) => a.toLowerCase().includes(searchQuery.toLowerCase()))
+    : availableAreas
+
+  function selectArea(area: string) {
+    if (!selectedAreas.includes(area)) {
+      setSelectedAreas((prev) => [...prev, area])
+      setSearchQuery('')
     }
   }
 
+  function removeArea(area: string) {
+    setSelectedAreas((prev) => prev.filter((a) => a !== area))
+  }
+
+  function toggleLanguage(code: string) {
+    setSelectedLanguages((prev) =>
+      prev.includes(code) ? prev.filter((l) => l !== code) : [...prev, code]
+    )
+  }
+
+  function validateWriterFields(): string | null {
+    if (!biography.trim()) return 'Por favor, escreva a sua biografia.'
+    if (!academicBackground.trim()) return 'Por favor, indique a sua formação académica.'
+    if (!institution.trim()) return 'Por favor, indique a instituição de formação.'
+    if (!specialization.trim()) return 'Por favor, indique a sua área de especialização.'
+    if (!researchExperience.trim()) return 'Por favor, descreva a sua experiência em investigação.'
+    if (!economicHistoryAreas.trim()) return 'Por favor, indique as áreas da História Económica.'
+    if (!interestTopics.trim()) return 'Por favor, indique os tópicos de interesse.'
+    if (selectedLanguages.length === 0) return 'Por favor, selecione pelo menos um idioma de trabalho.'
+    return null
+  }
+
+  function proceed(skip: boolean) {
+    setError('')
+
+    if (isWriter) {
+      const writerError = validateWriterFields()
+      if (writerError) { setError(writerError); return }
+    }
+
+    sessionStorage.setItem('reg_interests', skip ? '' : selectedAreas.join(','))
+    sessionStorage.setItem('reg_motivation', skip ? '' : motivation.trim())
+
+    if (isWriter) {
+      const writerData = {
+        biography: biography.trim(),
+        academicBackground: academicBackground.trim(),
+        institution: institution.trim(),
+        specialization: specialization.trim(),
+        researchExperience: researchExperience.trim(),
+        economicHistoryAreas: economicHistoryAreas.trim(),
+        languages: selectedLanguages.join(','),
+        interestTopics: interestTopics.trim(),
+        ...(previousPublications.trim() ? { previousPublications: previousPublications.trim() } : {}),
+        ...(portfolio.trim() ? { portfolio: portfolio.trim() } : {}),
+      }
+      sessionStorage.setItem('reg_writer_data', JSON.stringify(writerData))
+    }
+
+    navigate('/cadastro/3')
+  }
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 font-body bg-background">
+    <div className="min-h-screen flex flex-col items-center py-8 px-6 font-body bg-background">
       {/* Logo */}
-      <div className="mb-8 flex flex-col items-center text-center">
+      <div className="mb-7 flex flex-col items-center text-center">
         <div className="w-12 h-12 rounded-card bg-surface-container flex items-center justify-center mb-3">
-          <span className="material-symbols-outlined text-primary" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>account_balance</span>
+          <span
+            className="material-symbols-outlined text-primary"
+            style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}
+          >
+            account_balance
+          </span>
         </div>
         <h2 className="text-base font-bold text-primary font-sans tracking-tight">Economia com História</h2>
         <p className="text-[10px] text-outline tracking-[0.12em] uppercase font-sans mt-0.5">Angola</p>
       </div>
 
-      <main className="w-full max-w-[480px] bg-surface rounded-card shadow-card border border-outline-variant/45 overflow-hidden">
-        <div className="h-1 w-full bg-surface-container-high flex">
-          <div className="h-full bg-primary transition-all duration-500" style={{ width: '66.66%' }} />
+      {/* Card sem overflow-hidden para o dropdown poder ultrapassar os limites */}
+      <main className="w-full max-w-[520px] bg-surface rounded-card shadow-card border border-outline-variant/45">
+        {/* Barra de progresso isolada com overflow-hidden próprio */}
+        <div className="h-0.5 bg-surface-container-high rounded-t-card overflow-hidden">
+          <div className="h-full bg-primary transition-all duration-700 ease-out" style={{ width: '66%' }} />
         </div>
 
-        <div className="p-10 flex flex-col gap-8">
-          <header className="flex flex-col gap-2">
-            <span className="text-label-md font-bold text-primary uppercase tracking-[0.1em] font-sans">Passo 2 de 3</span>
-            <h1 className="text-headline-md font-bold text-text font-sans">Perfil de Investigador</h1>
-            <p className="text-body-md font-body text-secondary">
-              Diga-nos um pouco mais sobre si para personalizar a sua experiência.
+        {/* Stepper */}
+        <div className="px-8 pt-6 pb-5">
+          <CadastroStepper currentStep={2} />
+        </div>
+
+        <div className="h-px mx-8 bg-outline-variant/25" />
+
+        <div className="px-8 py-7 flex flex-col gap-6">
+          {/* Header */}
+          <header>
+            <h1 className="text-headline-md font-bold text-text font-sans tracking-tight">
+              Personalize a sua experiência
+            </h1>
+            <p className="text-body-sm font-body text-secondary mt-1.5 leading-relaxed">
+              Estas informações ajudam-nos a recomendar conteúdos mais relevantes para si.
             </p>
           </header>
 
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          {/* ── Multi-Select de Categorias ── */}
+          <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Área de interesse</label>
-              <select className="w-full bg-surface border border-outline-variant rounded-button px-4 py-[15px] focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-text font-body text-sm">
-                <option value="">Selecione a sua área</option>
-                <option>História Económica</option>
-                <option>Economia Colonial</option>
-                <option>Pós-Independência</option>
-                <option>Economia Contemporânea</option>
-              </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Perfil</label>
-              <select className="w-full bg-surface border border-outline-variant rounded-button px-4 py-[15px] focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-text font-body text-sm">
-                <option value="">Selecione o seu perfil</option>
-                <option>Estudante</option>
-                <option>Académico / Investigador</option>
-                <option>Jornalista</option>
-                <option>Curioso / Entusiasta</option>
-              </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Palavra-passe</label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[18px]">lock</span>
-                <input
-                  type="password"
-                  placeholder="Mínimo 8 caracteres"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={8}
-                  className="w-full pl-10 pr-4 py-[15px] bg-surface border border-outline-variant rounded-button focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all font-body text-sm text-text placeholder:text-outline"
-                />
+              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                Categorias de Interesse{' '}
+                <span className="text-outline normal-case tracking-normal font-body">(opcional)</span>
+              </label>
+
+              <div ref={dropdownRef} className="relative">
+                {/* Trigger */}
+                <button
+                  type="button"
+                  onClick={() => setIsDropdownOpen((v) => !v)}
+                  aria-haspopup="listbox"
+                  aria-expanded={isDropdownOpen}
+                  className={[
+                    'w-full input flex items-center justify-between gap-2 text-left cursor-pointer',
+                    isDropdownOpen
+                      ? 'border-primary ring-2 ring-primary/10 bg-white'
+                      : 'hover:border-outline/60',
+                  ].join(' ')}
+                >
+                  <span
+                    className={
+                      selectedAreas.length > 0
+                        ? 'text-text text-sm font-body'
+                        : 'text-outline/55 text-sm font-body'
+                    }
+                  >
+                    {selectedAreas.length > 0
+                      ? `${selectedAreas.length} ${
+                          selectedAreas.length === 1
+                            ? 'categoria selecionada'
+                            : 'categorias selecionadas'
+                        }`
+                      : 'Selecione as suas áreas de interesse'}
+                  </span>
+                  <span
+                    className={[
+                      'material-symbols-outlined text-[18px] text-outline flex-shrink-0 transition-transform duration-200',
+                      isDropdownOpen ? 'rotate-180' : '',
+                    ].join(' ')}
+                  >
+                    expand_more
+                  </span>
+                </button>
+
+                {/* Dropdown panel */}
+                {isDropdownOpen && (
+                  <div
+                    role="listbox"
+                    aria-multiselectable="true"
+                    className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 bg-surface border border-outline-variant/50 rounded-card shadow-card overflow-hidden animate-scale-in"
+                  >
+                    {/* Pesquisa */}
+                    <div className="p-2 border-b border-outline-variant/20">
+                      <div className="relative">
+                        <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px]">
+                          search
+                        </span>
+                        <input
+                          ref={searchInputRef}
+                          type="text"
+                          placeholder="Pesquisar categoria..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full pl-8 pr-3 py-2 text-sm text-text font-body bg-surface-container-low/70 rounded-button border-0 outline-none placeholder:text-outline/50"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Lista de opções */}
+                    <div className="max-h-44 overflow-y-auto py-1">
+                      {filteredAreas.length > 0 ? (
+                        filteredAreas.map((area) => (
+                          <button
+                            key={area}
+                            type="button"
+                            role="option"
+                            aria-selected={false}
+                            onClick={() => selectArea(area)}
+                            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-text font-body text-left hover:bg-surface-container-low transition-colors duration-100"
+                          >
+                            <span className="material-symbols-outlined text-primary/45 text-[15px] flex-shrink-0">
+                              add_circle
+                            </span>
+                            {area}
+                          </button>
+                        ))
+                      ) : availableAreas.length === 0 ? (
+                        <div className="px-4 py-5 flex flex-col items-center gap-1.5">
+                          <span
+                            className="material-symbols-outlined text-outline text-[22px]"
+                            style={{ fontVariationSettings: "'FILL' 1" }}
+                          >
+                            check_circle
+                          </span>
+                          <p className="text-sm text-outline font-body">Todas as categorias selecionadas</p>
+                        </div>
+                      ) : (
+                        <p className="px-4 py-5 text-sm text-outline font-body text-center">
+                          Sem resultados para &ldquo;{searchQuery}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {error && (
-              <p className="text-xs text-error bg-error-container/40 border border-error/20 rounded-button px-3 py-2 font-body">{error}</p>
+            {/* Chips das categorias selecionadas */}
+            {selectedAreas.length > 0 && (
+              <div className="animate-fade-in">
+                <p className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em] mb-2">
+                  Selecionadas
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedAreas.map((area) => (
+                    <div
+                      key={area}
+                      className="inline-flex items-center gap-1.5 bg-primary/[0.09] text-primary border border-primary/25 px-3 py-1.5 rounded-full text-xs font-semibold font-sans animate-scale-in"
+                    >
+                      {area}
+                      <button
+                        type="button"
+                        onClick={() => removeArea(area)}
+                        className="text-primary/55 hover:text-primary transition-colors ml-0.5"
+                        aria-label={`Remover ${area}`}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>
+                          close
+                        </span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Motivação ── */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-baseline justify-between gap-2">
+              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                Motivação{' '}
+                <span className="text-outline normal-case tracking-normal font-body">(opcional)</span>
+              </label>
+              {motivation.length > 0 && (
+                <span className="text-[11px] text-outline font-body flex-shrink-0 tabular-nums animate-fade-in">
+                  {motivation.length}/{MAX_MOTIVATION}
+                </span>
+              )}
+            </div>
+            <textarea
+              placeholder="Conte-nos o que o motivou a aderir à aplicação..."
+              value={motivation}
+              onChange={(e) => setMotivation(e.target.value.slice(0, MAX_MOTIVATION))}
+              rows={4}
+              className="input resize-none"
+            />
+          </div>
+
+          {/* ── Candidatura de Escritor (revelação progressiva) ── */}
+          {isWriter && (
+            <div className="flex flex-col gap-6 animate-slide-up">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-outline-variant/40" />
+                <div className="flex items-center gap-1.5 bg-primary/[0.07] border border-primary/20 rounded-full px-3 py-1">
+                  <span
+                    className="material-symbols-outlined text-primary"
+                    style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}
+                  >
+                    edit_note
+                  </span>
+                  <span className="text-label-md text-primary font-sans uppercase tracking-wider">
+                    Candidatura a Escritor
+                  </span>
+                </div>
+                <div className="flex-1 h-px bg-outline-variant/40" />
+              </div>
+
+              {/* Sobre si */}
+              <div className="flex flex-col gap-4">
+                <h3 className="text-label-lg font-sans text-text-muted uppercase tracking-[0.06em]">
+                  Sobre si
+                </h3>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                    Biografia
+                  </label>
+                  <textarea
+                    placeholder="Apresente-se: quem é, o que faz, qual o seu percurso..."
+                    value={biography}
+                    onChange={(e) => setBiography(e.target.value)}
+                    rows={3}
+                    className="input resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                      Formação Académica
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Mestrado em História"
+                      value={academicBackground}
+                      onChange={(e) => setAcademicBackground(e.target.value)}
+                      className="input"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                      Instituição
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Universidade Agostinho Neto"
+                      value={institution}
+                      onChange={(e) => setInstitution(e.target.value)}
+                      className="input"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                    Área de Especialização
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Economia Colonial Portuguesa, Petróleo e Desenvolvimento..."
+                    value={specialization}
+                    onChange={(e) => setSpecialization(e.target.value)}
+                    className="input"
+                  />
+                </div>
+              </div>
+
+              {/* Experiência */}
+              <div className="flex flex-col gap-4">
+                <h3 className="text-label-lg font-sans text-text-muted uppercase tracking-[0.06em]">
+                  Experiência
+                </h3>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                    Experiência em Investigação
+                  </label>
+                  <textarea
+                    placeholder="Descreva os seus projetos, pesquisas ou actividades académicas relevantes..."
+                    value={researchExperience}
+                    onChange={(e) => setResearchExperience(e.target.value)}
+                    rows={3}
+                    className="input resize-none"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                    Publicações Anteriores{' '}
+                    <span className="text-outline normal-case tracking-normal font-body">(opcional)</span>
+                  </label>
+                  <textarea
+                    placeholder="Artigos, livros, teses ou outros trabalhos publicados..."
+                    value={previousPublications}
+                    onChange={(e) => setPreviousPublications(e.target.value)}
+                    rows={2}
+                    className="input resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Áreas e Tópicos */}
+              <div className="flex flex-col gap-4">
+                <h3 className="text-label-lg font-sans text-text-muted uppercase tracking-[0.06em]">
+                  Áreas e Tópicos
+                </h3>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                    Áreas da História Económica
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Economia Colonial, Comércio Atlântico, Petróleo e Desenvolvimento"
+                    value={economicHistoryAreas}
+                    onChange={(e) => setEconomicHistoryAreas(e.target.value)}
+                    className="input"
+                  />
+                  <p className="text-xs text-outline font-body">Separe múltiplas áreas por vírgula.</p>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                    Tópicos de Interesse
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Escravatura, Independência, Reformas Económicas, Industrialização"
+                    value={interestTopics}
+                    onChange={(e) => setInterestTopics(e.target.value)}
+                    className="input"
+                  />
+                  <p className="text-xs text-outline font-body">Separe múltiplos tópicos por vírgula.</p>
+                </div>
+              </div>
+
+              {/* Idiomas */}
+              <div className="flex flex-col gap-3">
+                <h3 className="text-label-lg font-sans text-text-muted uppercase tracking-[0.06em]">
+                  Idiomas de Trabalho
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {LANGUAGE_OPTIONS.map(({ code, label }) => {
+                    const checked = selectedLanguages.includes(code)
+                    return (
+                      <button
+                        key={code}
+                        type="button"
+                        onClick={() => toggleLanguage(code)}
+                        className={[
+                          'flex items-center gap-2.5 px-4 py-3 rounded-button border text-sm font-sans font-medium transition-all duration-150 active:scale-[0.98]',
+                          checked
+                            ? 'bg-primary/[0.08] border-primary/40 text-primary'
+                            : 'bg-surface border-outline-variant/60 text-secondary hover:border-primary/30 hover:bg-primary/[0.04]',
+                        ].join(' ')}
+                      >
+                        <span
+                          className={[
+                            'w-4 h-4 rounded flex-shrink-0 border transition-all flex items-center justify-center',
+                            checked ? 'bg-primary border-primary' : 'border-outline/50',
+                          ].join(' ')}
+                        >
+                          {checked && (
+                            <span
+                              className="material-symbols-outlined text-white"
+                              style={{ fontSize: '11px', fontVariationSettings: "'FILL' 1" }}
+                            >
+                              check
+                            </span>
+                          )}
+                        </span>
+                        {label}
+                        <span className="ml-auto text-[10px] font-bold text-outline/70 font-sans tracking-wider">
+                          {code}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Portefólio */}
+              <div className="flex flex-col gap-3">
+                <h3 className="text-label-lg font-sans text-text-muted uppercase tracking-[0.06em]">
+                  Referências{' '}
+                  <span className="text-outline normal-case tracking-normal font-body">(opcional)</span>
+                </h3>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                    Portefólio ou Website
+                  </label>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[18px]">
+                      link
+                    </span>
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      value={portfolio}
+                      onChange={(e) => setPortfolio(e.target.value)}
+                      className="input pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Aviso de candidatura */}
+              <div className="flex items-start gap-2.5 p-3.5 bg-surface-container-low border border-outline-variant/40 rounded-card">
+                <span
+                  className="material-symbols-outlined text-secondary flex-shrink-0 mt-0.5"
+                  style={{ fontSize: '16px' }}
+                >
+                  schedule
+                </span>
+                <p className="text-xs text-secondary font-body leading-relaxed">
+                  A candidatura ficará com estado <strong>Pendente</strong> até ser analisada pela
+                  administração. Será notificado quando houver uma decisão.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="alert-error">
+              <span
+                className="material-symbols-outlined text-error text-[18px] flex-shrink-0 mt-0.5"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                error
+              </span>
+              <p className="text-sm text-error font-body">{error}</p>
+            </div>
+          )}
+
+          {/* Botões de navegação */}
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => navigate('/cadastro')}
+              className="btn-secondary flex-shrink-0"
+            >
+              Voltar
+            </button>
+
+            <div className="flex-1" />
+
+            {!isWriter && (
+              <button
+                type="button"
+                onClick={() => proceed(true)}
+                className="text-secondary text-sm font-semibold font-sans hover:text-text active:text-primary transition-colors duration-150 px-2 py-1.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              >
+                Saltar
+              </button>
             )}
 
-            <div className="mt-2 flex gap-4">
-              <button type="button" onClick={() => navigate('/cadastro')} className="btn-secondary flex-1 justify-center">
-                Voltar
-              </button>
-              <button type="submit" disabled={loading} className="btn-primary flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-                {loading ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : 'Continuar'}
-              </button>
-            </div>
-          </form>
+            <button
+              type="button"
+              onClick={() => proceed(false)}
+              className="btn-primary"
+            >
+              Continuar
+              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </button>
+          </div>
         </div>
       </main>
     </div>

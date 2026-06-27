@@ -11,6 +11,8 @@ export interface RegisterDto {
   email: string
   password: string
   username?: string
+  interests?: string
+  motivation?: string
 }
 
 export const authService = {

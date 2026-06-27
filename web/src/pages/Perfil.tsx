@@ -4,9 +4,11 @@ import AppShell from '../components/AppShell'
 import { useAuth, getUserInitials, getUserRole, canCreateContent } from '../contexts/AuthContext'
 import { userService } from '../services/api/user.service'
 import { quizService } from '../services/api/quiz.service'
+import { writerApplicationService } from '../services/api/writer-application.service'
+import { ApiError } from '../services/api/client'
 import { getErrorMessage } from '../utils/errors'
 import { extractList } from '../services/types/api.types'
-import type { Progress, RankingEntry, PaginatedResponse } from '../services/types/api.types'
+import type { Progress, RankingEntry, PaginatedResponse, WriterApplication } from '../services/types/api.types'
 
 const tabs = ['Leituras', 'Contribuições', 'Medalhas', 'Atividade']
 
@@ -18,6 +20,33 @@ const badges = [
   { icon: 'quiz',               label: 'Especialista: 20 quizzes concluídos',     unlocked: false },
   { icon: 'forum',              label: 'Debatedor: 50 respostas no fórum',        unlocked: false },
 ]
+
+const APP_STATUS_CONFIG: Record<string, { label: string; icon: string; cls: string; description: string }> = {
+  PENDING: {
+    label: 'Em análise',
+    icon: 'pending',
+    cls: 'bg-primary/8 border-primary/20 text-primary',
+    description: 'A sua candidatura está a ser analisada pela equipa editorial.',
+  },
+  APPROVED: {
+    label: 'Aprovada',
+    icon: 'check_circle',
+    cls: 'bg-success/8 border-success/20 text-success',
+    description: 'Parabéns! A sua candidatura foi aprovada. Já tem acesso de escritor.',
+  },
+  REJECTED: {
+    label: 'Rejeitada',
+    icon: 'cancel',
+    cls: 'bg-error/8 border-error/20 text-error',
+    description: 'A sua candidatura foi rejeitada.',
+  },
+  REQUEST_CHANGES: {
+    label: 'Revisão solicitada',
+    icon: 'rate_review',
+    cls: 'bg-warning/8 border-warning/20 text-warning',
+    description: 'A equipa editorial solicitou que reveja a sua candidatura.',
+  },
+}
 
 function getContentTypeRoute(type: string): string {
   if (type === 'VIDEO' || type === 'AUDIO' || type === 'PODCAST') return '/aula-video'
@@ -35,11 +64,20 @@ export default function Perfil() {
   const [myRank, setMyRank] = useState<RankingEntry | null>(null)
   const [rankLoading, setRankLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+
+  // Edit form state
   const [editName, setEditName] = useState('')
   const [editBio, setEditBio] = useState('')
   const [editRegion, setEditRegion] = useState('')
+  const [editSchool, setEditSchool] = useState('')
+  const [editCourse, setEditCourse] = useState('')
+  const [editInterests, setEditInterests] = useState('')
+  const [editMotivation, setEditMotivation] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+
+  // Writer application state
+  const [writerApp, setWriterApp] = useState<WriterApplication | null>(null)
 
   useEffect(() => {
     userService.getMyProgress()
@@ -59,10 +97,23 @@ export default function Perfil() {
       .finally(() => setRankLoading(false))
   }, [user])
 
+  useEffect(() => {
+    writerApplicationService.findMine()
+      .then((app) => setWriterApp(app))
+      .catch((err) => {
+        if (err instanceof ApiError && err.statusCode === 404) return
+        // ignore other errors silently
+      })
+  }, [])
+
   function startEdit() {
     setEditName(user?.name ?? '')
     setEditBio(user?.bio ?? '')
     setEditRegion(user?.region ?? '')
+    setEditSchool(user?.school ?? '')
+    setEditCourse(user?.course ?? '')
+    setEditInterests(user?.interests ?? '')
+    setEditMotivation(user?.motivation ?? '')
     setSaveError('')
     setEditing(true)
   }
@@ -75,6 +126,10 @@ export default function Perfil() {
         name: editName.trim() || undefined,
         bio: editBio.trim() || undefined,
         region: editRegion.trim() || undefined,
+        school: editSchool.trim() || undefined,
+        course: editCourse.trim() || undefined,
+        interests: editInterests.trim() || undefined,
+        motivation: editMotivation.trim() || undefined,
       })
       await refreshUser()
       setEditing(false)
@@ -103,13 +158,11 @@ export default function Perfil() {
 
         {/* Profile hero */}
         <section className="card overflow-hidden mb-8">
-          {/* Cover band */}
           <div className="h-24 relative" style={{ background: 'linear-gradient(135deg, #8B1A1A 0%, #5A1010 100%)' }}>
             <div className="absolute inset-0 opacity-[0.04]"
               style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
           </div>
           <div className="px-7 pb-7 relative">
-            {/* Avatar */}
             <div className="flex items-end justify-between -mt-10 mb-5">
               <div className="relative">
                 <div className="w-20 h-20 rounded-2xl bg-white border-4 border-white shadow-md flex items-center justify-center overflow-hidden">
@@ -143,13 +196,38 @@ export default function Perfil() {
                     <label className="block text-label-lg text-text-muted font-sans mb-1.5">Região</label>
                     <input value={editRegion} onChange={(e) => setEditRegion(e.target.value)} placeholder="ex: Luanda" className="input" />
                   </div>
+                  <div>
+                    <label className="block text-label-lg text-text-muted font-sans mb-1.5">Escola / Instituição</label>
+                    <input value={editSchool} onChange={(e) => setEditSchool(e.target.value)} placeholder="ex: Universidade Agostinho Neto" className="input" />
+                  </div>
+                  <div>
+                    <label className="block text-label-lg text-text-muted font-sans mb-1.5">Curso</label>
+                    <input value={editCourse} onChange={(e) => setEditCourse(e.target.value)} placeholder="ex: Economia" className="input" />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-label-lg text-text-muted font-sans mb-1.5">Bio</label>
                   <textarea value={editBio} onChange={(e) => setEditBio(e.target.value)} rows={2}
                     placeholder="Escreva uma breve bio..." className="input resize-none" />
                 </div>
-                {saveError && <div className="alert-error rounded-button"><p className="text-sm text-error font-body">{saveError}</p></div>}
+                <div>
+                  <label className="block text-label-lg text-text-muted font-sans mb-1.5">
+                    Áreas de Interesse
+                    <span className="ml-1 text-[10px] text-outline font-body normal-case">(separadas por vírgula)</span>
+                  </label>
+                  <input value={editInterests} onChange={(e) => setEditInterests(e.target.value)}
+                    placeholder="ex: Economia Colonial, Petróleo, Comércio" className="input" />
+                </div>
+                <div>
+                  <label className="block text-label-lg text-text-muted font-sans mb-1.5">Motivação</label>
+                  <textarea value={editMotivation} onChange={(e) => setEditMotivation(e.target.value)} rows={2}
+                    placeholder="Por que estuda a história económica de Angola?" className="input resize-none" />
+                </div>
+                {saveError && (
+                  <div className="alert-error rounded-button">
+                    <p className="text-sm text-error font-body">{saveError}</p>
+                  </div>
+                )}
                 <div className="flex gap-3">
                   <button onClick={() => setEditing(false)} className="btn-ghost">Cancelar</button>
                   <button onClick={handleSave} disabled={saving} className="btn-primary">
@@ -169,7 +247,7 @@ export default function Perfil() {
                 ) : (
                   <p className="text-body-md text-outline italic font-body mb-3">Adicione uma bio ao seu perfil.</p>
                 )}
-                <div className="flex flex-wrap gap-5 text-secondary">
+                <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-secondary mb-3">
                   <span className="text-[12px] font-body flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-[14px]">calendar_today</span>
                     Membro desde {memberSince}
@@ -180,6 +258,12 @@ export default function Perfil() {
                       {user.region}
                     </span>
                   )}
+                  {user?.school && (
+                    <span className="text-[12px] font-body flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[14px]">school</span>
+                      {user.school}{user.course ? ` · ${user.course}` : ''}
+                    </span>
+                  )}
                   {user?.email && (
                     <span className="text-[12px] font-body flex items-center gap-1.5">
                       <span className="material-symbols-outlined text-[14px]">mail</span>
@@ -187,6 +271,13 @@ export default function Perfil() {
                     </span>
                   )}
                 </div>
+                {user?.interests && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {user.interests.split(',').map((i) => i.trim()).filter(Boolean).map((interest) => (
+                      <span key={interest} className="badge-outline text-[11px]">{interest}</span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -195,9 +286,9 @@ export default function Perfil() {
         {/* Stats */}
         <section className="grid grid-cols-3 gap-4 mb-8">
           {[
-            { icon: 'menu_book',        value: String(completed.length),       label: 'Artigos Lidos',       route: '/explorar' },
-            { icon: 'auto_stories',     value: String(progress.length),        label: 'Iniciados',           route: null },
-            { icon: 'workspace_premium',value: String(unlockedBadges.length),  label: 'Medalhas',            route: null },
+            { icon: 'menu_book',        value: String(completed.length),       label: 'Artigos Lidos',  route: '/explorar' },
+            { icon: 'auto_stories',     value: String(progress.length),        label: 'Iniciados',      route: null },
+            { icon: 'workspace_premium',value: String(unlockedBadges.length),  label: 'Medalhas',       route: null },
           ].map((s) => (
             <div
               key={s.label}
@@ -212,6 +303,39 @@ export default function Perfil() {
             </div>
           ))}
         </section>
+
+        {/* Writer application status */}
+        {writerApp && (() => {
+          const cfg = APP_STATUS_CONFIG[writerApp.status]
+          if (!cfg) return null
+          return (
+            <section className={`rounded-card border p-5 mb-8 flex items-start gap-4 ${cfg.cls}`}>
+              <span className="material-symbols-outlined text-[24px] flex-shrink-0 mt-0.5"
+                style={{ fontVariationSettings: "'FILL' 1" }}>{cfg.icon}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm font-bold font-sans">Candidatura de Escritor · {cfg.label}</p>
+                </div>
+                <p className="text-sm font-body opacity-80 leading-relaxed">{cfg.description}</p>
+                {writerApp.reviewNotes && (
+                  <p className="text-sm font-body mt-2 opacity-80">
+                    <span className="font-semibold">Nota da equipa:</span> {writerApp.reviewNotes}
+                  </p>
+                )}
+                {writerApp.rejectionReason && (
+                  <p className="text-sm font-body mt-2 opacity-80">
+                    <span className="font-semibold">Motivo:</span> {writerApp.rejectionReason}
+                  </p>
+                )}
+                {writerApp.status === 'REQUEST_CHANGES' && (
+                  <p className="text-xs font-body mt-3 opacity-70">
+                    Contacte a equipa editorial para resubmeter a sua candidatura com as alterações solicitadas.
+                  </p>
+                )}
+              </div>
+            </section>
+          )
+        })()}
 
         {/* Tabs */}
         <div className="border-b border-outline-variant/25 mb-7">
@@ -297,7 +421,6 @@ export default function Perfil() {
                   style={badge.unlocked ? { fontVariationSettings: "'FILL' 1" } : undefined}>
                   {badge.icon}
                 </span>
-                {/* Tooltip */}
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-36 bg-text text-white text-[10px] p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10 text-center leading-snug">
                   {badge.label}
                 </div>
@@ -337,7 +460,6 @@ export default function Perfil() {
             </div>
           ) : (
             <div className="space-y-5">
-              {/* Quiz stats card */}
               <div className="card p-6">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center">
@@ -349,9 +471,7 @@ export default function Perfil() {
                     <p className="text-[11px] text-secondary font-body">Ranking global</p>
                   </div>
                   {myRank?.rank && (
-                    <span className="ml-auto badge bg-primary/10 text-primary font-bold">
-                      #{myRank.rank}
-                    </span>
+                    <span className="ml-auto badge bg-primary/10 text-primary font-bold">#{myRank.rank}</span>
                   )}
                 </div>
                 <div className="grid grid-cols-3 gap-4">
@@ -378,7 +498,6 @@ export default function Perfil() {
                 )}
               </div>
 
-              {/* Reading stats card */}
               <div className="card p-6">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center">
@@ -389,8 +508,8 @@ export default function Perfil() {
                 <div className="grid grid-cols-3 gap-4">
                   {[
                     { label: 'Concluídos', value: loadingProgress ? '…' : String(progress.filter((p) => p.completedAt).length), icon: 'check_circle' },
-                    { label: 'Em Curso', value: loadingProgress ? '…' : String(progress.filter((p) => !p.completedAt && p.percentage > 0).length), icon: 'pending' },
-                    { label: 'Total', value: loadingProgress ? '…' : String(progress.length), icon: 'library_books' },
+                    { label: 'Em Curso',   value: loadingProgress ? '…' : String(progress.filter((p) => !p.completedAt && p.percentage > 0).length), icon: 'pending' },
+                    { label: 'Total',      value: loadingProgress ? '…' : String(progress.length), icon: 'library_books' },
                   ].map((s) => (
                     <div key={s.label} className="text-center p-3 bg-surface-container rounded-xl">
                       <span className="material-symbols-outlined text-primary/60 text-[20px] mb-1 block">{s.icon}</span>

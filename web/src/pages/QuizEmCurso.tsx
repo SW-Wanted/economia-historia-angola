@@ -2,69 +2,102 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { quizService } from '../services/api/quiz.service'
+import { getErrorMessage } from '../utils/errors'
+import type { QuizWithQuestions, QuizQuestion, UserAnswerResult } from '../services/types/api.types'
 
-const questions = [
-  {
-    q: 'Em que ano foi introduzida a moeda Kwanza em Angola?',
-    options: ['1975', '1977', '1980', '1985'],
-    correct: 1,
-  },
-  {
-    q: 'Qual era a principal moeda colonial utilizada em Angola antes da independência?',
-    options: ['Real', 'Escudo', 'Franco', 'Libra'],
-    correct: 1,
-  },
-  {
-    q: 'Qual foi o principal produto de exportação angolano no século XIX?',
-    options: ['Petróleo', 'Diamantes', 'Café', 'Algodão'],
-    correct: 2,
-  },
-]
+const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E']
 
-const OPTION_LETTERS = ['A', 'B', 'C', 'D']
+interface AnsweredState {
+  optionId: string
+  isCorrect: boolean
+  pointsEarned: number
+}
 
 export default function QuizEmCurso() {
   const navigate = useNavigate()
   const location = useLocation()
   const quizId = (location.state as { quizId?: string } | null)?.quizId
 
+  const [quiz, setQuiz] = useState<QuizWithQuestions | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [attemptId, setAttemptId] = useState<string | null>(null)
+
   const [current, setCurrent] = useState(0)
-  const [selected, setSelected] = useState<number | null>(null)
-  const [answered, setAnswered] = useState(false)
-  const [score, setScore] = useState(0)
+  const [answeredState, setAnsweredState] = useState<AnsweredState | null>(null)
+  const [answering, setAnswering] = useState(false)
+  const [answerError, setAnswerError] = useState('')
+
+  const [totalScore, setTotalScore] = useState(0)
+  const [correctCount, setCorrectCount] = useState(0)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    if (!quizId) return
-    quizService.start(quizId)
-      .then((attempt) => setAttemptId(attempt.id))
-      .catch(() => { /* proceed with static questions */ })
+    if (!quizId) { setLoading(false); return }
+
+    Promise.all([
+      quizService.findById(quizId),
+      quizService.start(quizId),
+    ])
+      .then(([quizData, attempt]) => {
+        setQuiz(quizData)
+        setAttemptId(attempt.id)
+      })
+      .catch((err) => setLoadError(getErrorMessage(err)))
+      .finally(() => setLoading(false))
   }, [quizId])
 
+  const questions: QuizQuestion[] = quiz?.questions ?? []
   const q = questions[current]
   const isLast = current === questions.length - 1
-  const progressPct = ((current + (answered ? 1 : 0)) / questions.length) * 100
+  const progressPct = questions.length > 0
+    ? ((current + (answeredState ? 1 : 0)) / questions.length) * 100
+    : 0
 
-  function handleSelect(idx: number) {
-    if (answered) return
-    setSelected(idx)
-    setAnswered(true)
-    if (idx === q.correct) setScore((s) => s + 1)
+  async function handleSelect(optionId: string) {
+    if (answeredState || answering || !q || !attemptId) return
+    setAnswering(true)
+    setAnswerError('')
+    try {
+      const result: UserAnswerResult = await quizService.answer(attemptId, q.id, optionId)
+      setAnsweredState({ optionId, isCorrect: result.isCorrect, pointsEarned: result.pointsEarned })
+      if (result.isCorrect) {
+        setCorrectCount((c) => c + 1)
+        setTotalScore((s) => s + result.pointsEarned)
+      }
+    } catch (err) {
+      setAnswerError(getErrorMessage(err))
+    } finally {
+      setAnswering(false)
+    }
   }
 
   async function handleNext() {
     if (isLast) {
       setSubmitting(true)
-      if (attemptId) {
-        try { await quizService.submit(attemptId) } catch { /* ignore */ }
+      let finalScore = totalScore
+      try {
+        if (attemptId) {
+          const submitted = await quizService.submit(attemptId)
+          finalScore = submitted.score ?? totalScore
+        }
+      } catch {
+        // use locally computed score
+      } finally {
+        setSubmitting(false)
       }
-      setSubmitting(false)
-      navigate('/quiz/resultado', { state: { score, total: questions.length, quizTitle: 'Quiz de História' } })
+      navigate('/quiz/resultado', {
+        state: {
+          score: correctCount,
+          total: questions.length,
+          points: finalScore,
+          quizTitle: quiz?.title ?? 'Quiz',
+        },
+      })
     } else {
       setCurrent((c) => c + 1)
-      setSelected(null)
-      setAnswered(false)
+      setAnsweredState(null)
+      setAnswerError('')
     }
   }
 
@@ -78,6 +111,51 @@ export default function QuizEmCurso() {
           <h2 className="text-headline-lg font-bold text-text font-sans mb-2">Nenhum quiz selecionado</h2>
           <p className="text-body-md text-secondary font-body mb-6">Escolha um quiz na lista para começar.</p>
           <button onClick={() => navigate('/quiz')} className="btn-primary mx-auto">Ver Quizzes</button>
+        </div>
+      </AppShell>
+    )
+  }
+
+  if (loading) {
+    return (
+      <AppShell showSearch={false}>
+        <div className="page-content-narrow pt-8 pb-16">
+          <div className="space-y-5 animate-fade-in">
+            <div className="skeleton h-4 w-48 rounded" />
+            <div className="skeleton h-10 w-3/4 rounded-lg" />
+            <div className="skeleton h-48 rounded-card" />
+            {[0, 1, 2, 3].map((i) => <div key={i} className="skeleton h-14 rounded-button" />)}
+          </div>
+        </div>
+      </AppShell>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <AppShell showSearch={false}>
+        <div className="page-content-narrow text-center py-20">
+          <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center mx-auto mb-4">
+            <span className="material-symbols-outlined text-error/50 text-[32px]">error_outline</span>
+          </div>
+          <h2 className="text-headline-lg font-bold text-text font-sans mb-2">Não foi possível carregar o quiz</h2>
+          <p className="text-body-md text-secondary font-body mb-6">{loadError}</p>
+          <button onClick={() => navigate('/quiz')} className="btn-primary mx-auto">Voltar aos Quizzes</button>
+        </div>
+      </AppShell>
+    )
+  }
+
+  if (!quiz || questions.length === 0) {
+    return (
+      <AppShell showSearch={false}>
+        <div className="page-content-narrow text-center py-20">
+          <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center mx-auto mb-4">
+            <span className="material-symbols-outlined text-primary/30 text-[32px]">quiz</span>
+          </div>
+          <h2 className="text-headline-lg font-bold text-text font-sans mb-2">Quiz sem perguntas</h2>
+          <p className="text-body-md text-secondary font-body mb-6">Este quiz ainda não tem perguntas disponíveis.</p>
+          <button onClick={() => navigate('/quiz')} className="btn-primary mx-auto">Voltar aos Quizzes</button>
         </div>
       </AppShell>
     )
@@ -104,7 +182,7 @@ export default function QuizEmCurso() {
             <div className="flex items-center gap-2 bg-success/10 text-success px-3 py-1.5 rounded-full border border-success/20">
               <span className="material-symbols-outlined text-[15px]"
                 style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-              <span className="text-sm font-bold font-sans">{score} corretas</span>
+              <span className="text-sm font-bold font-sans">{correctCount} corretas</span>
             </div>
             <span className="text-sm text-secondary font-body">
               {current + 1} / {questions.length}
@@ -113,7 +191,7 @@ export default function QuizEmCurso() {
         </div>
 
         {/* Progress dots */}
-        <div className="flex items-center gap-1.5 mb-8">
+        <div className="flex items-center gap-1.5 mb-3">
           {questions.map((_, i) => (
             <div
               key={i}
@@ -125,6 +203,7 @@ export default function QuizEmCurso() {
             />
           ))}
         </div>
+        <p className="text-[11px] text-secondary font-body mb-8 text-right">{quiz.title}</p>
 
         {/* Question card */}
         <div className="card p-8 mb-5 animate-scale-in">
@@ -133,77 +212,105 @@ export default function QuizEmCurso() {
               {current + 1}
             </div>
             <span className="text-label-md uppercase tracking-wider text-secondary font-sans">Questão</span>
+            {q.points > 1 && (
+              <span className="ml-auto text-[11px] text-secondary font-body">{q.points} pontos</span>
+            )}
           </div>
-          <h2 className="text-headline-lg font-bold text-text font-sans leading-snug mb-7">{q.q}</h2>
+          <h2 className="text-headline-lg font-bold text-text font-sans leading-snug mb-7">{q.statement}</h2>
 
           <div className="flex flex-col gap-2.5">
             {q.options.map((opt, idx) => {
-              const isCorrect = idx === q.correct
-              const isSelected = idx === selected
+              const isSelected = answeredState?.optionId === opt.id
+              const isCorrectSelected = isSelected && answeredState?.isCorrect
+              const isWrongSelected = isSelected && !answeredState?.isCorrect
 
               let classes = 'w-full text-left p-4 rounded-button border-2 text-sm font-semibold font-sans transition-all duration-200 flex items-center gap-3 '
 
-              if (!answered) {
+              if (!answeredState && !answering) {
                 classes += 'border-outline-variant/40 hover:border-primary/50 hover:bg-primary/4 cursor-pointer'
-              } else if (isCorrect) {
+              } else if (!answeredState && answering) {
+                classes += 'border-outline-variant/25 text-text/50 cursor-not-allowed'
+              } else if (isCorrectSelected) {
                 classes += 'border-success bg-success/8 text-success'
-              } else if (isSelected && !isCorrect) {
+              } else if (isWrongSelected) {
                 classes += 'border-error bg-error/8 text-error'
               } else {
                 classes += 'border-outline-variant/25 text-text/35 cursor-not-allowed'
               }
 
               return (
-                <button key={opt} className={classes} onClick={() => handleSelect(idx)}>
+                <button
+                  key={opt.id}
+                  className={classes}
+                  onClick={() => handleSelect(opt.id)}
+                  disabled={!!answeredState || answering}
+                >
                   <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 transition-all duration-200 ${
-                    !answered ? 'border-current' :
-                    isCorrect ? 'bg-success text-white border-success' :
-                    isSelected ? 'bg-error text-white border-error' :
+                    !answeredState ? 'border-current' :
+                    isCorrectSelected ? 'bg-success text-white border-success' :
+                    isWrongSelected ? 'bg-error text-white border-error' :
                     'border-current opacity-40'
                   }`}>
-                    {answered && isCorrect ? (
+                    {isCorrectSelected ? (
                       <span className="material-symbols-outlined text-[14px]"
                         style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
-                    ) : answered && isSelected && !isCorrect ? (
+                    ) : isWrongSelected ? (
                       <span className="material-symbols-outlined text-[14px]"
                         style={{ fontVariationSettings: "'FILL' 1" }}>close</span>
                     ) : (
                       OPTION_LETTERS[idx]
                     )}
                   </span>
-                  <span className="flex-1">{opt}</span>
+                  <span className="flex-1">{opt.text}</span>
                 </button>
               )
             })}
           </div>
 
-          {/* Feedback message */}
-          {answered && (
-            <div className={`mt-5 p-3 rounded-xl flex items-center gap-3 animate-fade-in ${
-              selected === q.correct
+          {answering && (
+            <div className="mt-5 flex items-center justify-center gap-2 text-secondary">
+              <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-body">A verificar resposta...</span>
+            </div>
+          )}
+
+          {answeredState && (
+            <div className={`mt-5 p-3 rounded-xl flex items-start gap-3 animate-fade-in ${
+              answeredState.isCorrect
                 ? 'bg-success/8 border border-success/20'
                 : 'bg-error/8 border border-error/20'
             }`}>
-              <span className={`material-symbols-outlined text-[20px] ${selected === q.correct ? 'text-success' : 'text-error'}`}
+              <span className={`material-symbols-outlined text-[20px] mt-0.5 flex-shrink-0 ${answeredState.isCorrect ? 'text-success' : 'text-error'}`}
                 style={{ fontVariationSettings: "'FILL' 1" }}>
-                {selected === q.correct ? 'check_circle' : 'info'}
+                {answeredState.isCorrect ? 'check_circle' : 'info'}
               </span>
-              <p className={`text-sm font-semibold font-sans ${selected === q.correct ? 'text-success' : 'text-error'}`}>
-                {selected === q.correct
-                  ? 'Correto! Excelente resposta.'
-                  : `Incorreto. A resposta certa é "${q.options[q.correct]}".`}
-              </p>
+              <div>
+                <p className={`text-sm font-bold font-sans ${answeredState.isCorrect ? 'text-success' : 'text-error'}`}>
+                  {answeredState.isCorrect ? 'Correto!' : 'Resposta incorreta.'}
+                </p>
+                {answeredState.isCorrect && answeredState.pointsEarned > 0 && (
+                  <p className="text-xs text-success/80 font-body mt-0.5">+{answeredState.pointsEarned} {answeredState.pointsEarned === 1 ? 'ponto' : 'pontos'}</p>
+                )}
+                {q.explanation && (
+                  <p className={`text-xs font-body mt-1 leading-relaxed ${answeredState.isCorrect ? 'text-success/80' : 'text-error/80'}`}>
+                    {q.explanation}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {answerError && (
+            <div className="mt-4 alert-error rounded-xl">
+              <span className="material-symbols-outlined text-error text-[16px]">error_outline</span>
+              <p className="text-sm text-error font-body">{answerError}</p>
             </div>
           )}
         </div>
 
-        {answered && (
+        {answeredState && (
           <div className="flex justify-end">
-            <button
-              onClick={handleNext}
-              disabled={submitting}
-              className="btn-primary"
-            >
+            <button onClick={handleNext} disabled={submitting} className="btn-primary">
               {submitting ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (

@@ -1,11 +1,14 @@
 import { api } from './client'
-import type { User, Progress } from '../types/api.types'
+import type { User, Progress, Favorite, AdminUser, PaginatedResponse } from '../types/api.types'
 
 export interface UpdateProfileDto {
   name?: string
   bio?: string
   region?: string
   school?: string
+  course?: string
+  interests?: string
+  motivation?: string
   avatarUrl?: string
 }
 
@@ -23,6 +26,8 @@ export const userService = {
 
   getMyProgress: () => api.get<Progress[]>('/users/me/progress'),
 
+  getMyFavorites: () => api.get<Favorite[]>('/users/me/favorites'),
+
   updateProfile: (dto: UpdateProfileDto) => api.patch<User>('/users/me', dto),
 
   getMyPermissions: async (): Promise<string[]> => {
@@ -33,4 +38,19 @@ export const userService = {
     )
     return [...seen]
   },
+
+  listAll: (params: { page?: number; limit?: number; search?: string; isActive?: boolean } = {}) => {
+    const q = new URLSearchParams()
+    if (params.page != null) q.set('page', String(params.page))
+    if (params.limit != null) q.set('limit', String(params.limit))
+    if (params.search) q.set('search', params.search)
+    if (params.isActive != null) q.set('isActive', String(params.isActive))
+    return api.get<PaginatedResponse<AdminUser>>(`/users?${q.toString()}`)
+  },
+
+  updateStatus: (userId: string, isActive: boolean) =>
+    api.patch<{ id: string; email: string; name: string; isActive: boolean }>(
+      `/users/${userId}/status`,
+      { isActive },
+    ),
 }

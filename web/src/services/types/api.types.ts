@@ -28,6 +28,9 @@ export interface User {
   province: string | null
   municipality: string | null
   school: string | null
+  course: string | null
+  interests: string | null
+  motivation: string | null
   roles: { role: { code: string; name: string } }[]
   permissions: string[]
   createdAt: string
@@ -172,4 +175,115 @@ export function extractList<T>(res: T[] | PaginatedResponse<T>): T[] {
   if (Array.isArray(res)) return res
   if ('items' in res && Array.isArray(res.items)) return res.items
   return []
+}
+
+// ── Favorites ──────────────────────────────────────────────────────────────
+export interface FavoriteContent {
+  id: string
+  title: string
+  type: ContentType
+  thumbnailUrl: string | null
+  slug: string
+}
+export interface Favorite {
+  userId: string
+  contentId: string
+  createdAt: string
+  content: FavoriteContent
+}
+
+// ── Admin Users ─────────────────────────────────────────────────────────────
+export interface AdminUser {
+  id: string
+  email: string
+  name: string
+  username: string | null
+  isActive: boolean
+  createdAt: string
+  roles: { role: { code: string } }[]
+}
+
+// ── Forum Replies ───────────────────────────────────────────────────────────
+export interface TopicReply {
+  id: string
+  topicId: string
+  authorId: string
+  parentId: string | null
+  body: string
+  createdAt: string
+  updatedAt: string
+  author: { id: string; name: string; avatarUrl: string | null }
+}
+
+// ── Quiz (full with questions) ──────────────────────────────────────────────
+export interface QuizOption {
+  id: string
+  text: string
+  position: number
+}
+export interface QuizQuestion {
+  id: string
+  statement: string
+  explanation: string | null
+  points: number
+  position: number
+  options: QuizOption[]
+}
+export interface QuizWithQuestions extends Quiz {
+  questions: QuizQuestion[]
+}
+
+// ── Quiz answer result ──────────────────────────────────────────────────────
+export interface UserAnswerResult {
+  id: string
+  questionId: string
+  optionId: string
+  isCorrect: boolean
+  pointsEarned: number
+}
+
+// ── Report ──────────────────────────────────────────────────────────────────
+export type ReportStatus = 'PENDING' | 'REVIEWING' | 'RESOLVED' | 'DISMISSED'
+export interface Report {
+  id: string
+  reporterId: string
+  communityId: string | null
+  topicId: string | null
+  replyId: string | null
+  commentId: string | null
+  reason: string
+  status: ReportStatus
+  resolution: string | null
+  createdAt: string
+  updatedAt: string
+  reporter: { id: string; name: string; email: string }
+}
+
+export type WriterApplicationStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'REQUEST_CHANGES'
+
+export interface WriterApplication {
+  id: string
+  userId: string
+  status: WriterApplicationStatus
+  fullName: string
+  photoUrl?: string | null
+  biography: string
+  academicBackground: string
+  institution: string
+  specialization: string
+  researchExperience: string
+  previousPublications?: string | null
+  portfolio?: string | null
+  economicHistoryAreas: string
+  languages: string
+  interestTopics: string
+  documentUrl?: string | null
+  reviewedBy?: string | null
+  reviewNotes?: string | null
+  rejectionReason?: string | null
+  submittedAt: string
+  reviewedAt?: string | null
+  updatedAt: string
+  user?: { id: string; name: string; email: string }
+  reviewer?: { id: string; name: string } | null
 }
