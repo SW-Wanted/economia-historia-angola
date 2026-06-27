@@ -3,7 +3,7 @@ services:
     build:
       context: .
       target: deps
-    command: sh -c "npx prisma generate && npx prisma db push && npm run prisma:seed && npm run start:dev"
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run prisma:seed && npm run start:dev"
     ports:
       - "3001:3001"
     env_file:
