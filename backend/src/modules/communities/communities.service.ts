@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CommunityType, MembershipStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -41,9 +41,28 @@ export class CommunitiesService {
     });
   }
 
-  approve(id: string) {
+  async approve(currentUserId: string, communityId: string, membershipId: string) {
+    const membership = await this.prisma.communityMembership.findUnique({
+      where: { id: membershipId },
+      include: { community: { select: { ownerId: true } } },
+    });
+    if (!membership) throw new NotFoundException('Membership not found');
+    if (membership.communityId !== communityId) {
+      throw new NotFoundException('Membership does not belong to this community');
+    }
+
+    const isOwner = membership.community.ownerId === currentUserId;
+    if (!isOwner) {
+      const moderator = await this.prisma.communityMembership.findFirst({
+        where: { communityId, userId: currentUserId, isModerator: true, status: MembershipStatus.ACTIVE },
+      });
+      if (!moderator) {
+        throw new ForbiddenException('Only moderators or the community owner can approve memberships');
+      }
+    }
+
     return this.prisma.communityMembership.update({
-      where: { id },
+      where: { id: membershipId },
       data: { status: MembershipStatus.ACTIVE, joinedAt: new Date() },
     });
   }
