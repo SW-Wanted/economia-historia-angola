@@ -76,7 +76,10 @@ Entidade central. Todos os perfis funcionais (leitor, escritor, professor, moder
 | `avatarUrl`                             | String?                   | URL da foto de perfil                                         |
 | `bio`                                   | String?                   | Texto breve de apresentação pública                           |
 | `region` / `province` / `municipality`  | String?                   | Localização para estatísticas e filtragem geográfica          |
-| `school`                                | String?                   | Instituição (usada em queries de ranking por escola)          |
+| `school`                                | String?                   | Instituição de ensino (recolhida no cadastro como "Instituição") |
+| `course`                                | String?                   | Curso ou área de estudo; usado para personalizar sugestões de conteúdo |
+| `interests`                             | String?                   | Temas selecionados no onboarding (CSV: `"Agricultura,Finanças"`); base de recomendações |
+| `motivation`                            | String?                   | Texto livre sobre o porquê de aderir; recolhido no passo 2 do cadastro, opcional |
 | `emailVerifiedAt`                       | DateTime?                 | Data de verificação de email; `null` se ainda não verificado  |
 | `lastLoginAt`                           | DateTime?                 | Auditoria de actividade; actualizado a cada login com sucesso |
 | `isActive`                              | Boolean                   | `false` → conta suspensa por admin; rejeita login com 401     |
@@ -202,14 +205,24 @@ ThrottlerGuard → JwtAuthGuard → PermissionsGuard
 
 ```
 POST /auth/register
-{ "email": "...", "name": "...", "password": "..." }
+{
+  "name": "...",
+  "email": "...",
+  "password": "...",
+
+  // Opcionais — campos de personalização recolhidos no cadastro Flutter
+  "username": "...",
+  "course": "Gestão de Empresas",
+  "interests": "Agricultura,Finanças,História de Angola",
+  "motivation": "Quero perceber como a economia moldou Angola..."
+}
 
 → Conta criada com role USER
 → Tokens emitidos imediatamente
 → { accessToken, refreshToken, user }
 ```
 
-Não existe estado de "aprovação pendente" para registo de utilizador comum. A conta fica activa no momento do registo.
+Não existe estado de "aprovação pendente" para registo de utilizador comum. A conta fica activa no momento do registo. Os campos `course`, `interests` e `motivation` são opcionais e servem exclusivamente para personalizar a experiência — não têm qualquer efeito na autenticação ou autorização.
 
 ### Registo como escritor
 
@@ -290,11 +303,14 @@ POST /auth/register
 {
   "name": "Emanuel Santos",
   "email": "emanuel@example.com",
-  "password": "senhasegura123"
+  "password": "senhasegura123",
+  "course": "Gestão de Empresas",
+  "interests": "Agricultura,Finanças,História de Angola",
+  "motivation": "Quero perceber como a economia moldou Angola."
 }
 ```
 
-Guardar `accessToken` e `refreshToken` da resposta.
+Guardar `accessToken` e `refreshToken` da resposta. Os campos de personalização são opcionais — o registo funciona apenas com `name`, `email` e `password`.
 
 #### 2. Autenticar (botão Authorize) e explorar o perfil
 
@@ -422,7 +438,7 @@ Swagger interactivo: `http://localhost:3001/docs`
 | Método  | Endpoint                | Permissão     | Descrição                                                       |
 | ------- | ----------------------- | ------------- | --------------------------------------------------------------- |
 | `GET`   | `/users/me`             | Autenticado   | Perfil completo com roles, memberships e subscriptions          |
-| `PATCH` | `/users/me`             | Autenticado   | Actualizar nome, bio, avatar, localização                       |
+| `PATCH` | `/users/me`             | Autenticado   | Actualizar nome, bio, avatar, localização, curso, interesses e motivação |
 | `GET`   | `/users/me/progress`    | Autenticado   | Progresso em todos os conteúdos                                 |
 | `GET`   | `/users/me/permissions` | Autenticado   | Roles e permissões granulares actuais                           |
 | `GET`   | `/users/me/favorites`   | Autenticado   | Conteúdos marcados como favorito                                |
