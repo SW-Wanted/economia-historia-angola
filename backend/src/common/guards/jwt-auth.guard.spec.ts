@@ -4,8 +4,12 @@ import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
+type MockedReflector = jest.Mocked<Reflector>;
+type MockedJwtService = jest.Mocked<JwtService>;
+type MockedConfigService = jest.Mocked<ConfigService>;
+
 const makeContext = (
-  reflector: jest.Mocked<Reflector>,
+  reflector: MockedReflector,
   headers: Record<string, string>,
   isPublic: boolean,
 ): ExecutionContext => {
@@ -20,14 +24,14 @@ const makeContext = (
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
-  let reflector: jest.Mocked<Reflector>;
-  let jwtService: jest.Mocked<JwtService>;
-  let configService: jest.Mocked<ConfigService>;
+  let reflector: MockedReflector;
+  let jwtService: MockedJwtService;
+  let configService: MockedConfigService;
 
   beforeEach(() => {
-    reflector = { getAllAndOverride: jest.fn() } as unknown as jest.Mocked<Reflector>;
-    jwtService = { verify: jest.fn() } as unknown as jest.Mocked<JwtService>;
-    configService = { get: jest.fn().mockReturnValue('test-secret') } as unknown as jest.Mocked<ConfigService>;
+    reflector = { getAllAndOverride: jest.fn() } as unknown as MockedReflector;
+    jwtService = { verify: jest.fn() } as unknown as MockedJwtService;
+    configService = { get: jest.fn().mockReturnValue('test-secret') } as unknown as MockedConfigService;
     guard = new JwtAuthGuard(reflector, jwtService, configService);
   });
 
