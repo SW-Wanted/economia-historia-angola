@@ -19,4 +19,19 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   username?: string;
+
+  @ApiPropertyOptional({ description: 'Field of study or course (used for content personalisation)' })
+  @IsOptional()
+  @IsString()
+  course?: string;
+
+  @ApiPropertyOptional({ description: 'Comma-separated interest topics selected during onboarding (e.g. "Agricultura,Finanças")' })
+  @IsOptional()
+  @IsString()
+  interests?: string;
+
+  @ApiPropertyOptional({ description: 'Why the user joined the platform (optional, free text)' })
+  @IsOptional()
+  @IsString()
+  motivation?: string;
 }
