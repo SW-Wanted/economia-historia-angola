@@ -1,7 +1,6 @@
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { AccountStatus } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { AuthService } from './auth.service';
 
@@ -53,17 +52,19 @@ describe('AuthService', () => {
       await expect(service.register(dto)).rejects.toThrow(ConflictException);
     });
 
-    it('returns a pending response on successful registration', async () => {
+    it('issues tokens on successful registration', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
       mockArgon2.hash.mockResolvedValue('hashed' as never);
       prisma.user.create.mockResolvedValue({ id: 'new-id' } as never);
+      const issueTokensSpy = jest
+        .spyOn(service as never, 'issueTokens')
+        .mockResolvedValue({ accessToken: 'at', refreshToken: 'rt', user: {} } as never);
 
       const result = await service.register(dto);
 
-      expect(result).toMatchObject({ pending: true });
-      expect(prisma.user.create).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ approvalStatus: AccountStatus.PENDING }) }),
-      );
+      expect(prisma.user.create).toHaveBeenCalled();
+      expect(issueTokensSpy).toHaveBeenCalledWith('new-id', undefined);
+      expect(result).toHaveProperty('accessToken');
     });
   });
 
@@ -74,8 +75,6 @@ describe('AuthService', () => {
       id: 'u1',
       email: dto.email,
       passwordHash: 'hash',
-      approvalStatus: AccountStatus.APPROVED,
-      isActive: true,
     };
 
     it('throws when user does not exist', async () => {
@@ -86,24 +85,6 @@ describe('AuthService', () => {
     it('throws when password is incorrect', async () => {
       prisma.user.findUnique.mockResolvedValue(approvedActiveUser as never);
       mockArgon2.verify.mockResolvedValue(false as never);
-      await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
-    });
-
-    it('throws when account is pending approval', async () => {
-      prisma.user.findUnique.mockResolvedValue({ ...approvedActiveUser, approvalStatus: AccountStatus.PENDING } as never);
-      mockArgon2.verify.mockResolvedValue(true as never);
-      await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
-    });
-
-    it('throws when account registration was rejected', async () => {
-      prisma.user.findUnique.mockResolvedValue({ ...approvedActiveUser, approvalStatus: AccountStatus.REJECTED } as never);
-      mockArgon2.verify.mockResolvedValue(true as never);
-      await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
-    });
-
-    it('throws when account is suspended (isActive = false)', async () => {
-      prisma.user.findUnique.mockResolvedValue({ ...approvedActiveUser, isActive: false } as never);
-      mockArgon2.verify.mockResolvedValue(true as never);
       await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
     });
 

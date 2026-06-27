@@ -31,7 +31,9 @@ describe('JwtAuthGuard', () => {
   beforeEach(() => {
     reflector = { getAllAndOverride: jest.fn() } as unknown as MockedReflector;
     jwtService = { verify: jest.fn() } as unknown as MockedJwtService;
-    configService = { get: jest.fn().mockReturnValue('test-secret') } as unknown as MockedConfigService;
+    configService = {
+      get: jest.fn().mockReturnValue('test-secret'),
+    } as unknown as MockedConfigService;
     guard = new JwtAuthGuard(reflector, jwtService, configService);
   });
 
@@ -63,7 +65,9 @@ describe('JwtAuthGuard', () => {
     const payload = { id: 'user-1', email: 'a@b.com', roles: [], permissions: [] };
     jwtService.verify.mockReturnValue(payload as never);
     reflector.getAllAndOverride.mockReturnValue(false);
-    const request: Record<string, unknown> = { headers: { authorization: 'Bearer valid.jwt.token' } };
+    const request: Record<string, unknown> = {
+      headers: { authorization: 'Bearer valid.jwt.token' },
+    };
     const ctx = {
       getHandler: jest.fn(),
       getClass: jest.fn(),
