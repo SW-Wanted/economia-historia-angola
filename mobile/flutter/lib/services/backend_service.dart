@@ -32,6 +32,9 @@ class BackendService {
     return _currentUser!;
   }
 
+  /// Cria sempre uma conta de utilizador comum (USER). A candidatura a escritor,
+  /// quando aplicável, é enviada à parte via [submitWriterApplication] depois de
+  /// a sessão estar autenticada.
   Future<AppUser> register({required String name, required String email, required String password}) async {
     final username = email.split('@').first.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '').toLowerCase();
     final json = await _api.postJson('/auth/register', {
@@ -43,6 +46,25 @@ class BackendService {
     _storeTokens(json);
     _currentUser = await _resolveProfile(json['user'] as Map<String, dynamic>?);
     return _currentUser!;
+  }
+
+  /// Submete uma candidatura a escritor para um utilizador já autenticado.
+  /// Usado logo após o cadastro (quando o switch está ligado) e também quando
+  /// alguém já registado decide candidatar-se mais tarde. Não concede
+  /// permissões — fica pendente de aprovação.
+  Future<Map<String, dynamic>> submitWriterApplication(Map<String, dynamic> application) {
+    return _api.postJson('/writer-applications', application);
+  }
+
+  /// Devolve a candidatura de escritor do utilizador autenticado, ou `null`
+  /// se ainda não existir nenhuma.
+  Future<Map<String, dynamic>?> myWriterApplication() async {
+    try {
+      final json = await _api.getJson('/writer-applications/me');
+      return json.isEmpty ? null : json;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Após autenticar, busca o perfil completo (/users/me) para obter o nome
