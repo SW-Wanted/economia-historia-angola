@@ -1,6 +1,7 @@
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { AccountStatus } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { AuthService } from './auth.service';
 
@@ -52,19 +53,18 @@ describe('AuthService', () => {
       await expect(service.register(dto)).rejects.toThrow(ConflictException);
     });
 
-    it('issues tokens on successful registration', async () => {
+    it('returns pending status on successful registration', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
       mockArgon2.hash.mockResolvedValue('hashed' as never);
       prisma.user.create.mockResolvedValue({ id: 'new-id' } as never);
-      const issueTokensSpy = jest
-        .spyOn(service as never, 'issueTokens')
-        .mockResolvedValue({ accessToken: 'at', refreshToken: 'rt', user: {} } as never);
 
       const result = await service.register(dto);
 
       expect(prisma.user.create).toHaveBeenCalled();
-      expect(issueTokensSpy).toHaveBeenCalledWith('new-id', undefined);
-      expect(result).toHaveProperty('accessToken');
+      expect(result).toEqual({
+        pending: true,
+        message: 'Registration submitted. Await approval from the administrator.',
+      });
     });
   });
 
@@ -75,6 +75,8 @@ describe('AuthService', () => {
       id: 'u1',
       email: dto.email,
       passwordHash: 'hash',
+      approvalStatus: AccountStatus.APPROVED,
+      isActive: true,
     };
 
     it('throws when user does not exist', async () => {
