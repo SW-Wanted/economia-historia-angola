@@ -37,7 +37,11 @@ export class CommunitiesController {
 
   @ApiBearerAuth()
   @Post(':id/members/:memberId/approve')
-  approve(@Param('memberId') memberId: string) {
-    return this.communities.approve(memberId);
+  approve(
+    @CurrentUser() user: AuthUser,
+    @Param('id') communityId: string,
+    @Param('memberId') memberId: string,
+  ) {
+    return this.communities.approve(user.id, communityId, memberId);
   }
 }

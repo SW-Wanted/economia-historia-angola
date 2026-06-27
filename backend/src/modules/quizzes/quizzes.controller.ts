@@ -49,4 +49,10 @@ export class QuizzesController {
   ranking(@Query('scope') scope = 'global', @Query('period') period = 'all') {
     return this.quizzes.ranking(scope, period);
   }
+
+  @Public()
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.quizzes.findById(id);
+  }
 }

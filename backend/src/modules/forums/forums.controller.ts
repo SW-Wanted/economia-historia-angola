@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthUser, CurrentUser } from '../../common/decorators/current-user.decorator';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { CreateReplyDto } from './dto/create-reply.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
@@ -27,6 +28,12 @@ export class ForumsController {
   @Post(':forumId/topics')
   createTopic(@CurrentUser() user: AuthUser, @Param('forumId') forumId: string, @Body() dto: CreateTopicDto) {
     return this.forums.createTopic(user.id, forumId, dto);
+  }
+
+  @Public()
+  @Get('topics/:topicId/replies')
+  replies(@Param('topicId') topicId: string, @Query() query: PaginationDto) {
+    return this.forums.listReplies(topicId, query);
   }
 
   @ApiBearerAuth()

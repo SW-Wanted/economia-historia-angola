@@ -38,15 +38,15 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/economia_historia?schema=public
       JWT_ACCESS_SECRET: ci-access-secret-with-at-least-sixty-four-characters-1234567890
-      JWT_REFRESH_SECRET: ci-refresh-secret-with-at-least-sixty-four-characters-123456789
       REDIS_URL: redis://localhost:6379
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
+      - run: npm ci
       - run: npx prisma generate
       - run: npx prisma validate
+      - run: npx prisma migrate deploy
       - run: npm run build
-      - run: npm test -- --passWithNoTests
+      - run: npm test
