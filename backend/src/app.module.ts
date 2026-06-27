@@ -41,7 +41,7 @@ import { ReportsModule } from './modules/reports/reports.module';
         },
       ],
     }),
-    JwtModule.register({})),
+    JwtModule.register({}),
     PrismaModule,
     HealthModule,
     AuthModule,
