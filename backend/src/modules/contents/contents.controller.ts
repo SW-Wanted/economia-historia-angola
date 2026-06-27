@@ -27,6 +27,12 @@ export class ContentsController {
   }
 
   @ApiBearerAuth()
+  @Get(':id/full')
+  findAuthorized(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.contents.findAuthorized(user.id, id, user.permissions as PermissionCode[]);
+  }
+
+  @ApiBearerAuth()
   @Permissions(PermissionCode.CONTENT_CREATE)
   @Post()
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateContentDto) {

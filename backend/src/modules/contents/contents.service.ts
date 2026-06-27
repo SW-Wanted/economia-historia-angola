@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { ContentStatus, PermissionCode, Visibility } from '@prisma/client';
+import { ContentStatus, MembershipStatus, PermissionCode, Visibility } from '@prisma/client';
 import { paginate } from '../../common/dto/pagination.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ContentQueryDto } from './dto/content-query.dto';
@@ -36,6 +36,36 @@ export class ContentsService {
       include: { category: true, tags: { include: { tag: true } }, comments: { where: { deletedAt: null } } },
     });
     if (!content) throw new NotFoundException('Content not found or not public');
+    return content;
+  }
+
+  async findAuthorized(userId: string, contentId: string, userPermissions: PermissionCode[]) {
+    const content = await this.prisma.content.findFirst({
+      where: { id: contentId, status: ContentStatus.PUBLISHED, deletedAt: null },
+      include: { category: true, tags: { include: { tag: true } } },
+    });
+    if (!content) throw new NotFoundException('Content not found');
+
+    const openVisibilities: Visibility[] = [Visibility.PUBLIC, Visibility.AUTHENTICATED];
+    if (openVisibilities.includes(content.visibility) && !content.isJindungo) {
+      return content;
+    }
+
+    if (userPermissions.includes(PermissionCode.JINDUNGO_ACCESS)) {
+      return content;
+    }
+
+    const approved = await this.prisma.accessRequest.findFirst({
+      where: {
+        userId,
+        contentId,
+        permission: PermissionCode.JINDUNGO_ACCESS,
+        status: MembershipStatus.ACTIVE,
+      },
+    });
+    if (!approved) {
+      throw new ForbiddenException('Access to this content requires explicit authorization');
+    }
     return content;
   }
 
