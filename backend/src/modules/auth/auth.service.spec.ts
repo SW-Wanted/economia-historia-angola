@@ -1,7 +1,6 @@
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { AccountStatus } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { AuthService } from './auth.service';
 
@@ -46,36 +45,37 @@ describe('AuthService', () => {
   });
 
   describe('register', () => {
-    const dto = { email: 'new@example.com', name: 'New User', username: 'newuser', password: 'secret123', course: 'CS', motivation: 'Learn' };
+    const dto = { email: 'new@example.com', name: 'New User', username: 'newuser', password: 'secret123' };
 
     it('throws ConflictException when email is already registered', async () => {
       prisma.user.findUnique.mockResolvedValue({ id: 'existing' } as never);
       await expect(service.register(dto)).rejects.toThrow(ConflictException);
     });
 
-    it('returns pending status on successful registration', async () => {
+    it('creates user and immediately issues tokens', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
       mockArgon2.hash.mockResolvedValue('hashed' as never);
       prisma.user.create.mockResolvedValue({ id: 'new-id' } as never);
+      const issueTokensSpy = jest
+        .spyOn(service as never, 'issueTokens')
+        .mockResolvedValue({ accessToken: 'at', refreshToken: 'rt', user: {} } as never);
 
       const result = await service.register(dto);
 
       expect(prisma.user.create).toHaveBeenCalled();
-      expect(result).toEqual({
-        pending: true,
-        message: 'Registration submitted. Await approval from the administrator.',
-      });
+      expect(issueTokensSpy).toHaveBeenCalledWith('new-id', undefined);
+      expect(result).toHaveProperty('accessToken');
+      expect(result).toHaveProperty('refreshToken');
     });
   });
 
   describe('login', () => {
     const dto = { email: 'user@example.com', password: 'correct-password' };
 
-    const approvedActiveUser = {
+    const activeUser = {
       id: 'u1',
       email: dto.email,
       passwordHash: 'hash',
-      approvalStatus: AccountStatus.APPROVED,
       isActive: true,
     };
 
@@ -85,15 +85,21 @@ describe('AuthService', () => {
     });
 
     it('throws when password is incorrect', async () => {
-      prisma.user.findUnique.mockResolvedValue(approvedActiveUser as never);
+      prisma.user.findUnique.mockResolvedValue(activeUser as never);
       mockArgon2.verify.mockResolvedValue(false as never);
       await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
     });
 
-    it('updates lastLoginAt and issues tokens for valid approved active credentials', async () => {
-      prisma.user.findUnique.mockResolvedValue(approvedActiveUser as never);
+    it('throws when account is suspended', async () => {
+      prisma.user.findUnique.mockResolvedValue({ ...activeUser, isActive: false } as never);
       mockArgon2.verify.mockResolvedValue(true as never);
-      prisma.user.update.mockResolvedValue(approvedActiveUser as never);
+      await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('updates lastLoginAt and issues tokens for valid active credentials', async () => {
+      prisma.user.findUnique.mockResolvedValue(activeUser as never);
+      mockArgon2.verify.mockResolvedValue(true as never);
+      prisma.user.update.mockResolvedValue(activeUser as never);
       const issueTokensSpy = jest
         .spyOn(service as never, 'issueTokens')
         .mockResolvedValue({ accessToken: 'at', refreshToken: 'rt', user: {} } as never);

@@ -15,14 +15,6 @@ export class RegisterDto {
   @MinLength(8)
   password!: string;
 
-  @ApiProperty({ description: 'Course or study area (required for statistical analysis)' })
-  @IsString()
-  course!: string;
-
-  @ApiProperty({ description: 'Motivation for interest in economics and history' })
-  @IsString()
-  motivation!: string;
-
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
