@@ -1,19 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import AppShell from '../components/AppShell'
-import { api } from '../services/api/client'
+import { forumService } from '../services/api/forum.service'
 import { reportsService } from '../services/api/reports.service'
 import { useAuth } from '../contexts/AuthContext'
-import type { Topic } from '../services/types/api.types'
+import type { Topic, TopicReply } from '../services/types/api.types'
 import { getErrorMessage } from '../utils/errors'
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `Há ${mins} min`
+  if (mins < 2) return 'agora mesmo'
+  if (mins < 60) return `há ${mins} min`
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `Há ${hours}h`
-  return `Há ${Math.floor(hours / 24)} dia${Math.floor(hours / 24) > 1 ? 's' : ''}`
+  if (hours < 24) return `há ${hours}h`
+  return `há ${Math.floor(hours / 24)} dia${Math.floor(hours / 24) > 1 ? 's' : ''}`
 }
 
 function AuthorAvatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' | 'lg' }) {
@@ -36,16 +37,50 @@ export default function ForumDetalhe() {
   const { user } = useAuth()
   const topic = (location.state as { topic?: Topic } | null)?.topic ?? null
 
+  const [replies, setReplies] = useState<TopicReply[]>([])
+  const [repliesLoading, setRepliesLoading] = useState(true)
+  const [repliesTotal, setRepliesTotal] = useState(0)
+  const [repliesPage, setRepliesPage] = useState(1)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const REPLIES_LIMIT = 20
+
   const [replyBody, setReplyBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [replyError, setReplyError] = useState('')
-  const [replySuccess, setReplySuccess] = useState(false)
 
   const [reportReason, setReportReason] = useState('')
   const [showReportForm, setShowReportForm] = useState(false)
   const [reportSubmitting, setReportSubmitting] = useState(false)
   const [reportDone, setReportDone] = useState(false)
   const [reportError, setReportError] = useState('')
+
+  useEffect(() => {
+    if (!topic) return
+    setRepliesLoading(true)
+    forumService.listReplies(topic.id, 1, REPLIES_LIMIT)
+      .then((data) => {
+        setReplies(data.items)
+        setRepliesTotal(data.total)
+        setRepliesPage(1)
+      })
+      .catch(() => {})
+      .finally(() => setRepliesLoading(false))
+  }, [topic])
+
+  async function loadMoreReplies() {
+    if (!topic || loadingMore) return
+    const nextPage = repliesPage + 1
+    setLoadingMore(true)
+    try {
+      const data = await forumService.listReplies(topic.id, nextPage, REPLIES_LIMIT)
+      setReplies((prev) => [...prev, ...data.items])
+      setRepliesPage(nextPage)
+    } catch {
+      // ignore
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   async function handleReport(e: React.FormEvent) {
     e.preventDefault()
@@ -71,9 +106,10 @@ export default function ForumDetalhe() {
     setSubmitting(true)
     setReplyError('')
     try {
-      await api.post(`/forums/topics/${topic.id}/replies`, { body: replyBody.trim() })
+      const newReply = await forumService.reply(topic.id, { body: replyBody.trim() })
+      setReplies((prev) => [...prev, newReply])
+      setRepliesTotal((t) => t + 1)
       setReplyBody('')
-      setReplySuccess(true)
     } catch (err: unknown) {
       setReplyError(getErrorMessage(err))
     } finally {
@@ -102,7 +138,7 @@ export default function ForumDetalhe() {
     )
   }
 
-  const replies = topic._count?.replies ?? 0
+  const hasMore = replies.length < repliesTotal
 
   return (
     <AppShell title="Fórum">
@@ -120,7 +156,6 @@ export default function ForumDetalhe() {
           <div className="col-span-12 lg:col-span-8 flex flex-col gap-5">
             {/* Topic header */}
             <div className="card p-7">
-              {/* Meta */}
               <div className="flex items-center gap-2.5 flex-wrap mb-5">
                 {topic.category && <span className="badge-primary">{topic.category.name}</span>}
                 <span className="text-[12px] text-secondary font-body flex items-center gap-1">
@@ -132,15 +167,11 @@ export default function ForumDetalhe() {
                 ))}
               </div>
 
-              {/* Title */}
               <h1 className="text-headline-xl font-bold text-text font-sans tracking-tight leading-snug mb-4">
                 {topic.title}
               </h1>
-
-              {/* Body */}
               <p className="text-body-lg text-secondary font-reading leading-relaxed mb-6">{topic.body}</p>
 
-              {/* Author */}
               <div className="flex items-center gap-3 pt-5 border-t border-outline-variant/20">
                 <AuthorAvatar name={topic.author.name} size="md" />
                 <div>
@@ -150,7 +181,7 @@ export default function ForumDetalhe() {
                 <div className="ml-auto flex items-center gap-3">
                   <div className="flex items-center gap-1.5 text-secondary">
                     <span className="material-symbols-outlined text-[16px]">chat_bubble_outline</span>
-                    <span className="text-sm font-semibold font-sans">{replies}</span>
+                    <span className="text-sm font-semibold font-sans">{repliesTotal}</span>
                   </div>
                   {user && !reportDone && (
                     <button
@@ -164,7 +195,6 @@ export default function ForumDetalhe() {
                 </div>
               </div>
 
-              {/* Report form */}
               {reportDone && (
                 <div className="alert-success rounded-xl mt-4">
                   <span className="material-symbols-outlined text-success text-[18px]"
@@ -184,9 +214,7 @@ export default function ForumDetalhe() {
                   />
                   {reportError && <p className="text-xs text-error font-body">{reportError}</p>}
                   <div className="flex gap-2 justify-end">
-                    <button type="button" onClick={() => setShowReportForm(false)} className="btn-ghost text-sm">
-                      Cancelar
-                    </button>
+                    <button type="button" onClick={() => setShowReportForm(false)} className="btn-ghost text-sm">Cancelar</button>
                     <button
                       type="submit"
                       disabled={reportSubmitting || !reportReason.trim()}
@@ -203,35 +231,80 @@ export default function ForumDetalhe() {
               )}
             </div>
 
-            {/* API info notice */}
-            <div className="alert-info rounded-card">
-              <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0 mt-0.5">info</span>
-              <p className="text-body-md text-secondary font-body">
-                O carregamento de respostas existentes requer um endpoint ainda não disponível. Pode submeter uma nova resposta abaixo.
-              </p>
+            {/* Replies list */}
+            <div className="card p-6">
+              <h3 className="text-headline-md font-bold text-text font-sans mb-5 flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[20px]">chat_bubble_outline</span>
+                Respostas
+                {repliesTotal > 0 && (
+                  <span className="text-label-lg text-secondary font-body font-normal ml-1">({repliesTotal})</span>
+                )}
+              </h3>
+
+              {repliesLoading ? (
+                <div className="space-y-5">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="flex gap-3">
+                      <div className="skeleton w-10 h-10 rounded-full flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="skeleton h-3 w-28 rounded" />
+                        <div className="skeleton h-4 w-full rounded" />
+                        <div className="skeleton h-4 w-3/4 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : replies.length === 0 ? (
+                <div className="text-center py-8">
+                  <span className="material-symbols-outlined text-primary/20 text-[32px] mb-2 block">chat_bubble_outline</span>
+                  <p className="text-body-md text-secondary font-body">Ainda não há respostas. Seja o primeiro!</p>
+                </div>
+              ) : (
+                <div className="flex flex-col divide-y divide-outline-variant/20">
+                  {replies.map((reply) => (
+                    <div key={reply.id} className="py-5 first:pt-0">
+                      <div className="flex items-start gap-3">
+                        <AuthorAvatar name={reply.author.name} size="sm" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline gap-2 mb-1.5">
+                            <span className="text-sm font-bold text-text font-sans">{reply.author.name}</span>
+                            <span className="text-[11px] text-secondary font-body">{timeAgo(reply.createdAt)}</span>
+                          </div>
+                          <p className="text-body-md text-text font-reading leading-relaxed">{reply.body}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {hasMore && !repliesLoading && (
+                <div className="mt-5 pt-5 border-t border-outline-variant/20 flex justify-center">
+                  <button onClick={loadMoreReplies} disabled={loadingMore} className="btn-ghost text-sm">
+                    {loadingMore ? (
+                      <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                        Ver mais respostas ({repliesTotal - replies.length} restantes)
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Reply form */}
             <div className="card p-6">
-              <h3 className="text-headline-md font-bold text-text font-sans mb-5">
-                Adicionar Resposta
-              </h3>
-              {replySuccess ? (
-                <div className="alert-success rounded-xl">
-                  <span className="material-symbols-outlined text-success text-[20px]"
-                    style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                  <div>
-                    <p className="text-sm font-bold text-success font-sans">Resposta publicada!</p>
-                    <p className="text-body-md text-secondary font-body mt-0.5">
-                      A sua resposta foi submetida com sucesso.
-                    </p>
-                  </div>
-                </div>
-              ) : (
+              <h3 className="text-headline-md font-bold text-text font-sans mb-5">Adicionar Resposta</h3>
+
+              {user ? (
                 <form onSubmit={handleReply} className="space-y-4">
                   <div className="flex items-start gap-3">
                     <div className="w-9 h-9 rounded-full bg-surface-container border border-outline-variant/40 flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-[10px] font-bold text-primary font-sans">Eu</span>
+                      <span className="text-[10px] font-bold text-primary font-sans">
+                        {user.name?.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase() ?? 'EU'}
+                      </span>
                     </div>
                     <textarea
                       rows={4}
@@ -248,36 +321,40 @@ export default function ForumDetalhe() {
                     </div>
                   )}
                   <div className="flex justify-end">
-                    <button type="submit" disabled={submitting} className="btn-primary">
+                    <button type="submit" disabled={submitting || !replyBody.trim()} className="btn-primary">
                       {submitting ? (
                         <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       ) : (
-                        <>
-                          <span className="material-symbols-outlined text-[18px]">send</span>
-                          Publicar Resposta
-                        </>
+                        <><span className="material-symbols-outlined text-[18px]">send</span>Publicar Resposta</>
                       )}
                     </button>
                   </div>
                 </form>
+              ) : (
+                <div className="alert-info rounded-card">
+                  <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0">info</span>
+                  <p className="text-body-md text-secondary font-body">
+                    <button onClick={() => navigate('/login')} className="font-bold text-primary hover:underline">
+                      Inicie sessão
+                    </button>
+                    {' '}para responder neste tópico.
+                  </p>
+                </div>
               )}
             </div>
           </div>
 
           {/* Sidebar */}
           <div className="col-span-12 lg:col-span-4 flex flex-col gap-4">
-            {/* Topic stats */}
             <div className="card p-5">
-              <h4 className="text-label-lg uppercase tracking-wider text-secondary font-sans mb-4">
-                Sobre este Tópico
-              </h4>
+              <h4 className="text-label-lg uppercase tracking-wider text-secondary font-sans mb-4">Sobre este Tópico</h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-secondary font-body flex items-center gap-2">
                     <span className="material-symbols-outlined text-[16px]">chat_bubble_outline</span>
                     Respostas
                   </span>
-                  <span className="font-bold text-text font-sans">{replies}</span>
+                  <span className="font-bold text-text font-sans">{repliesLoading ? '…' : repliesTotal}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-secondary font-body flex items-center gap-2">
@@ -298,7 +375,6 @@ export default function ForumDetalhe() {
               </div>
             </div>
 
-            {/* Back CTA */}
             <button
               onClick={() => navigate('/forum')}
               className="card p-4 text-left hover:shadow-card-hover hover:-translate-y-px hover:border-primary/20 transition-all duration-200 flex items-center gap-3"
