@@ -18,6 +18,12 @@ export class CommentsController {
   }
 
   @ApiBearerAuth()
+  @Get('rooms/:roomId')
+  roomComments(@CurrentUser() user: AuthUser, @Param('roomId') roomId: string) {
+    return this.comments.roomComments(user.id, roomId);
+  }
+
+  @ApiBearerAuth()
   @Post()
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateCommentDto) {
     return this.comments.create(user.id, dto);
@@ -31,7 +37,11 @@ export class CommentsController {
 
   @ApiBearerAuth()
   @Post('rooms/:roomId/participants/:userId')
-  addParticipant(@Param('roomId') roomId: string, @Param('userId') userId: string) {
-    return this.comments.addParticipant(roomId, userId);
+  addParticipant(
+    @CurrentUser() user: AuthUser,
+    @Param('roomId') roomId: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.comments.addParticipant(user.id, roomId, userId);
   }
 }

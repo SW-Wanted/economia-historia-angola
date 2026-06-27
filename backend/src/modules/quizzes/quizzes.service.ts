@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { QuizAttemptStatus, Visibility } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AnswerDto } from './dto/answer.dto';
@@ -13,6 +13,31 @@ export class QuizzesService {
       where: { visibility: Visibility.PUBLIC, deletedAt: null },
       include: { category: true, _count: { select: { questions: true, attempts: true } } },
     });
+  }
+
+  async findById(id: string) {
+    const quiz = await this.prisma.quiz.findFirst({
+      where: { id, visibility: Visibility.PUBLIC, deletedAt: null },
+      include: {
+        category: true,
+        questions: {
+          orderBy: { position: 'asc' },
+          select: {
+            id: true,
+            statement: true,
+            explanation: true,
+            points: true,
+            position: true,
+            options: {
+              orderBy: { position: 'asc' },
+              select: { id: true, text: true, position: true },
+            },
+          },
+        },
+      },
+    });
+    if (!quiz) throw new NotFoundException('Quiz not found');
+    return quiz;
   }
 
   create(createdById: string, dto: CreateQuizDto) {
@@ -55,10 +80,33 @@ export class QuizzesService {
     }
     const answers = await this.prisma.userAnswer.findMany({ where: { attemptId, userId } });
     const score = answers.reduce((sum, answer) => sum + answer.pointsEarned, 0);
-    return this.prisma.quizAttempt.update({
+    const submitted = await this.prisma.quizAttempt.update({
       where: { id: attemptId },
       data: { score, status: QuizAttemptStatus.SUBMITTED, submittedAt: new Date() },
     });
+    void this.updateRanking(userId, attempt.quizId, score).catch(() => void 0);
+    return submitted;
+  }
+
+  private async updateRanking(userId: string, quizId: string, score: number) {
+    for (const [scope, scopeId] of [
+      ['quiz', quizId],
+      ['global', null],
+    ] as [string, string | null][]) {
+      const existing = await this.prisma.rankingEntry.findFirst({
+        where: { userId, scope, scopeId, period: 'all' },
+      });
+      if (existing) {
+        await this.prisma.rankingEntry.update({
+          where: { id: existing.id },
+          data: { score: existing.score + score, attempts: existing.attempts + 1, computedAt: new Date() },
+        });
+      } else {
+        await this.prisma.rankingEntry.create({
+          data: { userId, scope, scopeId, period: 'all', score, attempts: 1 },
+        });
+      }
+    }
   }
 
   ranking(scope: string, period: string) {
