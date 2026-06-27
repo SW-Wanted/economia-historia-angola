@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { Visibility } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SyncQueryDto } from './dto/sync-query.dto';
+
+const SYNC_VISIBLE: Visibility[] = [Visibility.PUBLIC, Visibility.AUTHENTICATED];
 
 @Injectable()
 export class SyncService {
@@ -10,7 +13,12 @@ export class SyncService {
     const since = query.since ? new Date(query.since) : new Date(0);
     const [contents, notifications] = await this.prisma.$transaction([
       this.prisma.content.findMany({
-        where: { updatedAt: { gt: since }, deletedAt: null },
+        where: {
+          updatedAt: { gt: since },
+          deletedAt: null,
+          visibility: { in: SYNC_VISIBLE },
+          isJindungo: false,
+        },
         orderBy: { updatedAt: 'asc' },
         take: 200,
       }),

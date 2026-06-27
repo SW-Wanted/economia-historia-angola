@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { ForumsController } from './forums.controller';
 import { ForumsService } from './forums.service';
 
-@Module({ controllers: [ForumsController], providers: [ForumsService] })
+@Module({ imports: [NotificationsModule], controllers: [ForumsController], providers: [ForumsService] })
 export class ForumsModule {}

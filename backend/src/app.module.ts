@@ -1,4 +1,3 @@
-import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
@@ -7,7 +6,6 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
-import { RolesGuard } from './common/guards/roles.guard';
 import { configuration } from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
@@ -24,6 +22,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { SyncModule } from './modules/sync/sync.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { WriterApplicationsModule } from './modules/writer-applications/writer-applications.module';
 
 @Module({
   imports: [
@@ -43,21 +42,6 @@ import { ReportsModule } from './modules/reports/reports.module';
         },
       ],
     }),
-    BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const redisUrl = new URL(config.get<string>('redisUrl', 'redis://localhost:6379'));
-        return {
-          connection: {
-            host: redisUrl.hostname,
-            port: Number(redisUrl.port || 6379),
-            username: redisUrl.username || undefined,
-            password: redisUrl.password || undefined,
-            tls: redisUrl.protocol === 'rediss:' ? {} : undefined,
-          },
-        };
-      },
-    }),
     JwtModule.register({}),
     PrismaModule,
     HealthModule,
@@ -72,12 +56,12 @@ import { ReportsModule } from './modules/reports/reports.module';
     UploadsModule,
     SyncModule,
     ReportsModule,
+    WriterApplicationsModule,
     RealtimeModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
-    { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
   ],
 })

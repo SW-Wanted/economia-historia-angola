@@ -135,6 +135,13 @@ enum SyncOperation {
   DELETE
 }
 
+enum WriterApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REQUEST_CHANGES
+}
+
 enum ACLSubjectType {
   USER
   ROLE
@@ -192,7 +199,10 @@ model User {
   accessRequests       AccessRequest[]
   uploadAssets         Asset[]
   syncCursors          SyncCursor[]
-  rankingSnapshots     RankingEntry[]
+  rankingSnapshots          RankingEntry[]
+  passwordResetTokens       PasswordResetToken[]
+  writerApplication         WriterApplication?
+  reviewedApplications      WriterApplication[]  @relation("WriterApplicationReviewer")
 
   @@index([region, school])
   @@index([createdAt])
@@ -273,6 +283,51 @@ model RefreshToken {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model WriterApplication {
+  id                   String                  @id @default(uuid()) @db.Uuid
+  userId               String                  @unique @db.Uuid
+  status               WriterApplicationStatus @default(PENDING)
+  fullName             String
+  photoUrl             String?
+  biography            String
+  academicBackground   String
+  institution          String
+  specialization       String
+  researchExperience   String
+  previousPublications String?
+  portfolio            String?
+  economicHistoryAreas String
+  languages            String
+  interestTopics       String
+  documentUrl          String?
+  reviewedBy           String?                 @db.Uuid
+  reviewNotes          String?
+  rejectionReason      String?
+  submittedAt          DateTime                @default(now())
+  reviewedAt           DateTime?
+  updatedAt            DateTime                @updatedAt
+
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("WriterApplicationReviewer", fields: [reviewedBy], references: [id])
+
+  @@index([status])
+  @@index([userId])
 }
 
 model Category {

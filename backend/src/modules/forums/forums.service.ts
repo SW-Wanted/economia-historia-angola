@@ -1,12 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { Visibility } from '@prisma/client';
+import { NotificationType, Visibility } from '@prisma/client';
+import { PaginationDto, paginate } from '../../common/dto/pagination.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReplyDto } from './dto/create-reply.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
 
 @Injectable()
 export class ForumsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   listPublicForums() {
     return this.prisma.forum.findMany({ where: { visibility: Visibility.PUBLIC, deletedAt: null } });
@@ -24,7 +29,37 @@ export class ForumsService {
     return this.prisma.topic.create({ data: { ...dto, authorId, forumId } });
   }
 
-  reply(authorId: string, topicId: string, dto: CreateReplyDto) {
-    return this.prisma.topicReply.create({ data: { ...dto, authorId, topicId } });
+  async reply(authorId: string, topicId: string, dto: CreateReplyDto) {
+    const created = await this.prisma.topicReply.create({ data: { ...dto, authorId, topicId } });
+    void this.notifyTopicAuthor(topicId, authorId).catch(() => void 0);
+    return created;
+  }
+
+  async listReplies(topicId: string, query: PaginationDto) {
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.topicReply.findMany({
+        where: { topicId, deletedAt: null },
+        ...paginate(query),
+        orderBy: { createdAt: 'asc' },
+        include: { author: { select: { id: true, name: true, avatarUrl: true } } },
+      }),
+      this.prisma.topicReply.count({ where: { topicId, deletedAt: null } }),
+    ]);
+    return { items, total, page: query.page, limit: query.limit };
+  }
+
+  private async notifyTopicAuthor(topicId: string, replyAuthorId: string) {
+    const topic = await this.prisma.topic.findUnique({
+      where: { id: topicId },
+      select: { authorId: true, title: true },
+    });
+    if (topic && topic.authorId !== replyAuthorId) {
+      await this.notifications.create(
+        topic.authorId,
+        NotificationType.FORUM,
+        'Nova resposta no seu tópico',
+        `Recebeu uma nova resposta no tópico "${topic.title}"`,
+      );
+    }
   }
 }
