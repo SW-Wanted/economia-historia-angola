@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
-import { AccountStatus, PermissionCode, RoleCode } from '@prisma/client';
+import { PermissionCode, RoleCode } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -29,15 +29,12 @@ export class AuthService {
     if (exists) throw new ConflictException('Email already registered');
 
     const passwordHash = await argon2.hash(dto.password);
-    await this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         email: dto.email,
         name: dto.name,
         username: dto.username,
-        course: dto.course,
-        motivation: dto.motivation,
         passwordHash,
-        approvalStatus: AccountStatus.PENDING,
         roles: {
           create: {
             role: {
@@ -50,19 +47,13 @@ export class AuthService {
         },
       },
     });
-    return { pending: true, message: 'Registration submitted. Await approval from the administrator.' };
+    return this.issueTokens(user.id, userAgent);
   }
 
   async login(dto: LoginDto, userAgent?: string) {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (!user?.passwordHash || !(await argon2.verify(user.passwordHash, dto.password))) {
       throw new UnauthorizedException('Invalid credentials');
-    }
-    if (user.approvalStatus === AccountStatus.PENDING) {
-      throw new UnauthorizedException('Your account is pending administrator approval');
-    }
-    if (user.approvalStatus === AccountStatus.REJECTED) {
-      throw new UnauthorizedException('Your account registration was not approved');
     }
     if (!user.isActive) {
       throw new UnauthorizedException('Your account has been suspended');

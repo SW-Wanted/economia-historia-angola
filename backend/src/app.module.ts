@@ -22,6 +22,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { SyncModule } from './modules/sync/sync.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { WriterApplicationsModule } from './modules/writer-applications/writer-applications.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { ReportsModule } from './modules/reports/reports.module';
     UploadsModule,
     SyncModule,
     ReportsModule,
+    WriterApplicationsModule,
     RealtimeModule,
   ],
   providers: [

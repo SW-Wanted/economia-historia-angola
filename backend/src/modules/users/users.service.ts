@@ -112,11 +112,8 @@ export class UsersService {
 
     return this.prisma.user.update({
       where: { id: targetId },
-      data: {
-        isActive: dto.isActive,
-        approvalStatus: dto.approvalStatus,
-      },
-      select: { id: true, email: true, name: true, isActive: true, approvalStatus: true },
+      data: { isActive: dto.isActive },
+      select: { id: true, email: true, name: true, isActive: true },
     });
   }
 }
