@@ -34,6 +34,9 @@ export class AuthService {
         email: dto.email,
         name: dto.name,
         username: dto.username,
+        course: dto.course,
+        interests: dto.interests,
+        motivation: dto.motivation,
         passwordHash,
         roles: {
           create: {

@@ -26,4 +26,19 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   school?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  course?: string;
+
+  @ApiPropertyOptional({ description: 'Comma-separated interest topics (e.g. "Agricultura,Finanças")' })
+  @IsOptional()
+  @IsString()
+  interests?: string;
+
+  @ApiPropertyOptional({ description: 'User motivation for joining the platform' })
+  @IsOptional()
+  @IsString()
+  motivation?: string;
 }
