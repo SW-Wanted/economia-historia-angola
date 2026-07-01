@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../core/constants/app_colors.dart';
+import '../core/permissions/app_permissions.dart';
 import '../core/routes/app_routes.dart';
 import '../providers/app_state.dart';
 import '../services/backend_service.dart';
+import 'create_menu_sheet.dart';
 
 /// Barra de navegação inferior flutuante (cápsula), com botão central
 /// sobreposto e ocultação automática ao fazer scroll.
@@ -47,12 +49,37 @@ class _BottomNavShellState extends State<BottomNavShell> {
 
   void _select(int i) {
     AppStateScope.of(context, listen: false).setNavIndex(i);
-    if (i != widget.index) Navigator.pushReplacementNamed(context, BottomNavShell._routes[i]);
+    if (i == widget.index) return;
+    // O Perfil é aberto como página empilhada (com botão de voltar, sem menu);
+    // os restantes separadores trocam entre si.
+    if (BottomNavShell._routes[i] == AppRoutes.profile) {
+      Navigator.pushNamed(context, AppRoutes.profile);
+    } else {
+      Navigator.pushReplacementNamed(context, BottomNavShell._routes[i]);
+    }
+  }
+
+  /// Ação do botão "Criar", sensível ao contexto (separador atual):
+  /// • Fórum → cria apenas fóruns;
+  /// • Explorar → Centro de Criação, mas sem a opção de fórum;
+  /// • restantes → Centro de Criação completo.
+  void _onCreate() {
+    final route = widget.index < BottomNavShell._routes.length
+        ? BottomNavShell._routes[widget.index]
+        : null;
+    if (route == AppRoutes.forum) {
+      Navigator.pushNamed(context, AppRoutes.createTopic);
+    } else if (route == AppRoutes.explore) {
+      showCreateMenu(context, excludeForum: true);
+    } else {
+      showCreateMenu(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final canCreate = BackendService.instance.cachedUser.canPublish;
+    // Visibilidade do botão "Criar" controlada por permissões (não por papel).
+    final canCreate = BackendService.instance.cachedUser.canCreateContent;
     final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
 
     return Scaffold(
@@ -129,7 +156,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
               right: 0,
               child: Center(
                 child: _CenterButton(
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.publishContent),
+                  onTap: _onCreate,
                 ),
               ),
             ),

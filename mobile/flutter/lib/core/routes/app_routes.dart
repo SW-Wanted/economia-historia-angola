@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../models/app_user.dart';
 import '../../models/community_category.dart';
+import '../../models/feed.dart';
 import '../../screens/admin_panel_screen.dart';
 import '../../screens/admin_users_screen.dart';
 import '../../screens/community_screen.dart';
 import '../../screens/community_detail_screen.dart';
 import '../../screens/create_community_screen.dart';
+import '../../screens/create_content_screen.dart';
+import '../../screens/create_quiz_screen.dart';
 import '../../screens/create_topic_screen.dart';
 import '../../screens/discussion_room_screen.dart';
 import '../../screens/faq_screen.dart';
@@ -83,6 +86,8 @@ class AppRoutes {
   static const forum = '/forum';
   static const forumTopic = '/forum-topic';
   static const createTopic = '/create-topic';
+  static const createQuiz = '/create-quiz';
+  static const createContent = '/create-content';
   static const privateForumAccess = '/private-forum-access';
   static const profile = '/profile';
   static const editProfile = '/edit-profile';
@@ -141,6 +146,8 @@ class AppRoutes {
       forum => const ForumScreen(),
       forumTopic => const ForumTopicScreen(),
       createTopic => const CreateTopicScreen(),
+      createQuiz => CreateQuizScreen(content: settings.arguments is FeedContent ? settings.arguments as FeedContent : null),
+      createContent => const CreateContentScreen(),
       privateForumAccess => const PrivateForumAccessScreen(),
       profile => const ProfileScreen(),
       editProfile => const EditProfileScreen(),
