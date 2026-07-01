@@ -5,38 +5,60 @@ import '../core/routes/app_routes.dart';
 import '../widgets/eh_illustration.dart';
 
 /// Tipo de conteúdo apresentado no feed inteligente da Home.
-enum FeedContentType { article, podcast, quiz, jindungo }
+///
+/// Os textos são tratados como [article] — a partir de um artigo o autor ou
+/// admin pode criar quizzes. Os [forum] são debates (livres ou de comunidade).
+enum FeedContentType { article, video, podcast, quiz, jindungo, forum }
 
 extension FeedContentTypeX on FeedContentType {
   String get label => switch (this) {
         FeedContentType.article => 'Artigo',
+        FeedContentType.video => 'Vídeo',
         FeedContentType.podcast => 'Podcast',
         FeedContentType.quiz => 'Quiz',
         FeedContentType.jindungo => 'Jindungo',
+        FeedContentType.forum => 'Fórum',
       };
 
   IconData get icon => switch (this) {
         FeedContentType.article => Icons.menu_book_outlined,
+        FeedContentType.video => Icons.play_circle_outline,
         FeedContentType.podcast => Icons.headphones_outlined,
         FeedContentType.quiz => Icons.quiz_outlined,
         FeedContentType.jindungo => Icons.local_fire_department_outlined,
+        FeedContentType.forum => Icons.forum_outlined,
       };
 
   /// Verbo/ação apresentada no cartão consoante o tipo.
   String get action => switch (this) {
         FeedContentType.article => 'Ler artigo',
-        FeedContentType.podcast => 'Ouvir',
-        FeedContentType.quiz => 'Responder',
+        FeedContentType.video => 'Assistir vídeo',
+        FeedContentType.podcast => 'Ouvir áudio',
+        FeedContentType.quiz => 'Responder quiz',
         FeedContentType.jindungo => 'Desbloquear',
+        FeedContentType.forum => 'Ver debate',
       };
 
   /// Rota de destino ao abrir o conteúdo.
   String get route => switch (this) {
         FeedContentType.article => AppRoutes.reading,
+        FeedContentType.video => AppRoutes.videoPlayer,
         FeedContentType.podcast => AppRoutes.podcastPlayer,
         FeedContentType.quiz => AppRoutes.quizHub,
         FeedContentType.jindungo => AppRoutes.restrictedContent,
+        FeedContentType.forum => AppRoutes.forumTopic,
       };
+
+  bool get isArticle => this == FeedContentType.article || this == FeedContentType.jindungo;
+  bool get isForum => this == FeedContentType.forum;
+
+  /// Conteúdo de aprendizagem do qual se pode gerar um quiz (artigo, vídeo ou
+  /// podcast) — não se geram quizzes a partir de quizzes ou debates.
+  bool get canGenerateQuiz =>
+      this == FeedContentType.article ||
+      this == FeedContentType.jindungo ||
+      this == FeedContentType.video ||
+      this == FeedContentType.podcast;
 }
 
 /// Motivo pelo qual um conteúdo foi recomendado. Alimenta o pequeno selo
@@ -49,6 +71,7 @@ enum FeedReason {
   continueStudy, // "Ideal para continuar os seus estudos"
   trending, // "Em tendência"
   discover, // "Descubra uma nova área"
+  community, // "Da sua comunidade eh/…"
 }
 
 extension FeedReasonX on FeedReason {
@@ -60,6 +83,7 @@ extension FeedReasonX on FeedReason {
         FeedReason.continueStudy => Icons.school_outlined,
         FeedReason.trending => Icons.trending_up,
         FeedReason.discover => Icons.explore_outlined,
+        FeedReason.community => Icons.groups_outlined,
       };
 
   Color get color => switch (this) {
@@ -70,6 +94,7 @@ extension FeedReasonX on FeedReason {
         FeedReason.continueStudy => AppColors.tertiary,
         FeedReason.trending => AppColors.warning,
         FeedReason.discover => AppColors.navy,
+        FeedReason.community => AppColors.navy,
       };
 
   /// Texto do selo. Alguns motivos incorporam o nome da categoria seguida.
@@ -82,6 +107,7 @@ extension FeedReasonX on FeedReason {
         FeedReason.continueStudy => 'Ideal para continuar os estudos',
         FeedReason.trending => 'Em tendência',
         FeedReason.discover => 'Descubra uma nova área',
+        FeedReason.community => category == null ? 'Da sua comunidade' : 'Da sua comunidade $category',
       };
 }
 
@@ -96,6 +122,7 @@ class FeedContent {
     required this.type,
     required this.scene,
     required this.author,
+    this.authorRole,
     required this.minutes,
     required this.publishedAt,
     this.views = 0,
@@ -105,6 +132,8 @@ class FeedContent {
     this.viewGrowth = 0,
     this.readProgress = 0,
     this.locked = false,
+    this.community,
+    this.communityPrivate = false,
   });
 
   final String id;
@@ -114,7 +143,20 @@ class FeedContent {
   final FeedContentType type;
   final EhScene scene;
   final String author;
+
+  /// Cargo/função do autor (ex.: "Historiadora"), quando aplicável.
+  final String? authorRole;
   final int minutes;
+
+  /// Iniciais do autor para o avatar (o projeto usa avatares com iniciais).
+  String get authorInitials {
+    final parts = author.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return '?';
+    final relevant = parts.where((p) => !p.endsWith('.')).toList();
+    final use = relevant.isEmpty ? parts : relevant;
+    if (use.length == 1) return use.first.substring(0, 1).toUpperCase();
+    return (use.first[0] + use.last[0]).toUpperCase();
+  }
 
   /// Data de publicação — usada para dar peso a conteúdos recentes.
   final DateTime publishedAt;
@@ -131,7 +173,21 @@ class FeedContent {
   /// Progresso de leitura (0–1). Alimenta a secção "Continue a ler".
   final double readProgress;
 
+  /// Conteúdo Jindungo/premium — exige autorização/subscrição.
   final bool locked;
+
+  /// Comunidade onde o conteúdo foi publicado (estilo Reddit `eh/…`), quando
+  /// aplicável. `null` para conteúdo editorial geral.
+  final String? community;
+
+  /// A comunidade de origem é privada (acesso reservado a membros aprovados).
+  final bool communityPrivate;
+
+  /// Identificador de comunidade estilo Reddit: `eh/HistóriaEconómica`.
+  String? get communityHandle => community == null ? null : 'eh/${community!.replaceAll(' ', '')}';
+
+  /// Qualquer conteúdo cujo acesso é reservado (Jindungo ou comunidade privada).
+  bool get isRestricted => locked || communityPrivate;
 
   bool get isStarted => readProgress > 0 && readProgress < 1;
   int get percent => (readProgress * 100).round();
@@ -149,6 +205,7 @@ class FeedContent {
         type: type,
         scene: scene,
         author: author,
+        authorRole: authorRole,
         minutes: minutes,
         publishedAt: publishedAt,
         views: views,
@@ -158,6 +215,8 @@ class FeedContent {
         viewGrowth: viewGrowth,
         readProgress: readProgress ?? this.readProgress,
         locked: locked,
+        community: community,
+        communityPrivate: communityPrivate,
       );
 }
 
