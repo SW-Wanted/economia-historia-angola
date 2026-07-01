@@ -26,26 +26,14 @@ class ProfileScreen extends StatelessWidget {
           EhCard(
             child: Column(children: [
               CircleAvatar(
-                radius: 40,
+                radius: 38,
                 backgroundColor: AppColors.primary,
                 child: Text(user.initials, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(child: Text(user.name, style: Theme.of(context).textTheme.headlineMedium)),
-                  if (user.isFounder) ...[
-                    const SizedBox(width: 6),
-                    const Icon(Icons.workspace_premium, size: 20, color: AppColors.warning),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 4),
+              Text(user.name, style: Theme.of(context).textTheme.headlineMedium),
+              const SizedBox(height: 6),
               _roleChip(context, user),
-              const SizedBox(height: 4),
-              Text('${user.course} • ${user.institution}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary)),
             ]),
           ),
           const SizedBox(height: 16),
@@ -58,56 +46,25 @@ class ProfileScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 24),
 
-          // ---- O que este perfil pode fazer (apenas o seu próprio nível) ----
-          SectionTitle('O que pode fazer como ${user.role.label}'),
-          const SizedBox(height: 12),
-          EhCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final p in user.role.permissions)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.check_circle, size: 18, color: AppColors.success),
-                        const SizedBox(width: 10),
-                        Expanded(child: Text(p, style: Theme.of(context).textTheme.bodyMedium)),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
           SectionTitle('Conta'),
           const SizedBox(height: 12),
           _tile(context, Icons.edit_outlined, 'Editar perfil', AppRoutes.editProfile),
           _tile(context, Icons.library_books_outlined, 'Minha biblioteca', AppRoutes.library),
-          _tile(context, Icons.groups_outlined, 'Comunidade', AppRoutes.community),
-          _tile(context, Icons.emoji_events_outlined, 'Ranking', AppRoutes.ranking),
           _tile(context, Icons.download_for_offline_outlined, 'Modo offline', AppRoutes.offlineMode),
           _tile(context, Icons.card_membership_outlined, 'Subscrição', AppRoutes.subscription),
 
-          // ---- Secção exclusiva de gestão (escritor+/admin) ----
-          if (user.canPublish || user.canModerate) ...[
+          // ---- Gestão (apenas admin/super admin) ----
+          if (user.canModerate) ...[
             const SizedBox(height: 24),
-            SectionTitle('Criação e gestão'),
+            SectionTitle('Gestão'),
             const SizedBox(height: 12),
-            if (user.canPublish)
-              _tile(context, Icons.post_add_outlined, 'Publicar conteúdo', AppRoutes.publishContent),
-            if (user.canModerate) ...[
-              _tile(context, Icons.admin_panel_settings_outlined, 'Painel de administração', AppRoutes.adminPanel),
-              _tile(context, Icons.people_outline, 'Gestão de utilizadores', AppRoutes.adminUsers),
-            ],
+            _tile(context, Icons.admin_panel_settings_outlined, 'Painel de administração', AppRoutes.adminPanel),
+            _tile(context, Icons.people_outline, 'Gestão de utilizadores', AppRoutes.adminUsers),
           ],
 
           const SizedBox(height: 24),
           SectionTitle('Apoio'),
           const SizedBox(height: 12),
-          _tile(context, Icons.feedback_outlined, 'Comentários e sugestões', AppRoutes.feedback),
           _tile(context, Icons.help_outline, 'Central de ajuda', AppRoutes.helpCenter),
           const SizedBox(height: 8),
           Padding(
@@ -133,7 +90,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _roleChip(BuildContext context, AppUser user) {
-    final label = user.isSuperAdmin ? 'Super Admin · grau ${user.superAdminGrade}' : user.role.label;
+    final label = user.role.label;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
