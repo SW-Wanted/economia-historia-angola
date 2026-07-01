@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
-import '../core/constants/app_spacing.dart';
 import '../core/routes/app_routes.dart';
-import '../core/utils/responsive.dart';
 import '../models/feed.dart';
 import '../services/backend_service.dart';
 import '../services/feed_service.dart';
+import '../widgets/angola_map.dart';
 import '../widgets/app_header.dart';
 import '../widgets/bottom_nav_shell.dart';
-import '../widgets/feed_content_card.dart';
-import '../widgets/jindungo_card.dart';
-import '../widgets/section_title.dart';
+import '../widgets/eh_illustration.dart';
+import '../widgets/feed_post_tile.dart';
 
-/// Home reimaginada como um **feed inteligente de descoberta**.
+/// Home reimaginada como um **feed contínuo** ao estilo das redes sociais
+/// (Instagram/Facebook/Reddit), adaptado à História da Economia.
 ///
-/// Deixa de ser uma página institucional estática: cada visita apresenta
-/// conteúdos personalizados (categorias favoritas, histórico, popularidade e
-/// tendências), com selos que explicam o porquê de cada recomendação, scroll
-/// infinito e reorganização ao atualizar (pull-to-refresh). A arquitetura e o
-/// Design System mantêm-se — a lógica de recomendação vive no [FeedService].
+/// As publicações ocupam praticamente toda a largura, sem cartões elevados nem
+/// sombras — a separação é feita apenas por espaço em branco e divisores
+/// subtis. Cada post permite curtir, comentar (bottom sheet), guardar e
+/// partilhar sem sair do feed. A ordenação é personalizada pelo [FeedService]
+/// (categorias favoritas, recência, popularidade, comentários, gostos) e
+/// diversificada para evitar categorias consecutivas. Scroll infinito e
+/// pull-to-refresh. A arquitetura e o Design System mantêm-se.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -31,11 +32,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final FeedService _feed = FeedService.instance;
   final ScrollController _controller = ScrollController();
 
-  final List<FeedEntry> _discover = [];
+  final List<FeedEntry> _posts = [];
   int _page = 0;
   int _seed = 0;
   bool _loadingMore = false;
   bool _hasMore = true;
+
+  /// Posição (índice de post) onde surge o módulo de descoberta (mapa).
+  static const int _mapAfter = 2;
 
   @override
   void initState() {
@@ -55,18 +59,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _onScroll() {
     if (!_controller.hasClients) return;
     final pos = _controller.position;
-    if (pos.pixels >= pos.maxScrollExtent - 400) _loadMore();
+    if (pos.pixels >= pos.maxScrollExtent - 600) _loadMore();
   }
 
   void _loadMore() {
     if (_loadingMore || !_hasMore) return;
     setState(() => _loadingMore = true);
-    // Pequeno atraso simula o carregamento assíncrono de novas páginas.
     Future<void>.delayed(const Duration(milliseconds: 350), () {
       if (!mounted) return;
       final next = _feed.discoverPage(_page, seed: _seed);
       setState(() {
-        _discover.addAll(next);
+        _posts.addAll(next);
         _page++;
         _hasMore = _feed.hasMoreDiscover(_page);
         _loadingMore = false;
@@ -74,14 +77,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  /// Pull-to-refresh: nova semente → todas as secções (curadas + descoberta)
-  /// são reorganizadas, dando a sensação de descoberta contínua.
   Future<void> _refresh() async {
     await Future<void>.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     setState(() {
       _seed = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      _discover.clear();
+      _posts.clear();
       _page = 0;
       _hasMore = true;
       _loadingMore = false;
@@ -89,37 +90,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadMore();
   }
 
-  void _open(FeedEntry entry) => Navigator.pushNamed(context, entry.content.type.route);
+  void _open(FeedEntry entry) {
+    // Conteúdo reservado (Jindungo ou comunidade privada) segue para o ecrã de
+    // acesso/desbloqueio, deixando explícita a restrição.
+    final route = entry.content.isRestricted ? AppRoutes.restrictedContent : entry.content.type.route;
+    Navigator.pushNamed(context, route);
+  }
+
+  /// Largura máxima confortável — mais larga na Web/tablet, preservando o
+  /// conceito de feed contínuo.
+  double _maxWidth(BuildContext context) {
+    final w = MediaQuery.sizeOf(context).width;
+    if (w >= 1100) return 720;
+    if (w >= 700) return 640;
+    return w;
+  }
 
   @override
   Widget build(BuildContext context) {
-    // 1 (cabeçalho curado) + descoberta + 1 (rodapé: loader ou comunidade).
-    final itemCount = 1 + _discover.length + 1;
+    // 1 (saudação) + posts + 1 (rodapé/loader).
+    final itemCount = 1 + _posts.length + 1;
 
     return BottomNavShell(
       index: 0,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.surface,
         appBar: const AppHeader(title: 'Economia com História'),
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: Responsive.maxWidth(context)),
+              constraints: BoxConstraints(maxWidth: _maxWidth(context)),
               child: RefreshIndicator(
                 color: AppColors.primary,
                 onRefresh: _refresh,
                 child: ListView.builder(
                   controller: _controller,
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.margin, 16, AppSpacing.margin, 110),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 110),
                   itemCount: itemCount,
                   itemBuilder: (context, index) {
-                    if (index == 0) return _curatedHeader(context);
-                    if (index <= _discover.length) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: FeedContentTile(entry: _discover[index - 1], onTap: () => _open(_discover[index - 1])),
-                      );
-                    }
+                    if (index == 0) return _header(context);
+                    if (index <= _posts.length) return _postAt(index - 1);
                     return _footer(context);
                   },
                 ),
@@ -131,243 +142,341 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ------------------------------------------------------- Cabeçalho curado
-
-  Widget _curatedHeader(BuildContext context) {
-    final user = BackendService.instance.cachedUser;
-    final continueReading = _feed.continueReading();
-    final recommended = _feed.recommendedForYou(seed: _seed);
-    final trending = _feed.trendingThisWeek(seed: _seed);
-    final spotlight = _feed.spotlightCategory(_seed);
-    final followed = spotlight == null ? const <FeedEntry>[] : _feed.becauseYouFollow(spotlight);
-    final podcasts = _feed.recommendedPodcasts(seed: _seed);
-    final quizzes = _feed.suggestedQuizzes();
-    final jindungo = _feed.featuredJindungo();
-    final discoverCats = _feed.discoverCategories();
-
+  /// Cabeçalho do feed: saudação + "Continue a aprender" + desafio da semana.
+  Widget _header(BuildContext context) {
+    final reading = _feed.continueReading();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Saudação personalizada.
-        Row(
-          children: [
-            Expanded(
-              child: Text('Olá, ${user.name.split(' ').first}',
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 26)),
-            ),
-            const Text('👋', style: TextStyle(fontSize: 24)),
-          ],
+        _greeting(context),
+        if (reading.isNotEmpty) _continueReading(context, reading),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: _weeklyChallenge(context),
         ),
-        Text('Feito para si — conteúdos que combinam com o que gosta de aprender.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary)),
-        const SizedBox(height: 22),
-
-        // Continue a ler.
-        if (continueReading.isNotEmpty) ...[
-          const SectionTitle('Continue a ler'),
-          const SizedBox(height: 12),
-          _carousel(height: 152, itemCount: continueReading.length, builder: (i) {
-            final e = continueReading[i];
-            return ContinueReadingCard(entry: e, onTap: () => _open(e));
-          }),
-          const SizedBox(height: 26),
-        ],
-
-        // Recomendado para si.
-        if (recommended.isNotEmpty) ...[
-          _header('Recomendado para si', AppRoutes.explore),
-          const SizedBox(height: 12),
-          _cardCarousel(recommended),
-          const SizedBox(height: 26),
-        ],
-
-        // Tendências da semana.
-        if (trending.isNotEmpty) ...[
-          _header('Tendências da semana', AppRoutes.explore),
-          const SizedBox(height: 12),
-          _cardCarousel(trending),
-          const SizedBox(height: 26),
-        ],
-
-        // Porque segue {categoria}.
-        if (spotlight != null && followed.isNotEmpty) ...[
-          _header('Porque segue $spotlight', AppRoutes.explore),
-          const SizedBox(height: 12),
-          _cardCarousel(followed),
-          const SizedBox(height: 26),
-        ],
-
-        // Podcasts recomendados.
-        if (podcasts.isNotEmpty) ...[
-          _header('Podcasts recomendados', AppRoutes.podcastPlayer),
-          const SizedBox(height: 12),
-          _cardCarousel(podcasts),
-          const SizedBox(height: 26),
-        ],
-
-        // Quizzes sugeridos.
-        if (quizzes.isNotEmpty) ...[
-          _header('Quizzes sugeridos', AppRoutes.quizHub),
-          const SizedBox(height: 12),
-          _cardCarousel(quizzes),
-          const SizedBox(height: 26),
-        ],
-
-        // Texto Jindungo em destaque (identidade da marca).
-        if (jindungo != null) ...[
-          Row(children: [
-            Text('Textos com Jindungo', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(width: 6),
-            const Icon(Icons.local_fire_department, color: AppColors.warning, size: 22),
-          ]),
-          const SizedBox(height: 12),
-          JindungoCard(
-            quote: jindungo.subtitle,
-            source: jindungo.author,
-            onTap: () => Navigator.pushNamed(context, AppRoutes.restrictedContent),
-            onAction: () => Navigator.pushNamed(context, AppRoutes.subscription),
-          ),
-          const SizedBox(height: 26),
-        ],
-
-        // Explorar mais categorias (descobrir novas áreas).
-        if (discoverCats.isNotEmpty) ...[
-          const SectionTitle('Descubra novas áreas'),
-          const SizedBox(height: 6),
-          Text('Temas ainda pouco explorados por si — ótimos para novas aprendizagens.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary)),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [for (final c in discoverCats) _discoverChip(c)],
-          ),
-          const SizedBox(height: 28),
-        ],
-
-        // Início do feed de descoberta (scroll infinito).
-        const SectionTitle('Continue a descobrir'),
-        const SizedBox(height: 12),
+        _separator(),
       ],
     );
   }
 
-  // ------------------------------------------------------------- utilitários
-
-  Widget _header(String title, String route) => SectionTitle(
-        title,
-        action: TextButton(
-          onPressed: () => Navigator.pushNamed(context, route),
-          child: const Text('Ver todos', style: TextStyle(color: AppColors.primary)),
-        ),
-      );
-
-  Widget _cardCarousel(List<FeedEntry> entries) => _carousel(
-        height: 254,
-        itemCount: entries.length,
-        builder: (i) => FeedContentCard(entry: entries[i], onTap: () => _open(entries[i])),
-      );
-
-  Widget _carousel({required double height, required int itemCount, required Widget Function(int) builder}) {
-    return SizedBox(
-      height: height,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        clipBehavior: Clip.none,
-        itemCount: itemCount,
-        separatorBuilder: (_, _) => const SizedBox(width: 14),
-        itemBuilder: (context, i) => builder(i),
+  /// Saudação personalizada, com avatar e cumprimento consoante a hora.
+  Widget _greeting(BuildContext context) {
+    final user = BackendService.instance.cachedUser;
+    final first = user.name.split(' ').first;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_salutation(),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: AppColors.primary, fontWeight: FontWeight.w800, letterSpacing: .3)),
+                const SizedBox(height: 2),
+                Row(children: [
+                  Flexible(
+                    child: Text(first,
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 26)),
+                  ),
+                  const SizedBox(width: 6),
+                  const Text('👋', style: TextStyle(fontSize: 22)),
+                ]),
+                const SizedBox(height: 4),
+                Text('O seu feed de História da Economia, feito a pensar em si.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary, height: 1.35)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: () => Navigator.pushNamed(context, AppRoutes.profile),
+            child: Container(
+              padding: const EdgeInsets.all(2.5),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.primary.withValues(alpha: .35), width: 1.6),
+              ),
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: AppColors.surfaceContainer,
+                child: Text(user.initials,
+                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 16)),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _discoverChip(String category) {
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(99),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(99),
-        onTap: () => Navigator.pushNamed(context, AppRoutes.explore),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(99),
-            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: .6)),
+  String _salutation() {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'BOM DIA';
+    if (h < 19) return 'BOA TARDE';
+    return 'BOA NOITE';
+  }
+
+  /// Cartão "Desafio da semana" (quiz em destaque).
+  Widget _weeklyChallenge(BuildContext context) {
+    const gold = AppColors.warning;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: .28), blurRadius: 20, offset: const Offset(0, 10))],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          children: [
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(right: -12, top: -12, child: Icon(Icons.emoji_objects_outlined, size: 120, color: Colors.white.withValues(alpha: .10))),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () => Navigator.pushNamed(context, AppRoutes.quizHub),
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: gold.withValues(alpha: .18),
+                          borderRadius: BorderRadius.circular(99),
+                          border: Border.all(color: gold.withValues(alpha: .45)),
+                        ),
+                        child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(Icons.emoji_objects_outlined, color: gold, size: 15),
+                          SizedBox(width: 6),
+                          Text('DESAFIO DA SEMANA',
+                              style: TextStyle(color: Colors.white, letterSpacing: .6, fontWeight: FontWeight.w800, fontSize: 11)),
+                        ]),
+                      ),
+                      const SizedBox(height: 12),
+                      Text('Quiz da Semana',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
+                      const SizedBox(height: 6),
+                      Text('Teste os seus conhecimentos sobre o Café em Angola. São só 2 minutos!',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70, height: 1.35)),
+                      const SizedBox(height: 14),
+                      FilledButton.icon(
+                        onPressed: () => Navigator.pushNamed(context, AppRoutes.quizHub),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                        label: const Text('Começar agora'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Secção "Continue a ler": carrossel horizontal de artigos em progresso.
+  Widget _continueReading(BuildContext context, List<FeedEntry> reading) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+          child: Row(children: [
+            const Icon(Icons.school_outlined, size: 18, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text('Continue a aprender', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary)),
+          ]),
+        ),
+        SizedBox(
+          height: 96,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: reading.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, i) => _continueCard(context, reading[i]),
           ),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.explore_outlined, size: 15, color: AppColors.navy),
-            const SizedBox(width: 7),
-            Text(category, style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700)),
+        ),
+        const SizedBox(height: 4),
+      ],
+    );
+  }
+
+  Widget _continueCard(BuildContext context, FeedEntry entry) {
+    final c = entry.content;
+    return SizedBox(
+      width: 268,
+      child: Material(
+        color: AppColors.surfaceLow,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _open(entry),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(children: [
+              EhIllustration(scene: c.scene, width: 56, height: 56, borderRadius: BorderRadius.circular(12)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(c.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 13.5, height: 1.2)),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(99),
+                      child: LinearProgressIndicator(
+                        value: c.readProgress,
+                        minHeight: 6,
+                        backgroundColor: AppColors.surfaceHighest,
+                        valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Row(children: [
+                      Text('${c.percent}% concluído',
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 11.5)),
+                      const Spacer(),
+                      Text('Continuar',
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 11.5)),
+                      const Icon(Icons.arrow_forward, size: 13, color: AppColors.primary),
+                    ]),
+                  ],
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Um post com o separador subtil por baixo; após o [_mapAfter]-ésimo post,
+  /// intercala o módulo de descoberta regional (mapa interativo).
+  Widget _postAt(int i) {
+    final entry = _posts[i];
+    final withMap = i == _mapAfter;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        FeedPostTile(entry: entry, onOpen: () => _open(entry)),
+        _separator(),
+        if (withMap) ...[
+          _mapModule(context),
+          _separator(),
+        ],
+      ],
+    );
+  }
+
+  /// Separação leve entre publicações: apenas espaço em branco (sem cartões).
+  Widget _separator() => Container(height: 8, color: AppColors.background);
+
+  // --------------------------------------------------- Módulo de descoberta
+
+  /// Exploração regional inserida no feed (mantém a identidade da plataforma,
+  /// sem sombras — apenas um bloco de cor cheia, coerente com o feed).
+  Widget _mapModule(BuildContext context) {
+    return Material(
+      color: AppColors.navy,
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, AppRoutes.map),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(children: [
+            Container(
+              width: 92,
+              height: 100,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .08),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withValues(alpha: .12)),
+              ),
+              child: const Center(child: AngolaMap(fill: Colors.white, markerIds: ['AOLUA', 'AOBGU', 'AOHUA'])),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: .15), borderRadius: BorderRadius.circular(6)),
+                    child: const Text('EXPLORAR · 18 PROVÍNCIAS',
+                        style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Mapa Interativo', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontSize: 18)),
+                  const SizedBox(height: 4),
+                  Text('Toque numa província e descubra indicadores económicos, história e conteúdos locais.',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.white70, height: 1.4)),
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    Text('Explorar agora',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+                    const Icon(Icons.arrow_forward, color: Colors.white, size: 16),
+                  ]),
+                ],
+              ),
+            ),
           ]),
         ),
       ),
     );
   }
 
-  // ----------------------------------------------------------------- rodapé
+  // ----------------------------------------------------------------- Rodapé
 
   Widget _footer(BuildContext context) {
     if (_hasMore) {
       return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
+        padding: EdgeInsets.symmetric(vertical: 28),
         child: Center(
           child: SizedBox(
-            width: 26,
-            height: 26,
+            width: 26, height: 26,
             child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.primary),
           ),
         ),
       );
     }
-    // Fim do feed → a comunidade em números.
     return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SectionTitle('A comunidade em números'),
-          const SizedBox(height: 12),
-          Row(children: const [
-            Expanded(child: _CommStat(icon: Icons.groups_outlined, value: '1.284', label: 'Membros')),
-            SizedBox(width: 12),
-            Expanded(child: _CommStat(icon: Icons.quiz_outlined, value: '312', label: 'Quizzes hoje')),
-            SizedBox(width: 12),
-            Expanded(child: _CommStat(icon: Icons.menu_book_outlined, value: '46', label: 'Conteúdos')),
-          ]),
-          const SizedBox(height: 20),
-          Center(
-            child: Text('Chegou ao fim por agora — volte mais tarde para novidades.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
-          ),
-        ],
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+      child: Center(
+        child: Text('Chegou ao fim por agora — puxe para atualizar e ver novidades.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
       ),
-    );
-  }
-}
-
-class _CommStat extends StatelessWidget {
-  const _CommStat({required this.icon, required this.value, required this.label});
-  final IconData icon;
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: .4)),
-      ),
-      child: Column(children: [
-        Icon(icon, color: AppColors.primary, size: 22),
-        const SizedBox(height: 6),
-        Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 18)),
-        const SizedBox(height: 2),
-        Text(label, textAlign: TextAlign.center, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
-      ]),
     );
   }
 }
