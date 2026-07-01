@@ -40,15 +40,11 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       title: Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontSize: 17)),
       actions: [
-        // Atalho directo ao menu principal (apenas em páginas secundárias).
-        if (back && showNotifications)
-          IconButton(
-            tooltip: 'Início',
-            onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                context, AppRoutes.dashboard, (route) => false),
-            icon: const Icon(Icons.home_outlined),
-          ),
-        if (showNotifications)
+        // O sino de notificações só aparece nas páginas-raiz (sem botão de
+        // voltar), onde faz sentido. Nas páginas secundárias o cabeçalho fica
+        // limpo. O atalho de "início" foi removido por ser redundante com o
+        // botão de voltar e a barra de navegação inferior.
+        if (!back && showNotifications)
           IconButton(
             tooltip: 'Notificações',
             onPressed: () => Navigator.pushNamed(context, AppRoutes.notifications),
