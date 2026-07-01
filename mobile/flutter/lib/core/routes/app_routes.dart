@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../models/app_user.dart';
+import '../../models/community_category.dart';
 import '../../screens/admin_panel_screen.dart';
 import '../../screens/admin_users_screen.dart';
 import '../../screens/community_screen.dart';
+import '../../screens/community_detail_screen.dart';
+import '../../screens/create_community_screen.dart';
 import '../../screens/create_topic_screen.dart';
 import '../../screens/discussion_room_screen.dart';
 import '../../screens/faq_screen.dart';
@@ -100,6 +103,8 @@ class AppRoutes {
   static const superAdminChain = '/super-admin-chain';
   static const contentModeration = '/content-moderation';
   static const community = '/community';
+  static const communityDetail = '/community/detail';
+  static const createCommunity = '/community/create';
   static const discussionRoom = '/discussion-room';
   static const faq = '/faq';
   static const feedback = '/feedback';
@@ -156,6 +161,9 @@ class AppRoutes {
       superAdminChain => const SuperAdminChainScreen(),
       contentModeration => const ContentModerationScreen(),
       community => const CommunityScreen(),
+      communityDetail => CommunityDetailScreen(
+          community: settings.arguments is CommunityCategory ? settings.arguments as CommunityCategory : null),
+      createCommunity => const CreateCommunityScreen(),
       discussionRoom => const DiscussionRoomScreen(),
       faq => const FaqScreen(),
       feedback => const FeedbackScreen(),
