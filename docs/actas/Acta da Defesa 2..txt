@@ -1,0 +1,27 @@
+*Resumo – Decisões e Sugestões de UX/Acesso do Sistema*
+
+*Contexto de acesso sem conta*  
+A ideia é liberar parte do sistema para usuários não logados, gerando curiosidade — igual ao YouTube que deixa ver vídeos/comentários, mas pede login para interagir. Hoje, _textos com jindungo_ exigem login. 
+
+*Sugestões aprovadas*
+
+1. *FAQ para usuários*  
+   Adicionar secção de Perguntas Frequentes para reduzir dúvidas básicas.
+
+2. *Página inicial estilo SPA*  
+   - Explicar o que é o sistema para o público geral.  
+   - Evitar excesso de informação: objetivo é “prender” o usuário, não entregar tudo de cara.
+
+3. *Overview leve na home*  
+   - Mostrar um panorama do que a aplicação oferece.  
+   - Sem sobrecarregar: apenas guiar e despertar curiosidade.
+
+4. *Fóruns*  
+   - Acesso livre para visualização por qualquer usuário.  
+   - Ao criar tópico, escolher: *Público* ou *Privado*.  
+   - Privado: entra só por convite + aprovação do professor.  
+   - Se o artigo/tópico for privado, permitir *solicitar acesso*.  
+   - Fóruns ficam abertos para leitura, mesmo sem conta.
+
+5. *Identidade visual*  
+   Atenção à tipografia dos conteúdos visuais para manter fidelidade da identidade do sistema.
