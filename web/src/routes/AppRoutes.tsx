@@ -32,7 +32,6 @@ import LeituraMicrotexto from '../pages/LeituraMicrotexto'
 import LeituraJindungo from '../pages/LeituraJindungo'
 import MinhasBiblioteca from '../pages/MinhasBiblioteca'
 import MeusFavoritos from '../pages/MeusFavoritos'
-import Glossario from '../pages/Glossario'
 import GuiaRapido from '../pages/GuiaRapido'
 import GuiaInvestigacao from '../pages/GuiaInvestigacao'
 import PainelEstatisticas from '../pages/PainelEstatisticas'
@@ -45,7 +44,6 @@ import Notificacoes from '../pages/Notificacoes'
 import ResultadosPesquisa from '../pages/ResultadosPesquisa'
 import ConteudosProvincia from '../pages/ConteudosProvincia'
 import AulaVideo from '../pages/AulaVideo'
-import ComparadorPeriodos from '../pages/ComparadorPeriodos'
 import DetalheDocumento from '../pages/DetalheDocumento'
 import CentroAjuda from '../pages/CentroAjuda'
 
@@ -124,10 +122,8 @@ export default function AppRoutes() {
       <Route path="/quiz" element={<QuizHub />} />
 
       {/* Referência e apresentação */}
-      <Route path="/glossario" element={<Glossario />} />
       <Route path="/guia-rapido" element={<GuiaRapido />} />
       <Route path="/guia-investigacao" element={<GuiaInvestigacao />} />
-      <Route path="/comparador" element={<ComparadorPeriodos />} />
       <Route path="/mapa" element={<MapaInterativo />} />
       <Route path="/mapa/caminhos-ferro" element={<MapaCaminhosHist />} />
       <Route path="/ajuda" element={<CentroAjuda />} />

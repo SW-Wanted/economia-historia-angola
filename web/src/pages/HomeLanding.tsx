@@ -15,7 +15,6 @@ const FEATURES = [
   { icon: 'quiz', title: 'Quizzes', desc: 'Teste os seus conhecimentos por período histórico.', route: '/quiz', color: 'navy' },
   { icon: 'forum', title: 'Fórum', desc: 'Debata com investigadores e curiosos.', route: '/forum', color: 'success' },
   { icon: 'map', title: 'Mapa Económico', desc: 'Explore as 18 províncias e as suas rotas comerciais.', route: '/mapa', color: 'primary' },
-  { icon: 'menu_book', title: 'Glossário', desc: 'Conceitos económicos e históricos explicados.', route: '/glossario', color: 'navy' },
   { icon: 'leaderboard', title: 'Rankings', desc: 'Acompanhe a classificação da comunidade.', route: '/quiz', color: 'success' },
 ]
 
@@ -27,7 +26,7 @@ const FEATURE_COLOR: Record<string, string> = {
 
 // ── FAQ — conteúdo informativo real sobre a plataforma ───────────────────────
 const FAQ = [
-  { q: 'Preciso de conta para usar a plataforma?', a: 'Não para explorar. Pode consultar artigos em destaque, ver fóruns, quizzes, o mapa económico e o glossário sem conta. Para ler conteúdos completos, participar em debates ou realizar quizzes, é necessário criar uma conta gratuita.' },
+  { q: 'Preciso de conta para usar a plataforma?', a: 'Não para explorar. Pode consultar artigos em destaque, ver fóruns, quizzes e o mapa económico sem conta. Para ler conteúdos completos, participar em debates ou realizar quizzes, é necessário criar uma conta gratuita.' },
   { q: 'A plataforma é gratuita?', a: 'Sim. A criação de conta e o acesso aos conteúdos educativos são gratuitos.' },
   { q: 'O que são os "Textos com Jindungo"?', a: 'São análises críticas e aprofundadas sobre a economia angolana — leitura mais "picante", reservada a membros registados.' },
   { q: 'Quem produz os conteúdos?', a: 'Os conteúdos são elaborados e revistos com rigor académico por escritores e professores da comunidade.' },
