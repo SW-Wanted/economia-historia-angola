@@ -21,6 +21,17 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
   final _description = TextEditingController();
   String _category = 'Economia';
   bool _private = false;
+  bool _argsApplied = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_argsApplied) return;
+    _argsApplied = true;
+    // Pré-seleção de privacidade vinda do menu "Criar".
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map && args['private'] is bool) _private = args['private'] as bool;
+  }
 
   @override
   void dispose() {
@@ -45,7 +56,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
   @override
   Widget build(BuildContext context) {
     return ScreenFrame(
-      title: 'Criar Comunidade',
+      title: _private ? 'Criar Comunidade Privada' : 'Criar Comunidade Pública',
       showBack: true,
       children: [
         const SectionTitle('Detalhes da comunidade'),
