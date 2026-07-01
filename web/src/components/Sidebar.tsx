@@ -56,11 +56,6 @@ const guestPrimaryNav: NavEntry[] = [
 ]
 
 const guestExploreNav: NavEntry[] = [
-  { to: '/guia-rapido', label: 'Guia Rápido', icon: 'rocket_launch' },
-  { to: '/ajuda', label: 'Ajuda', icon: 'help_outline' },
-]
-
-/** Tooltip apresentada apenas quando a sidebar está recolhida (Desktop). */
 function Tooltip({ label }: { label: string }) {
   return (
     <span
