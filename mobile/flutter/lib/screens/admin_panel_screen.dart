@@ -32,7 +32,7 @@ class AdminPanelScreen extends StatelessWidget {
         const SizedBox(height: 24),
         const SectionTitle('Gestão editorial'),
         const SizedBox(height: 12),
-        AdminActionCard(icon: Icons.post_add_outlined, title: 'Publicar conteúdo', subtitle: 'Microtextos, artigos e Jindungo.', onTap: () => Navigator.pushNamed(context, AppRoutes.publishContent)),
+        AdminActionCard(icon: Icons.post_add_outlined, title: 'Publicar conteúdo', subtitle: 'Artigos, vídeos, podcasts e Jindungo.', onTap: () => Navigator.pushNamed(context, AppRoutes.publishContent)),
         const SizedBox(height: 10),
         AdminActionCard(icon: Icons.fact_check_outlined, title: 'Aprovação de conteúdos', subtitle: 'Rever submissões dos escritores.', onTap: () => Navigator.pushNamed(context, AppRoutes.contentModeration)),
         const SizedBox(height: 10),
