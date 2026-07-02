@@ -10,7 +10,7 @@ class QuickStartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const steps = ['Leia um microtexto essencial', 'Explore uma província no mapa', 'Participe no quiz semanal', 'Guarde conteúdos na biblioteca'];
+    const steps = ['Leia um artigo essencial', 'Explore uma província no mapa', 'Participe no quiz semanal', 'Guarde conteúdos na biblioteca'];
     return ScreenFrame(title: 'Guia rápido', showBack: true, children: [
       Text('Comece em poucos minutos', style: Theme.of(context).textTheme.displayLarge),
       const SizedBox(height: 18),

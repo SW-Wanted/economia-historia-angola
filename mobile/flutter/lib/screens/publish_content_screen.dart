@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
+import '../core/permissions/app_permissions.dart';
 import '../core/routes/app_routes.dart';
 import '../services/backend_service.dart';
+import '../services/feed_service.dart';
+import '../widgets/community_picker.dart';
 import '../widgets/eh_button.dart';
 import '../widgets/screen_frame.dart';
 import '../widgets/section_title.dart';
@@ -18,15 +21,62 @@ class PublishContentScreen extends StatefulWidget {
 
 class _PublishContentScreenState extends State<PublishContentScreen> {
   bool _jindungo = false;
-  String _category = 'Microtexto';
+  bool _exclusive = false;
+  String _category = 'Artigo';
   _ContentType _type = _ContentType.texto;
+  String? _community; // comunidade selecionada; null = público
+  bool _argsApplied = false;
+
+  /// Sala de discussão do conteúdo: pública por defeito. Se o dono a tornar
+  /// privada, assume o papel de professor da turma.
+  bool _privateRoom = false;
+
+  // Campos capturados (para refletir o conteúdo após a criação).
+  final _titleCtrl = TextEditingController();
+  final _extraCtrl = TextEditingController(); // fonte / ligação / episódio
+  final _bodyCtrl = TextEditingController(); // corpo / descrição / notas
+
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _extraCtrl.dispose();
+    _bodyCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_argsApplied) return;
+    _argsApplied = true;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map) {
+      _type = switch (args['type']) {
+        'video' => _ContentType.video,
+        'podcast' => _ContentType.podcast,
+        _ => _ContentType.texto,
+      };
+      if (args['jindungo'] == true) {
+        _jindungo = true;
+        _category = 'Jindungo';
+      }
+      _exclusive = args['exclusive'] == true;
+    }
+  }
+
+  String get _typeLabel => switch (_type) {
+        _ContentType.video => 'Vídeo',
+        _ContentType.podcast => 'Podcast',
+        _ContentType.texto => _jindungo ? 'Texto Jindungo' : _exclusive ? 'Conteúdo exclusivo' : 'Artigo',
+      };
+
+  String get _title => 'Novo $_typeLabel';
 
   @override
   Widget build(BuildContext context) {
     final user = BackendService.instance.cachedUser;
 
-    // Só Escritor ou superior pode publicar.
-    if (!user.canPublish) {
+    if (!user.canCreateContent) {
       return ScreenFrame(
         title: 'Publicar Conteúdo',
         showBack: true,
@@ -47,30 +97,28 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
     }
 
     return ScreenFrame(
-      title: 'Publicar Conteúdo',
+      title: _title,
       showBack: true,
       children: [
         const SectionTitle('Tipo de conteúdo'),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            _typeChip(context, _ContentType.texto, Icons.article_outlined, 'Texto'),
-            const SizedBox(width: 10),
-            _typeChip(context, _ContentType.video, Icons.videocam_outlined, 'Vídeo'),
-            const SizedBox(width: 10),
-            _typeChip(context, _ContentType.podcast, Icons.headphones_outlined, 'Podcast'),
-          ],
-        ),
+        Row(children: [
+          _typeChip(context, _ContentType.texto, Icons.article_outlined, 'Texto'),
+          const SizedBox(width: 10),
+          _typeChip(context, _ContentType.video, Icons.videocam_outlined, 'Vídeo'),
+          const SizedBox(width: 10),
+          _typeChip(context, _ContentType.podcast, Icons.headphones_outlined, 'Podcast'),
+        ]),
         const SizedBox(height: 24),
         const SectionTitle('Detalhes'),
         const SizedBox(height: 12),
         _label(context, 'Título'),
-        const TextField(decoration: InputDecoration(hintText: 'Ex.: O ciclo do café em Angola')),
+        TextField(controller: _titleCtrl, decoration: const InputDecoration(hintText: 'Ex.: O ciclo do café em Angola')),
         const SizedBox(height: 14),
         _label(context, 'Categoria'),
         DropdownButtonFormField<String>(
           initialValue: _category,
-          items: const ['Microtexto', 'História económica', 'Agricultura', 'Jindungo']
+          items: const ['Artigo', 'História económica', 'Agricultura', 'Jindungo']
               .map((e) => DropdownMenuItem(value: e, child: Text(e)))
               .toList(),
           onChanged: (v) => setState(() {
@@ -79,8 +127,53 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
           }),
         ),
         const SizedBox(height: 14),
+        _label(context, 'Publicar em (opcional)'),
+        CommunityPicker(
+          communities: FeedService.instance.ownedCommunities,
+          value: _community,
+          onChanged: (v) => setState(() => _community = v),
+        ),
+        if (FeedService.instance.ownedCommunities.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 2),
+            child: Text('Ainda não gere nenhuma comunidade onde publicar.',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+          ),
+        const SizedBox(height: 14),
         ..._typeFields(context),
+        const SizedBox(height: 24),
+
+        // Sala de discussão — pública por defeito.
+        const SectionTitle('Sala de discussão'),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: .5)),
+          ),
+          child: SwitchListTile(
+            value: _privateRoom,
+            activeThumbColor: AppColors.primary,
+            onChanged: (v) => setState(() => _privateRoom = v),
+            title: const Text('Sala privada (turma)'),
+            subtitle: Text(
+              _privateRoom ? 'Reservada — assume o papel de professor da turma.' : 'Aberta a todos — discussão pública.',
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary),
+            ),
+          ),
+        ),
+        if (_privateRoom) ...[
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.invite),
+            icon: const Icon(Icons.person_add_alt),
+            label: const Text('Gerir estudantes'),
+            style: OutlinedButton.styleFrom(foregroundColor: AppColors.primary, side: const BorderSide(color: AppColors.primary)),
+          ),
+        ],
         const SizedBox(height: 16),
+
         Container(
           decoration: BoxDecoration(
             color: AppColors.surface,
@@ -98,9 +191,9 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
         ),
         const SizedBox(height: 24),
         EhButton(
-          label: 'Publicar agora',
+          label: 'Pré-visualizar e publicar',
           icon: Icons.publish,
-          onPressed: () => Navigator.pushNamed(context, AppRoutes.publishConfirmation),
+          onPressed: _preview,
         ),
       ],
     );
@@ -111,20 +204,20 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
       case _ContentType.texto:
         return [
           _label(context, 'Bibliografia / fonte'),
-          const TextField(decoration: InputDecoration(hintText: 'Referência científica')),
+          TextField(controller: _extraCtrl, decoration: const InputDecoration(hintText: 'Referência científica')),
           const SizedBox(height: 14),
           _label(context, 'Corpo do texto'),
-          const TextField(maxLines: 8, decoration: InputDecoration(hintText: 'Escreva o conteúdo (1,5 a 2 páginas para microtextos)...')),
+          TextField(controller: _bodyCtrl, maxLines: 8, decoration: const InputDecoration(hintText: 'Escreva o conteúdo (1,5 a 2 páginas para artigos)...')),
         ];
       case _ContentType.video:
         return [
           _label(context, 'Ligação do vídeo (ou ficheiro)'),
-          const TextField(decoration: InputDecoration(hintText: 'URL ou carregar ficheiro de vídeo')),
+          TextField(controller: _extraCtrl, decoration: const InputDecoration(hintText: 'URL ou carregar ficheiro de vídeo')),
           const SizedBox(height: 14),
           _uploadBox(context, Icons.videocam_outlined, 'Carregar vídeo'),
           const SizedBox(height: 14),
           _label(context, 'Descrição'),
-          const TextField(maxLines: 4, decoration: InputDecoration(hintText: 'Breve descrição do vídeo...')),
+          TextField(controller: _bodyCtrl, maxLines: 4, decoration: const InputDecoration(hintText: 'Breve descrição do vídeo...')),
         ];
       case _ContentType.podcast:
         return [
@@ -132,17 +225,104 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
           _uploadBox(context, Icons.audiotrack_outlined, 'Carregar áudio (MP3)'),
           const SizedBox(height: 14),
           _label(context, 'Episódio'),
-          const TextField(decoration: InputDecoration(hintText: 'Ex.: Episódio 4')),
+          TextField(controller: _extraCtrl, decoration: const InputDecoration(hintText: 'Ex.: Episódio 4')),
           const SizedBox(height: 14),
           _label(context, 'Notas do episódio'),
-          const TextField(maxLines: 5, decoration: InputDecoration(hintText: 'Resumo e tópicos abordados...')),
+          TextField(controller: _bodyCtrl, maxLines: 5, decoration: const InputDecoration(hintText: 'Resumo e tópicos abordados...')),
         ];
     }
   }
 
-  Widget _uploadBox(BuildContext context, IconData icon, String label) {
-    return DottedUpload(icon: icon, label: label);
+  /// Mostra uma pré-visualização que reflete tudo o que foi introduzido, antes
+  /// de confirmar a publicação.
+  void _preview() {
+    if (_titleCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Indique um título.')));
+      return;
+    }
+    final extraLabel = switch (_type) {
+      _ContentType.texto => 'Fonte',
+      _ContentType.video => 'Ligação',
+      _ContentType.podcast => 'Episódio',
+    };
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: .78,
+        minChildSize: .5,
+        maxChildSize: .95,
+        expand: false,
+        builder: (context, controller) => Container(
+          decoration: const BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(children: [
+            const SizedBox(height: 10),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.outlineVariant, borderRadius: BorderRadius.circular(99))),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+              child: Row(children: [Text('Pré-visualização', style: Theme.of(context).textTheme.titleLarge)]),
+            ),
+            const Divider(height: 1, thickness: .6),
+            Expanded(
+              child: ListView(
+                controller: controller,
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: .1), borderRadius: BorderRadius.circular(99)),
+                    child: Text('${_typeLabel.toUpperCase()} · ${_category.toUpperCase()}',
+                        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 11)),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(_titleCtrl.text.trim(), style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 22, height: 1.2)),
+                  const SizedBox(height: 14),
+                  _pv('Publicar em', _community ?? 'Público (sem comunidade)'),
+                  if (_extraCtrl.text.trim().isNotEmpty) _pv(extraLabel, _extraCtrl.text.trim()),
+                  _pv('Sala de discussão', _privateRoom ? 'Privada (turma) — professor' : 'Pública'),
+                  _pv('Acesso', _jindungo ? 'Restrito (Jindungo)' : _exclusive ? 'Exclusivo' : 'Público'),
+                  const SizedBox(height: 12),
+                  if (_bodyCtrl.text.trim().isNotEmpty) ...[
+                    Text('Conteúdo', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15, color: AppColors.primary)),
+                    const SizedBox(height: 6),
+                    Text(_bodyCtrl.text.trim(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted, height: 1.5)),
+                  ],
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 12 + MediaQuery.viewPaddingOf(sheetContext).bottom),
+              child: EhButton(
+                label: 'Confirmar publicação',
+                icon: Icons.check_rounded,
+                onPressed: () {
+                  Navigator.pop(sheetContext);
+                  Navigator.pushNamed(context, AppRoutes.publishConfirmation);
+                },
+              ),
+            ),
+          ]),
+        ),
+      ),
+    );
   }
+
+  Widget _pv(String label, String value) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(width: 120, child: Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary))),
+          Expanded(child: Text(value, style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700))),
+        ]),
+      );
+
+  Widget _uploadBox(BuildContext context, IconData icon, String label) => DottedUpload(icon: icon, label: label);
 
   Widget _typeChip(BuildContext context, _ContentType type, IconData icon, String label) {
     final active = _type == type;
@@ -156,13 +336,11 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: active ? AppColors.primary : AppColors.outlineVariant),
           ),
-          child: Column(
-            children: [
-              Icon(icon, color: active ? Colors.white : AppColors.primary),
-              const SizedBox(height: 6),
-              Text(label, style: TextStyle(color: active ? Colors.white : AppColors.secondary, fontWeight: FontWeight.w600, fontSize: 13)),
-            ],
-          ),
+          child: Column(children: [
+            Icon(icon, color: active ? Colors.white : AppColors.primary),
+            const SizedBox(height: 6),
+            Text(label, style: TextStyle(color: active ? Colors.white : AppColors.secondary, fontWeight: FontWeight.w600, fontSize: 13)),
+          ]),
         ),
       ),
     );
