@@ -132,7 +132,13 @@ class _PodcastPlayerScreenState extends State<PodcastPlayerScreen> {
       title: 'Podcast',
       showBack: true,
       children: [
-        EhIllustration(scene: EhScene.podcast, imageUrl: widget.content?.imageUrl, height: 200, borderRadius: BorderRadius.circular(24)),
+        EhIllustration(
+          scene: EhScene.podcast,
+          imageUrl: widget.content?.imageUrl,
+          fallbackIcon: Icons.mic_none_outlined,
+          height: 200,
+          borderRadius: BorderRadius.circular(24),
+        ),
         const SizedBox(height: 24),
         Text(_category, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.primary, letterSpacing: 1)),
         const SizedBox(height: 4),

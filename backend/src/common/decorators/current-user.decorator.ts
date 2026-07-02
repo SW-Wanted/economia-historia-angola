@@ -5,6 +5,7 @@ export type AuthUser = {
   email: string;
   roles: string[];
   permissions: string[];
+  superAdminGrade?: number | null;
 };
 
 export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): AuthUser => {

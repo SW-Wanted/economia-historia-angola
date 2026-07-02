@@ -4,12 +4,14 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
+import { join } from 'path';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { configuration } from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { MailModule } from './modules/mail/mail.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -27,7 +29,16 @@ import { StatsModule } from './modules/stats/stats.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, load: [configuration], validate: validateEnv }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      // Procura o `.env` na raiz do backend. Em `nest start` (ts-node) __dirname é
+      // `src/`, mas no build compilado é `dist/src/`, onde `../.env` apontaria
+      // erradamente para `dist/.env`. Incluir `process.cwd()/.env` garante que o
+      // `.env` da raiz é carregado nos dois modos (ex.: credenciais SMTP).
+      envFilePath: [join(process.cwd(), '.env'), join(__dirname, '..', '.env')],
+      load: [configuration],
+      validate: validateEnv,
+    }),
     LoggerModule.forRoot({
       pinoHttp: {
         transport: process.env.NODE_ENV === 'production' ? undefined : { target: 'pino-pretty' },
@@ -45,6 +56,7 @@ import { StatsModule } from './modules/stats/stats.module';
     }),
     JwtModule.register({}),
     PrismaModule,
+    MailModule,
     HealthModule,
     AuthModule,
     UsersModule,

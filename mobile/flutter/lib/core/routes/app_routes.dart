@@ -36,6 +36,7 @@ import '../../screens/onboarding_screen.dart';
 import '../../screens/pending_reports_screen.dart';
 import '../../screens/private_forum_access_screen.dart';
 import '../../screens/private_rooms_screen.dart';
+import '../../screens/reset_password_screen.dart';
 import '../../models/discussion_room.dart';
 import '../../screens/profile_screen.dart';
 import '../../screens/province_contents_screen.dart';
@@ -59,6 +60,7 @@ import '../../screens/subscription_screen.dart';
 import '../../screens/super_admin_chain_screen.dart';
 import '../../screens/super_admin_screen.dart';
 import '../../screens/content_moderation_screen.dart';
+import '../../screens/jindungo_access_screen.dart';
 import '../../screens/podcast_player_screen.dart';
 import '../../screens/video_player_screen.dart';
 
@@ -75,6 +77,7 @@ class AppRoutes {
   static const register2 = '/register/2';
   static const register3 = '/register/3';
   static const forgotPassword = '/forgot-password';
+  static const resetPassword = '/reset-password';
   static const quickStart = '/quick-start';
   static const dashboard = '/dashboard';
   static const explore = '/explore';
@@ -113,6 +116,7 @@ class AppRoutes {
   static const superAdmin = '/super-admin';
   static const superAdminChain = '/super-admin-chain';
   static const contentModeration = '/content-moderation';
+  static const jindungoAccess = '/jindungo-access';
   static const community = '/community';
   static const communityDetail = '/community/detail';
   static const createCommunity = '/community/create';
@@ -139,6 +143,8 @@ class AppRoutes {
       register2 => const RegisterScreen(step: 2),
       register3 => const RegisterScreen(step: 3),
       forgotPassword => const ForgotPasswordScreen(),
+      resetPassword => ResetPasswordScreen(
+          token: settings.arguments is String ? settings.arguments as String : null),
       quickStart => const QuickStartScreen(),
       dashboard => const DashboardScreen(),
       explore => const ExploreScreen(),
@@ -196,6 +202,7 @@ class AppRoutes {
       superAdmin => SuperAdminScreen(user: settings.arguments is AppUser ? settings.arguments as AppUser : null),
       superAdminChain => const SuperAdminChainScreen(),
       contentModeration => const ContentModerationScreen(),
+      jindungoAccess => const JindungoAccessScreen(),
       community => const CommunityScreen(),
       communityDetail => CommunityDetailScreen(
           community: settings.arguments is CommunityCategory ? settings.arguments as CommunityCategory : null),

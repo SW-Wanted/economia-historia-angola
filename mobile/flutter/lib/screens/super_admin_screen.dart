@@ -28,15 +28,15 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
   @override
   void initState() {
     super.initState();
+    // Aberto sempre com um utilizador real (a partir da gestão de utilizadores).
+    // O fallback anónimo existe só para não rebentar se a rota for aberta sem
+    // argumento — sem `id`, as ações de gestão ficam desativadas.
     _target = widget.user ??
         const AppUser(
-          name: 'Ana Muachia',
-          initials: 'AM',
-          role: UserRole.admin,
-          course: 'História',
-          email: 'ana.muachia@isptec.co.ao',
-          institution: 'UAN',
-          province: 'Benguela',
+          name: 'Utilizador',
+          initials: 'U',
+          role: UserRole.utilizador,
+          course: '',
         );
     _role = _target.role;
   }
@@ -127,14 +127,19 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
           const SectionTitle('Ações'),
           const SizedBox(height: 12),
           EhButton(
-            label: 'Guardar perfil',
+            label: _saving ? 'A guardar...' : 'Guardar perfil',
             icon: Icons.save_outlined,
-            onPressed: _save,
+            onPressed: _saving ? null : _save,
           ),
           const SizedBox(height: 10),
           OutlinedButton.icon(
-            onPressed: () => _confirm(context, 'Bloquear utilizador',
-                'O utilizador deixa de poder aceder até ser desbloqueado.', 'Bloquear'),
+            onPressed: () => _confirm(
+              'Bloquear utilizador',
+              'O utilizador deixa de poder aceder até ser desbloqueado.',
+              'Bloquear',
+              () => BackendService.instance.setUserActive(_target.id ?? '', false),
+              '${_target.name} foi bloqueado.',
+            ),
             icon: const Icon(Icons.block),
             label: const Text('Bloquear utilizador'),
             style: OutlinedButton.styleFrom(
@@ -144,8 +149,13 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
           OutlinedButton.icon(
             onPressed: _target.isFounder
                 ? null
-                : () => _confirm(context, 'Remover utilizador',
-                    'Esta ação é permanente e remove o acesso do utilizador.', 'Remover'),
+                : () => _confirm(
+                      'Remover utilizador',
+                      'Esta ação é permanente e remove o acesso do utilizador.',
+                      'Remover',
+                      () => BackendService.instance.removeUser(_target.id ?? ''),
+                      '${_target.name} foi removido.',
+                    ),
             icon: const Icon(Icons.delete_outline),
             label: const Text('Remover utilizador'),
             style: OutlinedButton.styleFrom(
@@ -264,34 +274,73 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
     );
   }
 
-  void _save() {
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Perfil de ${_target.name} atualizado para ${_role.label}.'), behavior: SnackBarBehavior.floating),
-    );
+  bool _saving = false;
+
+  /// Aplica a mudança de papel no backend (`PATCH /users/:id/role`). Sem `id`
+  /// (utilizador mock) não há o que persistir.
+  Future<void> _save() async {
+    final id = _target.id;
+    if (id == null || id.isEmpty) {
+      _snack('Utilizador sem identificador — não é possível guardar.');
+      return;
+    }
+    if (_role == _target.role) {
+      Navigator.pop(context);
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await BackendService.instance.setUserRole(id, _role);
+      if (!mounted) return;
+      Navigator.pop(context);
+      _snack('Perfil de ${_target.name} atualizado para ${_role.label}.');
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      _snack('Não foi possível atualizar: $error');
+    }
   }
 
-  void _confirm(BuildContext context, String title, String message, String action) {
+  /// Executa uma ação destrutiva (bloquear/remover) após confirmação, chamando
+  /// o backend. `perform` faz a chamada real; `successMsg` é a confirmação.
+  void _confirm(
+    String title,
+    String message,
+    String action,
+    Future<void> Function() perform,
+    String successMsg,
+  ) {
     showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(title),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$action aplicado a ${_target.name}.'), behavior: SnackBarBehavior.floating),
-              );
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              try {
+                await perform();
+                if (!mounted) return;
+                Navigator.pop(context);
+                _snack(successMsg);
+              } catch (error) {
+                if (!mounted) return;
+                _snack('Não foi possível concluir: $error');
+              }
             },
             child: Text(action),
           ),
         ],
       ),
+    );
+  }
+
+  void _snack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 }

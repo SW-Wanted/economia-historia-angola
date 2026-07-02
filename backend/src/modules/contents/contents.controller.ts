@@ -1,12 +1,14 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { PermissionCode } from '@prisma/client';
+import { MembershipStatus, PermissionCode } from '@prisma/client';
 import { AuthUser, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { ChangeContentStatusDto } from './dto/change-content-status.dto';
 import { ContentQueryDto } from './dto/content-query.dto';
 import { CreateContentDto } from './dto/create-content.dto';
+import { RequestAccessDto } from './dto/request-access.dto';
+import { ReviewAccessRequestDto } from './dto/review-access-request.dto';
 import { UpdateProgressDto } from './dto/update-progress.dto';
 import { ContentsService } from './contents.service';
 
@@ -30,6 +32,28 @@ export class ContentsController {
   @Get('manage')
   listForManagement(@CurrentUser() user: AuthUser, @Query() query: ContentQueryDto) {
     return this.contents.listForManagement(user, query);
+  }
+
+  // Rotas literais `access-requests` declaradas ANTES de `:id` para não serem
+  // capturadas pelo parâmetro dinâmico.
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List Jindungo access requests (moderation panel)' })
+  @Permissions(PermissionCode.CONTENT_APPROVE)
+  @Get('access-requests')
+  listAccessRequests(@Query('status') status?: MembershipStatus) {
+    return this.contents.listAccessRequests(status);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Approve or reject a Jindungo access request' })
+  @Permissions(PermissionCode.CONTENT_APPROVE)
+  @Patch('access-requests/:requestId')
+  reviewAccessRequest(
+    @CurrentUser() user: AuthUser,
+    @Param('requestId') requestId: string,
+    @Body() dto: ReviewAccessRequestDto,
+  ) {
+    return this.contents.reviewAccessRequest(user, requestId, dto.approve);
   }
 
   @Public()
@@ -60,7 +84,7 @@ export class ContentsController {
     @Param('id') id: string,
     @Body() dto: ChangeContentStatusDto,
   ) {
-    return this.contents.changeStatus(user, id, dto.status);
+    return this.contents.changeStatus(user, id, dto.status, dto.notes);
   }
 
   @ApiBearerAuth()
@@ -84,8 +108,13 @@ export class ContentsController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Request access to a Jindungo (restricted) content item' })
   @Post(':id/request-access')
-  requestAccess(@CurrentUser() user: AuthUser, @Param('id') id: string) {
-    return this.contents.requestJindungoAccess(user.id, id);
+  requestAccess(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: RequestAccessDto,
+  ) {
+    return this.contents.requestJindungoAccess(user.id, id, dto.reason);
   }
 }

@@ -33,6 +33,7 @@ const USER_PUBLIC_SELECT = {
   interests: true,
   motivation: true,
   emailVerifiedAt: true,
+  superAdminGrade: true,
   createdAt: true,
   updatedAt: true,
   roles: { include: { role: true } },
@@ -43,6 +44,47 @@ const USER_PUBLIC_SELECT = {
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /// Ordena a antiguidade de um Super Admin pela sua "grade": 0 = fundador (mais
+  /// sénior), valores maiores = menos sénior. Um Super Admin sem grade definida
+  /// é tratado como o menos sénior de todos. Devolve `null` para quem não é
+  /// Super Admin (não participa nesta hierarquia).
+  private superAdminSeniority(roles: readonly string[], grade: number | null | undefined): number | null {
+    if (!roles.includes(RoleCode.SUPER_ADMIN)) return null;
+    return grade ?? Number.MAX_SAFE_INTEGER;
+  }
+
+  /// Verifica se `actor` pode gerir (alterar/remover/suspender) o `target`,
+  /// aplicando a hierarquia de papéis e de grades entre Super Admins:
+  /// - Um Super Admin só pode agir sobre outro Super Admin se for estritamente
+  ///   mais sénior (grade menor). Isto impede que pares ou subordinados se
+  ///   modifiquem entre si, e protege o fundador (grade 0).
+  /// - Só um Super Admin pode gerir um Admin.
+  /// - Ninguém que não seja Super Admin pode gerir um Super Admin.
+  private assertCanManage(
+    actor: AuthUser,
+    targetRoles: readonly string[],
+    targetGrade: number | null,
+    action: string,
+  ) {
+    const actorIsSuperAdmin = actor.roles.includes(RoleCode.SUPER_ADMIN);
+    const targetSeniority = this.superAdminSeniority(targetRoles, targetGrade);
+
+    if (targetSeniority !== null) {
+      // Alvo é Super Admin: exige um ator Super Admin estritamente mais sénior.
+      const actorSeniority = this.superAdminSeniority(actor.roles, actor.superAdminGrade);
+      if (actorSeniority === null || actorSeniority >= targetSeniority) {
+        throw new ForbiddenException(
+          `Não tem antiguidade suficiente para ${action} este Super Administrador.`,
+        );
+      }
+      return;
+    }
+
+    if (targetRoles.includes(RoleCode.ADMIN) && !actorIsSuperAdmin) {
+      throw new ForbiddenException(`Apenas um Super Administrador pode ${action} um Administrador.`);
+    }
+  }
 
   findMe(id: string) {
     return this.prisma.user.findUniqueOrThrow({
@@ -138,6 +180,9 @@ export class UsersService {
           name: true,
           username: true,
           isActive: true,
+          superAdminGrade: true,
+          region: true,
+          school: true,
           createdAt: true,
           roles: { include: { role: { select: { code: true } } } },
         },
@@ -147,12 +192,18 @@ export class UsersService {
     return { items, total, page: dto.page, limit: dto.limit };
   }
 
-  async updateStatus(actorId: string, targetId: string, dto: UpdateUserStatusDto) {
-    if (actorId === targetId) {
+  async updateStatus(actor: AuthUser, targetId: string, dto: UpdateUserStatusDto) {
+    if (actor.id === targetId) {
       throw new ForbiddenException('Cannot change your own account status');
     }
-    const target = await this.prisma.user.findUnique({ where: { id: targetId } });
+    const target = await this.prisma.user.findFirst({
+      where: { id: targetId, deletedAt: null },
+      include: { roles: { include: { role: true } } },
+    });
     if (!target) throw new NotFoundException('User not found');
+
+    const targetRoles = target.roles.map((r) => r.role.code);
+    this.assertCanManage(actor, targetRoles, target.superAdminGrade, 'suspender ou reativar');
 
     return this.prisma.user.update({
       where: { id: targetId },
@@ -179,11 +230,12 @@ export class UsersService {
     const targetRoles = target.roles.map((r) => r.role.code);
     const actorIsSuperAdmin = actor.roles.includes(RoleCode.SUPER_ADMIN);
 
-    if (targetRoles.includes(RoleCode.SUPER_ADMIN)) {
-      throw new ForbiddenException('Não é permitido modificar um Super Administrador.');
-    }
+    // Hierarquia de papéis/grades sobre o alvo (protege Super Admins mais séniores).
+    this.assertCanManage(actor, targetRoles, target.superAdminGrade, 'gerir o papel de');
+
+    // Conceder um papel administrativo exige que o ator seja Super Admin.
     const grantsAdminLevel = role === RoleCode.ADMIN || role === RoleCode.SUPER_ADMIN;
-    if ((grantsAdminLevel || targetRoles.includes(RoleCode.ADMIN)) && !actorIsSuperAdmin) {
+    if (grantsAdminLevel && !actorIsSuperAdmin) {
       throw new ForbiddenException('Apenas um Super Administrador pode gerir papéis de administrador.');
     }
 
@@ -215,14 +267,7 @@ export class UsersService {
     if (!target) throw new NotFoundException('Utilizador não encontrado.');
 
     const targetRoles = target.roles.map((r) => r.role.code);
-    const actorIsSuperAdmin = actor.roles.includes(RoleCode.SUPER_ADMIN);
-
-    if (targetRoles.includes(RoleCode.SUPER_ADMIN)) {
-      throw new ForbiddenException('Não é permitido remover um Super Administrador.');
-    }
-    if (targetRoles.includes(RoleCode.ADMIN) && !actorIsSuperAdmin) {
-      throw new ForbiddenException('Apenas um Super Administrador pode remover um Administrador.');
-    }
+    this.assertCanManage(actor, targetRoles, target.superAdminGrade, 'remover');
 
     return this.prisma.user.update({
       where: { id: targetId },

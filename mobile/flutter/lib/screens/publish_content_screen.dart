@@ -38,6 +38,9 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
   final _extraCtrl = TextEditingController(); // fonte / ligação / episódio
   final _bodyCtrl = TextEditingController(); // corpo / descrição / notas
   bool _publishing = false;
+  // Verdadeiro quando o conteúdo foi enviado para aprovação (Escritor) em vez
+  // de publicado diretamente (Admin+). Ajusta a mensagem de sucesso.
+  bool _submittedForReview = false;
   String? _mediaUrl;
   String? _mediaName;
 
@@ -448,7 +451,21 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
         isJindungo: _jindungo,
         exclusive: _exclusive,
       );
-      // Recarrega o catálogo para que o novo conteúdo apareça de imediato no
+      // O backend cria o conteúdo como RASCUNHO (DRAFT). Para deixar de ficar
+      // invisível, submete-o: quem tem moderação (Admin+) publica logo; os
+      // Escritores enviam para aprovação (fica PENDENTE até um Admin aprovar).
+      final canPublishDirectly = BackendService.instance.cachedUser.can(Permission.moderateAnyContent);
+      _submittedForReview = !canPublishDirectly;
+      try {
+        await BackendService.instance.changeContentStatus(
+          created.id,
+          canPublishDirectly ? 'PUBLISHED' : 'PENDING_REVIEW',
+        );
+      } catch (_) {
+        // Se a transição falhar, o conteúdo fica em rascunho (gerível no painel).
+        _submittedForReview = true;
+      }
+      // Recarrega o catálogo para que, quando publicado, apareça de imediato no
       // feed de todos os utilizadores (ao abrirem/atualizarem a Home).
       await FeedService.instance.load(force: true);
       if (!mounted) return;
@@ -477,7 +494,12 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
       }
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Conteúdo publicado para todos os utilizadores.')));
+        ..showSnackBar(SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text(_submittedForReview
+              ? 'Conteúdo enviado para aprovação. Ficará visível para todos assim que um administrador o aprovar.'
+              : 'Conteúdo publicado para todos os utilizadores.'),
+        ));
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
