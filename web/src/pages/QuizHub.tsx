@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { quizService } from '../services/api/quiz.service'
 import { extractList } from '../services/types/api.types'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth, hasPermission } from '../contexts/AuthContext'
 import { useAuthGate } from '../contexts/AuthGateContext'
 import type { Quiz, RankingEntry, PaginatedResponse } from '../services/types/api.types'
 
@@ -34,6 +34,7 @@ export default function QuizHub() {
   const [error, setError] = useState('')
 
   const firstName = user?.name?.split(' ')[0] ?? 'Investigador'
+  const canManageQuizzes = hasPermission(user, 'QUIZ_MANAGE')
 
   useEffect(() => {
     async function load() {
@@ -155,6 +156,12 @@ export default function QuizHub() {
                 <p className="section-subtitle">Teste os seus conhecimentos por período histórico.</p>
               </div>
               <div className="flex gap-1.5">
+                {canManageQuizzes && (
+                  <button onClick={() => navigate('/gestao/quizzes/novo')} className="btn-primary mr-2">
+                    <span className="material-symbols-outlined text-[18px]">add</span>
+                    Criar Quiz
+                  </button>
+                )}
                 {FILTERS.map((f) => (
                   <button
                     key={f}

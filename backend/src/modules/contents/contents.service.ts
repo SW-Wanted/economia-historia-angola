@@ -95,8 +95,7 @@ export class ContentsService {
       ...data,
       authorId,
       categoryId: resolvedCategoryId,
-      status: ContentStatus.PUBLISHED,
-      publishedAt: new Date(),
+      status: ContentStatus.DRAFT,
     };
 
     return this.prisma.content.create({
@@ -189,6 +188,9 @@ export class ContentsService {
     const data: Prisma.ContentUpdateInput = { status };
     if (status === ContentStatus.PUBLISHED && !content.publishedAt) {
       data.publishedAt = new Date();
+    }
+    if (status !== ContentStatus.PUBLISHED) {
+      data.publishedAt = null;
     }
 
     return this.prisma.content.update({ where: { id }, data, include: MANAGE_INCLUDE });
