@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
+import '../widgets/app_logo_mark.dart';
 import '../widgets/eh_button.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -17,12 +18,7 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
-              Container(
-                width: 112,
-                height: 112,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(32)),
-                child: const Icon(Icons.history_edu, color: AppColors.primary, size: 56),
-              ),
+              const AppLogoMark(size: 112, elevation: 12),
               const SizedBox(height: 28),
               Text('Economia com História', textAlign: TextAlign.center, style: Theme.of(context).textTheme.displayLarge?.copyWith(color: Colors.white)),
               const SizedBox(height: 10),

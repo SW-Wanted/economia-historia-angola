@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
+import 'app_loading_indicator.dart';
 
 /// `FutureBuilder` padronizado para carregar dados do backend.
 ///
@@ -20,8 +21,8 @@ class DataLoader<T> extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Padding(
-            padding: EdgeInsets.only(top: 80),
-            child: Center(child: CircularProgressIndicator()),
+            padding: EdgeInsets.only(top: 60),
+            child: Center(child: AppLoadingIndicator(message: 'A preparar conteúdos...')),
           );
         }
         if (snapshot.hasError || !snapshot.hasData) {

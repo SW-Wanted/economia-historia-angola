@@ -12,6 +12,7 @@ class ScreenFrame extends StatelessWidget {
     this.title,
     this.showBack = false,
     this.showNotifications = true,
+    this.showLogo = false,
     this.paddingBottom = 28,
     this.floatingActionButton,
   });
@@ -20,6 +21,7 @@ class ScreenFrame extends StatelessWidget {
   final String? title;
   final bool showBack;
   final bool showNotifications;
+  final bool showLogo;
   final double paddingBottom;
   final Widget? floatingActionButton;
 
@@ -31,7 +33,7 @@ class ScreenFrame extends StatelessWidget {
       // da rota. Nas paginas com BottomNavShell coincide com o Scaffold
       // exterior, pelo que o aspeto se mantem.
       backgroundColor: AppColors.background,
-      appBar: title == null ? null : AppHeader(title: title!, showBack: showBack, showNotifications: showNotifications),
+      appBar: title == null ? null : AppHeader(title: title!, showBack: showBack, showNotifications: showNotifications, showLogo: showLogo),
       floatingActionButton: floatingActionButton,
       body: SafeArea(
         child: Center(
