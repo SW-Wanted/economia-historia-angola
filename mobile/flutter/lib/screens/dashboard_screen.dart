@@ -6,7 +6,6 @@ import '../models/feed.dart';
 import '../services/backend_service.dart';
 import '../services/feed_service.dart';
 import '../widgets/angola_map.dart';
-import '../widgets/app_header.dart';
 import '../widgets/bottom_nav_shell.dart';
 import '../widgets/eh_illustration.dart';
 import '../widgets/feed_post_tile.dart';
@@ -97,6 +96,99 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Navigator.pushNamed(context, route);
   }
 
+  /// Menu de atalhos (canto superior esquerdo): pequenos cards verticais.
+  void _openMenu(BuildContext rootContext) {
+    final top = MediaQuery.paddingOf(rootContext).top + kToolbarHeight - 6;
+    showGeneralDialog<void>(
+      context: rootContext,
+      barrierDismissible: true,
+      barrierLabel: 'Menu',
+      barrierColor: Colors.black.withValues(alpha: .18),
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (_, _, _) => const SizedBox.shrink(),
+      transitionBuilder: (context, anim, _, _) {
+        return Stack(
+          children: [
+            Positioned(
+              left: 12,
+              top: top,
+              child: FadeTransition(
+                opacity: anim,
+                child: SlideTransition(
+                  position: Tween(begin: const Offset(-.12, 0), end: Offset.zero)
+                      .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: SizedBox(
+                      width: 214,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _menuCard(Icons.emoji_events_outlined, 'Ranking',
+                              () => Navigator.pushNamed(rootContext, AppRoutes.ranking)),
+                          _menuCard(Icons.quiz_outlined, 'Quizzes',
+                              () => Navigator.pushNamed(rootContext, AppRoutes.quizHub)),
+                          _menuCard(Icons.settings_outlined, 'Definições',
+                              () => Navigator.pushNamed(rootContext, AppRoutes.settings)),
+                          _menuCard(Icons.logout, 'Terminar sessão', () => _logout(rootContext), danger: true),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _menuCard(IconData icon, String label, VoidCallback action, {bool danger = false}) {
+    final color = danger ? AppColors.error : AppColors.primary;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        elevation: 3,
+        shadowColor: Colors.black.withValues(alpha: .18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () {
+            Navigator.pop(context); // fecha o menu
+            action();
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: .45)),
+            ),
+            child: Row(children: [
+              Container(
+                width: 34, height: 34,
+                decoration: BoxDecoration(color: color.withValues(alpha: .10), borderRadius: BorderRadius.circular(10)),
+                child: Icon(icon, color: color, size: 19),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(label,
+                    style: TextStyle(color: danger ? AppColors.error : AppColors.text, fontWeight: FontWeight.w700, fontSize: 14)),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    await BackendService.instance.logout();
+    navigator.pushNamedAndRemoveUntil(AppRoutes.login, (r) => false);
+  }
+
   /// Largura máxima confortável — mais larga na Web/tablet, preservando o
   /// conceito de feed contínuo.
   double _maxWidth(BuildContext context) {
@@ -115,7 +207,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
       index: 0,
       child: Scaffold(
         backgroundColor: AppColors.surface,
-        appBar: const AppHeader(title: 'Economia com História'),
+        appBar: AppBar(
+          backgroundColor: AppColors.surface,
+          leadingWidth: 56,
+          leading: IconButton(
+            tooltip: 'Menu',
+            onPressed: () => _openMenu(context),
+            icon: const Icon(Icons.grid_view_rounded, color: AppColors.primary),
+          ),
+          centerTitle: true,
+          title: Text('Economia com História',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800)),
+          actions: [
+            IconButton(
+              tooltip: 'Notificações',
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.notifications),
+              icon: const Icon(Icons.notifications_none, color: AppColors.text),
+            ),
+            const SizedBox(width: 4),
+          ],
+        ),
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
@@ -248,7 +360,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
-                onTap: () => Navigator.pushNamed(context, AppRoutes.quizHub),
+                onTap: () => Navigator.pushNamed(context, AppRoutes.quizQuestion),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
@@ -276,7 +388,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70, height: 1.35)),
                       const SizedBox(height: 14),
                       FilledButton.icon(
-                        onPressed: () => Navigator.pushNamed(context, AppRoutes.quizHub),
+                        onPressed: () => Navigator.pushNamed(context, AppRoutes.quizQuestion),
                         style: FilledButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: AppColors.primary,
