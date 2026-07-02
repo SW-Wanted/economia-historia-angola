@@ -149,6 +149,11 @@ class AppRoutes {
       quizHub => const QuizHubScreen(),
       quizQuestion => QuizQuestionScreen(
           quiz: settings.arguments is WeeklyQuiz ? settings.arguments as WeeklyQuiz : null,
+          quizId: settings.arguments is String
+              ? settings.arguments as String
+              : settings.arguments is FeedContent
+                  ? (settings.arguments as FeedContent).id
+                  : null,
         ),
       quizFeedback => const QuizFeedbackScreen(),
       quizResult => const QuizResultScreen(),
@@ -156,8 +161,12 @@ class AppRoutes {
       rankingDetail => const RankingDetailScreen(),
       forum => const ForumScreen(),
       forumTopic => const ForumTopicScreen(),
-      createTopic => const CreateTopicScreen(),
-      createQuiz => CreateQuizScreen(content: settings.arguments is FeedContent ? settings.arguments as FeedContent : null),
+      createTopic => CreateTopicScreen(
+          communityId: settings.arguments is String ? settings.arguments as String : null),
+      createQuiz => CreateQuizScreen(
+          content: settings.arguments is FeedContent ? settings.arguments as FeedContent : null,
+          editQuizId: settings.arguments is String ? settings.arguments as String : null,
+        ),
       createContent => const CreateContentScreen(),
       privateForumAccess => const PrivateForumAccessScreen(),
       profile => const ProfileScreen(),
@@ -176,7 +185,7 @@ class AppRoutes {
           preview: settings.arguments == true,
         ),
       helpCenter => const HelpCenterScreen(),
-      library => const LibraryScreen(),
+      library => LibraryScreen(initialFilter: settings.arguments is int ? settings.arguments as int : 0),
       offlineMode => const OfflineModeScreen(),
       subscription => const SubscriptionScreen(),
       manageForums => const ManageForumsScreen(),

@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/app_user.dart';
+import '../models/community_category.dart';
 import '../models/content_item.dart';
 import '../models/content_report.dart';
 import '../models/feed.dart';
@@ -12,6 +14,7 @@ import '../models/landing_stats.dart';
 import '../models/notification_item.dart';
 import '../models/profile_stats.dart';
 import '../models/ranking_user.dart';
+import '../models/quiz_question.dart';
 import '../models/weekly_quiz.dart';
 import '../widgets/eh_illustration.dart';
 import 'api_client.dart';
@@ -79,7 +82,10 @@ class BackendService {
   AppUser get cachedUser => _currentUser ?? _anonymous;
 
   Future<AppUser> login({required String email, required String password}) async {
-    final json = await _api.postJson('/auth/login', {'email': email.trim(), 'password': password});
+    final json = await _api.postJson('/auth/login', {
+      'email': email.trim().toLowerCase(),
+      'password': password.trim(),
+    });
     await _storeTokens(json);
     _currentUser = await _resolveProfile(json['user'] as Map<String, dynamic>?);
     return _currentUser!;
@@ -89,10 +95,11 @@ class BackendService {
   /// quando aplicável, é enviada à parte via [submitWriterApplication] depois de
   /// a sessão estar autenticada.
   Future<AppUser> register({required String name, required String email, required String password}) async {
-    final username = email.split('@').first.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '').toLowerCase();
+    final normalizedEmail = email.trim().toLowerCase();
+    final username = normalizedEmail.split('@').first.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '').toLowerCase();
     final json = await _api.postJson('/auth/register', {
       'name': name.trim(),
-      'email': email.trim(),
+      'email': normalizedEmail,
       'username': username.isEmpty ? 'utilizador' : username,
       'password': password,
     });
@@ -211,15 +218,48 @@ class BackendService {
     if (uploadUrl == null || publicUrl == null) {
       throw const ApiException('Resposta de upload inválida do servidor.');
     }
-    final response = await http.put(
-      Uri.parse(uploadUrl),
-      headers: {'Content-Type': mimeType},
-      body: bytes,
-    );
+    final http.Response response;
+    try {
+      response = await http
+          .put(
+            Uri.parse(uploadUrl),
+            headers: {'Content-Type': mimeType},
+            body: bytes,
+          )
+          .timeout(const Duration(minutes: 3));
+    } on TimeoutException {
+      final mb = (bytes.length / (1024 * 1024)).toStringAsFixed(1);
+      throw ApiException(
+        'O envio do ficheiro ($mb MB) demorou demasiado. Ficheiros grandes podem exceder o tempo limite; '
+        'tente um ficheiro mais pequeno ou uma ligação mais rápida.',
+      );
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException('Falha ao enviar o ficheiro.', statusCode: response.statusCode);
+      throw ApiException(_uploadErrorMessage(response, mimeType, bytes.length), statusCode: response.statusCode);
     }
     return publicUrl;
+  }
+
+  /// Traduz a resposta de erro do storage (Supabase) numa mensagem acionável.
+  /// O `413` significa que o ficheiro excede o limite do bucket; um `400`/`415`
+  /// costuma indicar que o tipo (ex.: vídeo) não está permitido no bucket.
+  String _uploadErrorMessage(http.Response response, String mimeType, int sizeBytes) {
+    final mb = (sizeBytes / (1024 * 1024)).toStringAsFixed(1);
+    if (response.statusCode == 413) {
+      return 'O ficheiro ($mb MB) excede o limite de tamanho do armazenamento. '
+          'Aumente o "file size limit" do bucket no Supabase ou use um ficheiro menor.';
+    }
+    if (response.statusCode == 400 || response.statusCode == 415) {
+      return 'O tipo de ficheiro ($mimeType) não é aceite pelo armazenamento. '
+          'Permita este tipo em "Allowed MIME types" do bucket no Supabase.';
+    }
+    // 5xx (ex.: 524 do Cloudflare) em ficheiros grandes = o envio demorou demais.
+    if (response.statusCode >= 500) {
+      return 'O envio do ficheiro ($mb MB) falhou no servidor de armazenamento '
+          '(erro ${response.statusCode}). Ficheiros grandes podem exceder o tempo '
+          'limite — tente um ficheiro mais pequeno ou uma ligação mais rápida.';
+    }
+    return 'Falha ao enviar o ficheiro (erro ${response.statusCode}).';
   }
 
   Future<FeedContent> createContent({
@@ -230,6 +270,7 @@ class BackendService {
     required String category,
     String? sourceUrl,
     String? mediaUrl,
+    String? thumbnailUrl,
     bool isJindungo = false,
     bool exclusive = false,
   }) async {
@@ -241,11 +282,180 @@ class BackendService {
       'body': body.trim(),
       'sourceUrl': sourceUrl,
       'mediaUrl': mediaUrl,
+      'thumbnailUrl': thumbnailUrl,
       'visibility': isJindungo || exclusive ? 'AUTHENTICATED' : 'PUBLIC',
       'isJindungo': isJindungo,
       'categoryName': category,
     });
     return _feedFromContent(json);
+  }
+
+  Future<CommunityCategory> createCommunity({
+    required String name,
+    required String description,
+    required bool isPrivate,
+  }) async {
+    final json = await _api.postJson('/communities', {
+      'name': name.trim(),
+      'slug': _slugFor(name),
+      'description': description.trim(),
+      'type': isPrivate ? 'PRIVATE' : 'PUBLIC',
+    });
+    return _communityFromJson(json);
+  }
+
+  Future<List<CommunityCategory>> communities() async {
+    final list = await _api.getList('/communities');
+    return list.whereType<Map<String, dynamic>>().map(_communityFromJson).toList();
+  }
+
+  /// Detalhe de uma comunidade (inclui estado de adesão e fóruns/tópicos).
+  Future<CommunityCategory> communityDetail(String id) async {
+    return _communityFromJson(await _api.getJson('/communities/$id'));
+  }
+
+  /// Fóruns públicos de uma comunidade (usados como "tópicos" no mobile).
+  Future<List<Map<String, dynamic>>> communityForums(String id) async {
+    final json = await _api.getJson('/communities/$id');
+    final forums = json['forums'];
+    if (forums is! List) return const [];
+    return forums.whereType<Map<String, dynamic>>().toList();
+  }
+
+  /// Pedido de adesão. O backend cria a adesão como PENDING (aprovação por
+  /// moderador/dono) — devolvemos o estado resultante para a UI refletir.
+  Future<CommunityViewerStatus> joinCommunity(String id) async {
+    final json = await _api.postJson('/communities/$id/join', const {});
+    return communityViewerStatusFrom(json['status']);
+  }
+
+  Future<void> leaveCommunity(String id) async {
+    await _api.delete('/communities/$id/membership');
+  }
+
+  Future<void> createForumTopic({
+    required String title,
+    required String body,
+    required String category,
+    required bool isPrivate,
+    String? communityId,
+  }) async {
+    final forum = await _api.postJson('/forums', {
+      'name': category.trim().isEmpty ? 'Fórum geral' : category.trim(),
+      'slug': _slugFor('${category.trim().isEmpty ? 'forum' : category}-${DateTime.now().millisecondsSinceEpoch}'),
+      'description': 'Debates sobre ${category.trim().isEmpty ? 'Economia com História' : category.trim()}.',
+      'visibility': isPrivate ? 'PRIVATE' : 'PUBLIC',
+      if (communityId != null) 'communityId': communityId,
+    });
+    final forumId = forum['id']?.toString();
+    if (forumId == null || forumId.isEmpty) {
+      throw const ApiException('Não foi possível criar o fórum.');
+    }
+    await _api.postJson('/forums/$forumId/topics', {
+      'title': title.trim(),
+      'slug': _slugFor(title),
+      'body': body.trim(),
+      'visibility': isPrivate ? 'PRIVATE' : 'PUBLIC',
+    });
+  }
+
+  Future<WeeklyQuiz> createQuiz({
+    required String title,
+    required String description,
+    required List<Map<String, dynamic>> questions,
+    bool isWeekly = false,
+  }) async {
+    final json = await _api.postJson('/quizzes', {
+      'title': title.trim(),
+      'slug': _slugFor(title),
+      'description': description.trim(),
+      'visibility': 'PUBLIC',
+      'isWeekly': isWeekly,
+      'questions': questions,
+    });
+    return WeeklyQuiz.fromJson(json);
+  }
+
+  Future<WeeklyQuiz> quizById(String id) async {
+    return WeeklyQuiz.fromJson(await _api.getJson('/quizzes/$id'));
+  }
+
+  /// Carrega um quiz para edição (inclui a opção correta). Requer QUIZ_MANAGE.
+  Future<WeeklyQuiz> quizForEdit(String id) async {
+    return WeeklyQuiz.fromJson(await _api.getJson('/quizzes/$id/edit'));
+  }
+
+  /// Gera perguntas por IA (Gemini) no backend a partir de um tema/conteúdo.
+  Future<List<QuizQuestion>> generateQuizQuestions({
+    required String title,
+    required String category,
+    String? context,
+    int count = 5,
+    String difficulty = 'Médio',
+  }) async {
+    final json = await _api.postJson('/quizzes/generate', {
+      'title': title.trim(),
+      'category': category.trim(),
+      if (context != null && context.trim().isNotEmpty) 'context': context.trim(),
+      'count': count,
+      'difficulty': difficulty,
+    });
+    final raw = json['questions'];
+    if (raw is! List) return const [];
+    return raw.whereType<Map<String, dynamic>>().map((q) {
+      final opts = q['options'];
+      final options = opts is List ? opts.whereType<Map<String, dynamic>>().toList() : <Map<String, dynamic>>[];
+      final correctIndex = options.indexWhere((o) => o['isCorrect'] == true);
+      return QuizQuestion(
+        question: q['statement']?.toString() ?? '',
+        options: [for (final o in options) o['text']?.toString() ?? ''],
+        correctIndex: correctIndex < 0 ? 0 : correctIndex,
+        explanation: q['explanation']?.toString() ?? '',
+      );
+    }).toList();
+  }
+
+  /// Atualiza um quiz existente (título e/ou perguntas). Substitui as perguntas
+  /// quando `questions` é fornecido.
+  Future<WeeklyQuiz> updateQuiz({
+    required String id,
+    String? title,
+    String? description,
+    List<Map<String, dynamic>>? questions,
+  }) async {
+    final json = await _api.patchJson('/quizzes/$id', {
+      if (title != null) 'title': title.trim(),
+      if (description != null) 'description': description.trim(),
+      if (questions != null) 'questions': questions,
+    });
+    return WeeklyQuiz.fromJson(json);
+  }
+
+  /// Inicia uma tentativa de quiz e devolve o id da tentativa.
+  Future<String> startQuizAttempt(String quizId) async {
+    final json = await _api.postJson('/quizzes/$quizId/start', const {});
+    final id = json['id']?.toString();
+    if (id == null || id.isEmpty) {
+      throw const ApiException('Não foi possível iniciar o quiz.');
+    }
+    return id;
+  }
+
+  Future<void> answerQuizQuestion({
+    required String attemptId,
+    required String questionId,
+    required String optionId,
+  }) async {
+    await _api.postJson('/quizzes/attempts/$attemptId/answers', {
+      'questionId': questionId,
+      'optionId': optionId,
+    });
+  }
+
+  /// Submete a tentativa; devolve a pontuação autoritativa do servidor.
+  Future<int> submitQuizAttempt(String attemptId) async {
+    final json = await _api.postJson('/quizzes/attempts/$attemptId/submit', const {});
+    return int.tryParse(json['score']?.toString() ?? '') ?? 0;
   }
 
   String _slugFor(String title) {
@@ -254,6 +464,19 @@ class BackendService {
         .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
         .replaceAll(RegExp(r'^-+|-+$'), '');
     return '${base.isEmpty ? 'conteudo' : base}-${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  CommunityCategory _communityFromJson(Map<String, dynamic> json) {
+    final count = json['_count'];
+    return CommunityCategory(
+      id: json['id']?.toString(),
+      name: json['name']?.toString() ?? 'Comunidade',
+      description: json['description']?.toString() ?? '',
+      topics: count is Map ? int.tryParse(count['forums']?.toString() ?? '') ?? 0 : 0,
+      members: count is Map ? int.tryParse(count['memberships']?.toString() ?? '') ?? 0 : 0,
+      private: json['type']?.toString() == 'PRIVATE',
+      viewerStatus: communityViewerStatusFrom(json['viewerStatus']),
+    );
   }
 
   /// Atualiza o perfil do utilizador (nome, bio, localização, foto, capa,
@@ -293,10 +516,29 @@ class BackendService {
     return [for (final list in results) ...list];
   }
 
+  /// Número máximo de conteúdos carregados para o motor de recomendação.
+  /// O feed rankeia/diversifica em memória, por isso carregamos o conjunto de
+  /// trabalho por páginas (até este teto) em vez de só a 1ª página de 20.
+  static const int _catalogMaxItems = 300;
+  static const int _catalogPageSize = 100;
+
   Future<List<FeedContent>> _catalogContents() async {
     try {
-      final list = await _api.getList('/contents');
-      return list.whereType<Map<String, dynamic>>().map(_feedFromContent).toList();
+      final all = <Map<String, dynamic>>[];
+      var page = 1;
+      while (all.length < _catalogMaxItems) {
+        final json = await _api.getJson('/contents', query: {
+          'page': '$page',
+          'limit': '$_catalogPageSize',
+        });
+        final items = json['items'];
+        final pageItems = items is List ? items.whereType<Map<String, dynamic>>().toList() : const <Map<String, dynamic>>[];
+        all.addAll(pageItems);
+        final total = int.tryParse(json['total']?.toString() ?? '') ?? all.length;
+        if (pageItems.length < _catalogPageSize || all.length >= total) break;
+        page++;
+      }
+      return all.map(_feedFromContent).toList();
     } catch (_) {
       return const [];
     }
@@ -347,7 +589,9 @@ class BackendService {
       subtitle: json['summary']?.toString() ?? json['description']?.toString() ?? '',
       category: categoryName ?? 'Conteúdo',
       type: feedType,
-      scene: _sceneFor(categoryName ?? type),
+      // A ilustração de fundo segue o tipo (ex.: podcast → microfone); só quando
+      // o tipo não define uma cena própria é que recorre à categoria editorial.
+      scene: _sceneForType(feedType) ?? _sceneFor(categoryName ?? type),
       author: _authorName(author, fallback: json['authorName']?.toString() ?? 'Economia com História'),
       minutes: int.tryParse(json['estimatedMinutes']?.toString() ?? '') ?? 5,
       publishedAt: DateTime.tryParse(json['publishedAt']?.toString() ?? json['createdAt']?.toString() ?? '') ??
@@ -359,6 +603,7 @@ class BackendService {
       mediaUrl: (json['mediaUrl']?.toString().isNotEmpty ?? false) ? json['mediaUrl'].toString() : null,
       sourceUrl: (json['sourceUrl']?.toString().isNotEmpty ?? false) ? json['sourceUrl'].toString() : null,
       body: (json['body']?.toString().isNotEmpty ?? false) ? json['body'].toString() : null,
+      imageUrl: (json['thumbnailUrl']?.toString().isNotEmpty ?? false) ? json['thumbnailUrl'].toString() : null,
     );
   }
 
@@ -395,6 +640,14 @@ class BackendService {
       publishedAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
     );
   }
+
+  /// Cena própria de um tipo de conteúdo, quando existe (ex.: podcast/áudio →
+  /// microfone). Devolve `null` para tipos sem ilustração dedicada, deixando a
+  /// escolha recair na categoria editorial.
+  EhScene? _sceneForType(FeedContentType type) => switch (type) {
+        FeedContentType.podcast => EhScene.podcast,
+        _ => null,
+      };
 
   /// Escolhe uma ilustração coerente com a categoria/tipo do conteúdo.
   EhScene _sceneFor(String hint) {
@@ -486,6 +739,17 @@ class BackendService {
     } catch (_) {
       return _fallback.notifications();
     }
+  }
+
+  /// Marca uma notificação como lida. `id` nulo (itens mock) é ignorado.
+  Future<void> markNotificationRead(String? id) async {
+    if (!isAuthenticated || id == null || id.isEmpty) return;
+    await _api.patchJson('/notifications/$id/read', const {});
+  }
+
+  Future<void> markAllNotificationsRead() async {
+    if (!isAuthenticated) return;
+    await _api.patchJson('/notifications/read-all', const {});
   }
 
   Future<List<ContentReport>> reports() async {
@@ -620,6 +884,7 @@ class BackendService {
 
   NotificationItem _notificationFromJson(Map<String, dynamic> json) {
     return NotificationItem(
+      id: json['id']?.toString(),
       title: json['title']?.toString() ?? 'Notificacao',
       body: json['body']?.toString() ?? '',
       timeAgo: _relativeTime(json['createdAt']?.toString()),
@@ -671,7 +936,11 @@ class BackendService {
 
   bool _isMockRankingUser(RankingUser user) {
     final name = user.name.trim().toLowerCase();
-    return name == 'stats test' || name == 'test stats' || name.startsWith('mock ');
+    if (name.isEmpty || name.startsWith('mock ')) return true;
+    // Contas de teste/seed (ex.: "Stats Teste", "Stats Test", "Escritor Teste")
+    // não devem aparecer no ranking real. Considera qualquer nome que combine
+    // um marcador de teste ("test"/"teste") — em PT e EN — como fictício.
+    return name.contains('teste') || name.contains('test');
   }
 
   NotificationKind _notificationKind(String? type) {

@@ -9,13 +9,25 @@ class NotificationItem {
     required this.timeAgo,
     required this.kind,
     this.unread = false,
+    this.id,
   });
 
+  /// Identificador no backend. `null` para itens mock/fallback offline.
+  final String? id;
   final String title;
   final String body;
   final String timeAgo;
   final NotificationKind kind;
   final bool unread;
+
+  NotificationItem copyWith({bool? unread}) => NotificationItem(
+        id: id,
+        title: title,
+        body: body,
+        timeAgo: timeAgo,
+        kind: kind,
+        unread: unread ?? this.unread,
+      );
 
   IconData get icon => switch (kind) {
         NotificationKind.quiz => Icons.quiz_outlined,

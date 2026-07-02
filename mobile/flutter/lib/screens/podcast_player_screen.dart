@@ -39,7 +39,9 @@ class _PodcastPlayerScreenState extends State<PodcastPlayerScreen> {
 
   String get _title => widget.content?.title ?? 'O Petróleo e o Futuro de Angola';
 
-  String get _category => widget.content?.category ?? 'Conversas de Economia';
+  /// Rótulo apresentado acima do título: o tipo do conteúdo ("Podcast"), não a
+  /// categoria editorial (que pode ter sido gravada como "Artigo").
+  String get _category => widget.content?.type.label ?? 'Podcast';
 
   String get _description =>
       widget.content?.body ??
@@ -130,7 +132,7 @@ class _PodcastPlayerScreenState extends State<PodcastPlayerScreen> {
       title: 'Podcast',
       showBack: true,
       children: [
-        EhIllustration(scene: EhScene.podcast, height: 200, borderRadius: BorderRadius.circular(24)),
+        EhIllustration(scene: EhScene.podcast, imageUrl: widget.content?.imageUrl, height: 200, borderRadius: BorderRadius.circular(24)),
         const SizedBox(height: 24),
         Text(_category, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.primary, letterSpacing: 1)),
         const SizedBox(height: 4),

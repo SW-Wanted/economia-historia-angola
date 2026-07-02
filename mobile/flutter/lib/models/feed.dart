@@ -137,6 +137,7 @@ class FeedContent {
     this.mediaUrl,
     this.sourceUrl,
     this.body,
+    this.imageUrl,
   });
 
   final String id;
@@ -198,6 +199,10 @@ class FeedContent {
   /// e como descrição nos players.
   final String? body;
 
+  /// Imagem de capa carregada pelo autor na criação (thumbnail). Quando
+  /// presente, é usada como capa em vez da ilustração vetorial gerada.
+  final String? imageUrl;
+
   /// Endereço de reprodução: prioriza o ficheiro carregado, cai para a fonte.
   String? get playbackUrl => (mediaUrl != null && mediaUrl!.isNotEmpty)
       ? mediaUrl
@@ -242,6 +247,7 @@ class FeedContent {
         mediaUrl: mediaUrl,
         sourceUrl: sourceUrl,
         body: body,
+        imageUrl: imageUrl,
       );
 }
 

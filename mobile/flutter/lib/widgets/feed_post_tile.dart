@@ -305,7 +305,10 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
       child: Stack(
         alignment: Alignment.center,
         children: [
-          EhIllustration(scene: _c.scene, height: 210, borderRadius: BorderRadius.zero),
+          EhIllustration(scene: _c.scene, imageUrl: _c.imageUrl, height: 210, borderRadius: BorderRadius.zero),
+          // Sem imagem própria do utilizador, mostra o símbolo do tipo (ex.:
+          // microfone para podcast) para identificar o formato de imediato.
+          _typeBadge(context),
           // Véu explícito de conteúdo restrito (Jindungo ou comunidade privada).
           if (restricted) _restrictedOverlay(context),
           // Coração da animação de duplo toque.
@@ -321,6 +324,31 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Selo do tipo no canto da capa: ícone (ex.: microfone para podcast) + rótulo.
+  /// Identifica o formato quando não há imagem própria do utilizador.
+  Widget _typeBadge(BuildContext context) {
+    return Positioned(
+      top: 10,
+      left: 10,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: .45),
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(_c.type.icon, size: 14, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(_c.type.label,
+                style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w700)),
+          ],
+        ),
       ),
     );
   }
