@@ -11,6 +11,7 @@ import { configuration } from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { MailModule } from './modules/mail/mail.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -30,7 +31,11 @@ import { StatsModule } from './modules/stats/stats.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: join(__dirname, '..', '.env'),
+      // Procura o `.env` na raiz do backend. Em `nest start` (ts-node) __dirname é
+      // `src/`, mas no build compilado é `dist/src/`, onde `../.env` apontaria
+      // erradamente para `dist/.env`. Incluir `process.cwd()/.env` garante que o
+      // `.env` da raiz é carregado nos dois modos (ex.: credenciais SMTP).
+      envFilePath: [join(process.cwd(), '.env'), join(__dirname, '..', '.env')],
       load: [configuration],
       validate: validateEnv,
     }),
@@ -51,6 +56,7 @@ import { StatsModule } from './modules/stats/stats.module';
     }),
     JwtModule.register({}),
     PrismaModule,
+    MailModule,
     HealthModule,
     AuthModule,
     UsersModule,

@@ -60,7 +60,7 @@ export class ContentsController {
     @Param('id') id: string,
     @Body() dto: ChangeContentStatusDto,
   ) {
-    return this.contents.changeStatus(user, id, dto.status);
+    return this.contents.changeStatus(user, id, dto.status, dto.notes);
   }
 
   @ApiBearerAuth()

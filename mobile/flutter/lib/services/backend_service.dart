@@ -13,6 +13,7 @@ import '../models/feed.dart';
 import '../models/forum_topic.dart';
 import '../models/landing_stats.dart';
 import '../models/notification_item.dart';
+import '../models/pending_content.dart';
 import '../models/profile_stats.dart';
 import '../models/ranking_user.dart';
 import '../models/quiz_question.dart';
@@ -20,6 +21,7 @@ import '../models/weekly_quiz.dart';
 import '../widgets/eh_illustration.dart';
 import 'api_client.dart';
 import 'mock_data_service.dart';
+import 'realtime_service.dart';
 import 'token_store.dart';
 
 class BackendService {
@@ -37,6 +39,10 @@ class BackendService {
 
   bool get isAuthenticated => _api.isAuthenticated;
 
+  /// Access token atual (JWT). Usado pelo cliente realtime para autenticar o
+  /// handshake do Socket.IO. `null` quando não há sessão.
+  String? get accessToken => _api.accessToken;
+
   /// Recarrega a sessão persistida (chamado no arranque, a partir do splash).
   /// Devolve o utilizador autenticado se os tokens ainda forem válidos, ou
   /// `null` se não houver sessão guardada ou já tiver expirado.
@@ -47,6 +53,7 @@ class BackendService {
     _api.refreshToken = saved.refreshToken;
     try {
       _currentUser = _userFromProfile(await _api.getJson('/users/me'));
+      RealtimeService.instance.connect();
       return _currentUser;
     } catch (_) {
       // Tokens inválidos/expirados: limpa a sessão para não bloquear o arranque.
@@ -89,6 +96,7 @@ class BackendService {
     });
     await _storeTokens(json);
     _currentUser = await _resolveProfile(json['user'] as Map<String, dynamic>?);
+    RealtimeService.instance.connect();
     return _currentUser!;
   }
 
@@ -106,6 +114,7 @@ class BackendService {
     });
     await _storeTokens(json);
     _currentUser = await _resolveProfile(json['user'] as Map<String, dynamic>?);
+    RealtimeService.instance.connect();
     return _currentUser!;
   }
 
@@ -289,6 +298,47 @@ class BackendService {
       'categoryName': category,
     });
     return _feedFromContent(json);
+  }
+
+  /// Altera o estado de um conteúdo (ex.: submeter para revisão, publicar,
+  /// rejeitar, arquivar). Mapeia para `PATCH /contents/:id/status`. Ao rejeitar
+  /// ou devolver, `notes` transporta o motivo, que o backend inclui na
+  /// notificação enviada ao autor.
+  Future<void> changeContentStatus(String id, String status, {String? notes}) async {
+    if (id.isEmpty) return;
+    await _api.patchJson('/contents/$id/status', {
+      'status': status,
+      if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+    });
+  }
+
+  /// Conteúdos pendentes de aprovação (submetidos por Escritores). Requer perfil
+  /// com moderação (Admin+). Devolve `id`, `title`, `type` e `author` de cada um
+  /// — o suficiente para o painel de aprovação. Lista vazia se não houver ou o
+  /// backend estiver inacessível.
+  Future<List<PendingContent>> pendingContents() async {
+    if (!isAuthenticated) return const [];
+    try {
+      final json = await _api.getJson('/contents/manage', query: {
+        'status': 'PENDING_REVIEW',
+        'limit': '100',
+      });
+      final items = json['items'];
+      if (items is! List) return const [];
+      return items.whereType<Map<String, dynamic>>().map((c) {
+        final author = c['author'];
+        return PendingContent(
+          id: c['id']?.toString() ?? '',
+          title: c['title']?.toString() ?? 'Conteúdo',
+          author: author is Map ? author['name']?.toString() ?? 'Autor' : 'Autor',
+          type: c['type']?.toString() ?? 'ARTICLE',
+          excerpt: c['summary']?.toString() ?? c['body']?.toString() ?? '',
+          timeAgo: _relativeTime(c['updatedAt']?.toString() ?? c['createdAt']?.toString()),
+        );
+      }).where((p) => p.id.isNotEmpty).toList();
+    } catch (_) {
+      return const [];
+    }
   }
 
   Future<CommunityCategory> createCommunity({
@@ -769,7 +819,46 @@ class BackendService {
   Future<List<RankingUser>> ranking() async {
     try {
       final list = await _api.getList('/quizzes/rankings');
-      return list.whereType<Map<String, dynamic>>().map(_rankingFromJson).where((user) => !_isMockRankingUser(user)).toList();
+      // Mostra todos os utilizadores reais do backend, incluindo contas de
+      // teste/demonstração (ex.: "Escritor teste") — não são filtradas.
+      return list.whereType<Map<String, dynamic>>().map(_rankingFromJson).where((user) => user.name.trim().isNotEmpty).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Regista/alterna um gosto num conteúdo no backend. O backend faz upsert do
+  /// favorito e, quando é a primeira vez, notifica o autor do conteúdo.
+  /// Best-effort: silencia falhas (ex.: conteúdo que não é do tipo `content`,
+  /// como tópicos de fórum/quizzes cujo `id` não existe em `/contents`).
+  Future<void> favoriteContent(String contentId) async {
+    if (!isAuthenticated || contentId.isEmpty) return;
+    try {
+      await _api.postJson('/contents/$contentId/favorite', const {});
+    } catch (_) {
+      // Não bloqueia a UI otimista se o backend recusar (id não é conteúdo).
+    }
+  }
+
+  /// Publica um comentário de topo num conteúdo. O backend notifica o autor do
+  /// conteúdo. Devolve `true` se persistiu no servidor.
+  Future<bool> commentOnContent({required String contentId, required String text}) async {
+    if (!isAuthenticated || contentId.isEmpty || text.trim().isEmpty) return false;
+    try {
+      await _api.postJson('/comments', {'contentId': contentId, 'text': text.trim()});
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Comentários públicos de um conteúdo (autor, texto, data). Lista vazia
+  /// quando não há nenhum ou o backend está inacessível.
+  Future<List<Map<String, dynamic>>> contentComments(String contentId) async {
+    if (contentId.isEmpty) return const [];
+    try {
+      final list = await _api.getList('/comments/content/$contentId');
+      return list.whereType<Map<String, dynamic>>().toList();
     } catch (_) {
       return const [];
     }
@@ -813,8 +902,23 @@ class BackendService {
     });
   }
 
-  Future<void> forgotPassword(String email) async {
-    await _api.postJson('/auth/forgot-password', {'email': email.trim()});
+  /// Pede um link/token de recuperação de senha. A resposta é neutra
+  /// (anti-enumeração). Em ambiente não-produção, o backend devolve o
+  /// `resetToken` diretamente — usado para permitir concluir o fluxo na app
+  /// sem servidor de email. Devolve `null` quando não há token (produção).
+  Future<String?> forgotPassword(String email) async {
+    final json = await _api.postJson('/auth/forgot-password', {'email': email.trim().toLowerCase()});
+    final token = json['resetToken']?.toString();
+    return (token != null && token.isNotEmpty) ? token : null;
+  }
+
+  /// Aplica uma nova senha usando o token de recuperação. O token expira em 1h
+  /// e todas as sessões ativas são revogadas no sucesso.
+  Future<void> resetPassword({required String token, required String newPassword}) async {
+    await _api.postJson('/auth/reset-password', {
+      'token': token.trim(),
+      'newPassword': newPassword,
+    });
   }
 
   /// Termina a sessão no backend (best-effort) e limpa o estado local.
@@ -830,6 +934,7 @@ class BackendService {
     _api.accessToken = null;
     _api.refreshToken = null;
     _currentUser = null;
+    RealtimeService.instance.disconnect();
     await TokenStore.clear();
   }
 
@@ -866,6 +971,8 @@ class BackendService {
       }).toList()),
       course: json['school']?.toString() ?? 'Economia',
       email: json['email']?.toString() ?? '',
+      // Grau de Super Admin real (0 = fundador). `null` para os restantes papéis.
+      superAdminGrade: (json['superAdminGrade'] as num?)?.toInt(),
       // Só usa valores reais; sem inventar província/bio quando o backend não os tem.
       province: (province != null && province.isNotEmpty) ? province : '',
       bio: (bio != null && bio.trim().isNotEmpty) ? bio.trim() : null,
@@ -976,15 +1083,6 @@ class BackendService {
       if (name != null && name.isNotEmpty) return name;
     }
     return fallback;
-  }
-
-  bool _isMockRankingUser(RankingUser user) {
-    final name = user.name.trim().toLowerCase();
-    if (name.isEmpty || name.startsWith('mock ')) return true;
-    // Contas de teste/seed (ex.: "Stats Teste", "Stats Test", "Escritor Teste")
-    // não devem aparecer no ranking real. Considera qualquer nome que combine
-    // um marcador de teste ("test"/"teste") — em PT e EN — como fictício.
-    return name.contains('teste') || name.contains('test');
   }
 
   NotificationKind _notificationKind(String? type) {

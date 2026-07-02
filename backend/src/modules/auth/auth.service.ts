@@ -5,6 +5,7 @@ import { PermissionCode, RoleCode } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -15,6 +16,7 @@ type Principal = {
   email: string;
   roles: RoleCode[];
   permissions: PermissionCode[];
+  superAdminGrade: number | null;
 };
 
 @Injectable()
@@ -23,6 +25,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly mail: MailService,
   ) {}
 
   async register(dto: RegisterDto, userAgent?: string) {
@@ -109,9 +112,19 @@ export class AuthService {
     });
 
     const resetUrl = this.buildResetUrl(rawToken);
+
+    // Envia o email quando há SMTP configurado. Sem SMTP (ou fora de produção),
+    // devolvemos o token na resposta para o fluxo continuar funcional sem
+    // servidor de email — nunca em produção com SMTP ligado, para não vazar o
+    // token numa resposta HTTP.
+    const emailSent = this.mail.isConfigured
+      ? await this.mail.sendPasswordReset(user.email, resetUrl, rawToken)
+      : false;
+    const exposeToken = !emailSent && process.env.NODE_ENV !== 'production';
+
     return {
       message: 'If that email is registered, a reset link has been sent.',
-      ...(process.env.NODE_ENV === 'production' ? {} : { resetToken: rawToken, resetUrl }),
+      ...(exposeToken ? { resetToken: rawToken, resetUrl } : {}),
     };
   }
 
@@ -188,7 +201,7 @@ export class AuthService {
     user.roles.forEach((item) =>
       item.role.permissions.forEach((rolePermission) => permissions.add(rolePermission.permission.code)),
     );
-    return { id: user.id, email: user.email, roles, permissions: [...permissions] };
+    return { id: user.id, email: user.email, roles, permissions: [...permissions], superAdminGrade: user.superAdminGrade };
   }
 
   private hashToken(token: string) {

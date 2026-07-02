@@ -41,7 +41,8 @@ describe('AuthService', () => {
     configService = {
       get: jest.fn().mockImplementation((key: string, def?: unknown) => def ?? '15m'),
     } as unknown as jest.Mocked<ConfigService>;
-    service = new AuthService(prisma as never, jwtService, configService);
+    const mailService = { isConfigured: false, sendPasswordReset: jest.fn().mockResolvedValue(false) };
+    service = new AuthService(prisma as never, jwtService, configService, mailService as never);
   });
 
   describe('register', () => {

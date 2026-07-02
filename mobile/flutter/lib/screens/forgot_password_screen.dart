@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/routes/app_routes.dart';
 import '../services/backend_service.dart';
 import '../widgets/eh_button.dart';
 import '../widgets/screen_frame.dart';
@@ -28,15 +29,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
     setState(() => _loading = true);
+    String? devToken;
     try {
-      await BackendService.instance.forgotPassword(email);
+      // Em ambiente de desenvolvimento o backend devolve o token diretamente,
+      // permitindo concluir a redefinição sem servidor de email.
+      devToken = await BackendService.instance.forgotPassword(email);
     } catch (_) {
       // O endpoint responde de forma neutra; ignoramos falhas de rede aqui.
     }
     if (!mounted) return;
     setState(() => _loading = false);
     _snack('Se o email existir, enviámos um link de recuperação.');
-    Navigator.pop(context);
+    // Avança para a redefinição. Com token de dev, pré-preenche-o; caso
+    // contrário o utilizador cola o código recebido por email.
+    Navigator.pushReplacementNamed(context, AppRoutes.resetPassword, arguments: devToken);
   }
 
   void _snack(String message) {

@@ -177,6 +177,7 @@ model User {
   emailVerifiedAt DateTime?
   lastLoginAt     DateTime?
   isActive        Boolean   @default(true)
+  superAdminGrade Int?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   deletedAt       DateTime?
@@ -184,6 +185,7 @@ model User {
   roles                UserRole[]
   refreshTokens        RefreshToken[]
   authoredContents     Content[]             @relation("ContentAuthor")
+  reviewedContents     Content[]             @relation("ContentReviewer")
   comments             Comment[]
   topics               Topic[]
   topicReplies         TopicReply[]
@@ -383,11 +385,15 @@ model Content {
   publishedAt       DateTime?
   authorId          String        @db.Uuid
   categoryId        String?       @db.Uuid
+  reviewNotes       String?
+  reviewedById      String?       @db.Uuid
+  reviewedAt        DateTime?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   deletedAt         DateTime?
 
   author       User         @relation("ContentAuthor", fields: [authorId], references: [id])
+  reviewer     User?        @relation("ContentReviewer", fields: [reviewedById], references: [id])
   category     Category?    @relation(fields: [categoryId], references: [id])
   tags         ContentTag[]
   comments     Comment[]

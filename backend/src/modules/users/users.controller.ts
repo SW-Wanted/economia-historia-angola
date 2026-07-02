@@ -66,7 +66,7 @@ export class UsersController {
     @Param('id') targetId: string,
     @Body() dto: UpdateUserStatusDto,
   ) {
-    return this.users.updateStatus(user.id, targetId, dto);
+    return this.users.updateStatus(user, targetId, dto);
   }
 
   @ApiOperation({

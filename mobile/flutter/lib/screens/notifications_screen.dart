@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
 import '../models/notification_item.dart';
 import '../services/backend_service.dart';
+import '../services/realtime_service.dart';
 import '../widgets/app_loading_indicator.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/notification_tile.dart';
@@ -17,11 +20,25 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   List<NotificationItem>? _items; // null enquanto carrega
+  StreamSubscription<NotificationItem>? _liveSub;
 
   @override
   void initState() {
     super.initState();
     _load();
+    // Garante a ligação realtime e adiciona novas notificações ao topo assim que
+    // chegam (push do backend), sem o utilizador precisar de recarregar.
+    RealtimeService.instance.connect();
+    _liveSub = RealtimeService.instance.onNotification.listen((item) {
+      if (!mounted) return;
+      setState(() => _items = [item, ...?_items]);
+    });
+  }
+
+  @override
+  void dispose() {
+    _liveSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {

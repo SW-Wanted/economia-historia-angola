@@ -36,6 +36,7 @@ import '../../screens/onboarding_screen.dart';
 import '../../screens/pending_reports_screen.dart';
 import '../../screens/private_forum_access_screen.dart';
 import '../../screens/private_rooms_screen.dart';
+import '../../screens/reset_password_screen.dart';
 import '../../models/discussion_room.dart';
 import '../../screens/profile_screen.dart';
 import '../../screens/province_contents_screen.dart';
@@ -75,6 +76,7 @@ class AppRoutes {
   static const register2 = '/register/2';
   static const register3 = '/register/3';
   static const forgotPassword = '/forgot-password';
+  static const resetPassword = '/reset-password';
   static const quickStart = '/quick-start';
   static const dashboard = '/dashboard';
   static const explore = '/explore';
@@ -139,6 +141,8 @@ class AppRoutes {
       register2 => const RegisterScreen(step: 2),
       register3 => const RegisterScreen(step: 3),
       forgotPassword => const ForgotPasswordScreen(),
+      resetPassword => ResetPasswordScreen(
+          token: settings.arguments is String ? settings.arguments as String : null),
       quickStart => const QuickStartScreen(),
       dashboard => const DashboardScreen(),
       explore => const ExploreScreen(),

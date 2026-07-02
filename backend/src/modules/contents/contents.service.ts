@@ -155,7 +155,7 @@ export class ContentsService {
     return { items, total, page: query.page, limit: query.limit };
   }
 
-  async changeStatus(user: AuthUser, id: string, status: ContentStatus) {
+  async changeStatus(user: AuthUser, id: string, status: ContentStatus, notes?: string) {
     const content = await this.prisma.content.findFirst({ where: { id, deletedAt: null } });
     if (!content) throw new NotFoundException('Conteúdo não encontrado.');
 
@@ -185,6 +185,16 @@ export class ContentsService {
         deny();
     }
 
+    // Uma decisão de revisão (por um moderador que não é o autor) regista quem
+    // reviu, quando e com que notas — usadas para notificar o autor e para o
+    // histórico. As notas são preservadas se a transição não as fornecer.
+    const isReviewDecision =
+      !isOwner &&
+      (status === ContentStatus.PUBLISHED ||
+        status === ContentStatus.REJECTED ||
+        status === ContentStatus.DRAFT);
+
+    const trimmedNotes = notes?.trim();
     const data: Prisma.ContentUpdateInput = { status };
     if (status === ContentStatus.PUBLISHED && !content.publishedAt) {
       data.publishedAt = new Date();
@@ -192,8 +202,38 @@ export class ContentsService {
     if (status !== ContentStatus.PUBLISHED) {
       data.publishedAt = null;
     }
+    if (isReviewDecision) {
+      data.reviewer = { connect: { id: user.id } };
+      data.reviewedAt = new Date();
+      data.reviewNotes = trimmedNotes && trimmedNotes.length > 0 ? trimmedNotes : null;
+    }
 
-    return this.prisma.content.update({ where: { id }, data, include: MANAGE_INCLUDE });
+    const updated = await this.prisma.content.update({ where: { id }, data, include: MANAGE_INCLUDE });
+
+    if (isReviewDecision) {
+      void this.notifyAuthorOfReview(content.authorId, updated.title, status, trimmedNotes).catch(() => void 0);
+    }
+
+    return updated;
+  }
+
+  /// Notifica o autor sobre a decisão de revisão (aprovado / rejeitado /
+  /// devolvido). Best-effort: uma falha na notificação não desfaz a transição.
+  private async notifyAuthorOfReview(
+    authorId: string,
+    title: string,
+    status: ContentStatus,
+    notes?: string,
+  ) {
+    const decision =
+      status === ContentStatus.PUBLISHED
+        ? { title: 'Conteúdo aprovado', body: `"${title}" foi aprovado e publicado.` }
+        : status === ContentStatus.REJECTED
+          ? { title: 'Conteúdo rejeitado', body: `"${title}" foi rejeitado.` }
+          : { title: 'Conteúdo devolvido', body: `"${title}" foi devolvido para revisão.` };
+
+    const body = notes && notes.length > 0 ? `${decision.body}\nMotivo: ${notes}` : decision.body;
+    await this.notifications.create(authorId, NotificationType.MODERATION, decision.title, body, { status });
   }
 
   async remove(user: AuthUser, id: string) {

@@ -23,4 +23,13 @@ export const configuration = () => ({
     apiKey: process.env.GEMINI_API_KEY,
     model: process.env.GEMINI_MODEL ?? 'gemini-2.5-flash',
   },
+  mail: {
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT ?? 587),
+    secure: process.env.SMTP_SECURE === 'true',
+    user: process.env.SMTP_USER,
+    // Aceita SMTP_PASSWORD ou o alias SMTP_PASS (nome comum em snippets Brevo).
+    password: process.env.SMTP_PASSWORD ?? process.env.SMTP_PASS,
+    from: process.env.MAIL_FROM ?? 'Economia com História <no-reply@economiahistoria.ao>',
+  },
 });
