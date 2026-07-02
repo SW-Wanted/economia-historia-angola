@@ -8,6 +8,7 @@ import '../models/app_user.dart';
 import '../models/community_category.dart';
 import '../models/content_item.dart';
 import '../models/content_report.dart';
+import '../models/discussion_room.dart';
 import '../models/feed.dart';
 import '../models/forum_topic.dart';
 import '../models/landing_stats.dart';
@@ -331,6 +332,49 @@ class BackendService {
 
   Future<void> leaveCommunity(String id) async {
     await _api.delete('/communities/$id/membership');
+  }
+
+  // ------------------------------------------------------- Salas privadas
+
+  Future<List<DiscussionRoom>> rooms() async {
+    final list = await _api.getList('/comments/rooms');
+    return list.whereType<Map<String, dynamic>>().map(DiscussionRoom.fromJson).toList();
+  }
+
+  Future<DiscussionRoom> createRoom({required String name, String? description}) async {
+    final json = await _api.postJson('/comments/rooms', {
+      'name': name.trim(),
+      if (description != null && description.trim().isNotEmpty) 'description': description.trim(),
+    });
+    return DiscussionRoom.fromJson(json);
+  }
+
+  Future<DiscussionRoom> roomDetail(String roomId) async {
+    return DiscussionRoom.fromJson(await _api.getJson('/comments/rooms/$roomId/detail'));
+  }
+
+  Future<List<RoomParticipant>> roomParticipants(String roomId) async {
+    final json = await _api.getJson('/comments/rooms/$roomId/detail');
+    final list = json['participants'];
+    if (list is! List) return const [];
+    return list.whereType<Map<String, dynamic>>().map(RoomParticipant.fromJson).toList();
+  }
+
+  Future<List<RoomMessage>> roomMessages(String roomId) async {
+    final list = await _api.getList('/comments/rooms/$roomId');
+    return list.whereType<Map<String, dynamic>>().map(RoomMessage.fromJson).toList();
+  }
+
+  Future<void> sendRoomMessage({required String roomId, required String text}) async {
+    await _api.postJson('/comments', {'roomId': roomId, 'text': text.trim()});
+  }
+
+  Future<void> inviteRoomParticipant({required String roomId, required String email}) async {
+    await _api.postJson('/comments/rooms/$roomId/invite', {'email': email.trim().toLowerCase()});
+  }
+
+  Future<void> removeRoomParticipant({required String roomId, required String userId}) async {
+    await _api.delete('/comments/rooms/$roomId/participants/$userId');
   }
 
   Future<void> createForumTopic({
