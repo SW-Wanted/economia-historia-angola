@@ -38,7 +38,10 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             )
           : null,
       automaticallyImplyLeading: false,
-      title: Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontSize: 17)),
+      centerTitle: false,
+      title: Text(title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.w800)),
       actions: [
         // O sino de notificações só aparece nas páginas-raiz (sem botão de
         // voltar), onde faz sentido. Nas páginas secundárias o cabeçalho fica
