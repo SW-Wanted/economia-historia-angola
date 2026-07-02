@@ -22,6 +22,14 @@ class FeedService {
   /// sugerir quizzes e conteúdos "baseados nas suas leituras".
   List<String> readingHistory = const ['Agricultura', 'Moeda & Finanças'];
 
+  /// Comunidades em que o utilizador está inserido — o feed também mostra o que
+  /// é publicado nelas (estilo Reddit `eh/…`).
+  List<String> userCommunities = const ['História Económica', 'Economia Aplicada', 'Núcleo Jindungo'];
+
+  /// Comunidades que o utilizador gere/possui e onde pode publicar conteúdos.
+  /// Se estiver vazia, o seletor de comunidade fica inativo na criação.
+  List<String> ownedCommunities = const ['História Económica', 'Economia Aplicada'];
+
   bool get _hasSignal => favoriteCategories.isNotEmpty || readingHistory.isNotEmpty;
 
   // --------------------------------------------------------------- Catálogo
@@ -37,7 +45,7 @@ class FeedService {
       id: 'a1', type: FeedContentType.article, scene: EhScene.currency,
       title: 'O que é o Kwanza? A moeda como soberania',
       subtitle: 'Da independência às redenominações: a moeda nacional e as escolhas económicas do país.',
-      category: 'Moeda & Finanças', author: 'Prof. Carlos Lopes', minutes: 5,
+      category: 'Moeda & Finanças', author: 'Prof. Carlos Lopes', authorRole: 'Editor-chefe', minutes: 5,
       publishedAt: _daysAgo(2), views: 3240, likes: 412, comments: 58, shares: 96, viewGrowth: 74,
       readProgress: .35,
     ),
@@ -45,14 +53,14 @@ class FeedService {
       id: 'a2', type: FeedContentType.article, scene: EhScene.market,
       title: 'Caminho de Ferro de Benguela: o corredor que redesenhou o comércio',
       subtitle: 'Infraestrutura, exportação e a geografia económica do centro de Angola no século XX.',
-      category: 'Infraestrutura', author: 'Ana Muachia', minutes: 8,
+      category: 'Infraestrutura', author: 'Ana Muachia', authorRole: 'Historiadora', minutes: 8,
       publishedAt: _daysAgo(5), views: 5120, likes: 690, comments: 84, shares: 172, viewGrowth: 41,
     ),
     FeedContent(
       id: 'a3', type: FeedContentType.article, scene: EhScene.rubber,
       title: 'O ciclo do café que transformou o norte de Angola',
       subtitle: 'Como uma cultura de exportação moldou infraestrutura, emprego e dependência externa.',
-      category: 'Agricultura', author: 'Dr. Kambinda', minutes: 6,
+      category: 'Agricultura', author: 'Dr. Kambinda', authorRole: 'Escritor convidado', minutes: 6,
       publishedAt: _daysAgo(1), views: 2180, likes: 301, comments: 44, shares: 63, viewGrowth: 88,
       readProgress: .6,
     ),
@@ -60,7 +68,7 @@ class FeedService {
       id: 'a4', type: FeedContentType.jindungo, scene: EhScene.institution,
       title: 'Textos Jindungo: Petróleo e poder',
       subtitle: 'A renda do petróleo é uma bênção que cobra juros — financia o presente e hipoteca o futuro.',
-      category: 'Petróleo', author: 'Dr. Kambinda', minutes: 12,
+      category: 'Petróleo', author: 'Dr. Kambinda', authorRole: 'Escritor convidado', minutes: 12,
       publishedAt: _daysAgo(3), views: 4870, likes: 980, comments: 214, shares: 340, viewGrowth: 120,
       locked: true,
     ),
@@ -68,64 +76,128 @@ class FeedService {
       id: 'a5', type: FeedContentType.article, scene: EhScene.institution,
       title: 'Economia colonial: as raízes das assimetrias regionais',
       subtitle: 'Concessões, trabalho forçado e as estruturas que ainda hoje marcam o território.',
-      category: 'Economia Colonial', author: 'Prof. Carlos Lopes', minutes: 9,
+      category: 'Economia Colonial', author: 'Prof. Carlos Lopes', authorRole: 'Editor-chefe', minutes: 9,
       publishedAt: _daysAgo(4), views: 3960, likes: 540, comments: 72, shares: 128, viewGrowth: 52,
     ),
     FeedContent(
       id: 'a6', type: FeedContentType.article, scene: EhScene.map,
       title: 'Rotas de comércio no século XIX: do interior ao litoral',
       subtitle: 'Como as rotas comerciais moldaram estruturas de poder e mercados regionais.',
-      category: 'Comércio', author: 'Beatriz Neto', minutes: 7,
+      category: 'Comércio', author: 'Beatriz Neto', authorRole: 'Investigadora', minutes: 7,
       publishedAt: _daysAgo(12), views: 2760, likes: 288, comments: 36, shares: 54, viewGrowth: 18,
     ),
     FeedContent(
       id: 'a7', type: FeedContentType.article, scene: EhScene.market,
       title: 'O comércio no Reino do Kongo',
       subtitle: 'Trocas, moeda-mercadoria e a organização económica antes da colonização.',
-      category: 'História de Angola', author: 'Beatriz Neto', minutes: 6,
+      category: 'História de Angola', author: 'Beatriz Neto', authorRole: 'Investigadora', minutes: 6,
       publishedAt: _daysAgo(8), views: 3410, likes: 470, comments: 61, shares: 110, viewGrowth: 35,
     ),
     FeedContent(
       id: 'a8', type: FeedContentType.article, scene: EhScene.currency,
       title: 'Reformas monetárias do Kwanza: 1990–1999',
       subtitle: 'Como as redenominações refletiram ciclos de inflação e estabilização.',
-      category: 'Moeda & Finanças', author: 'Dr. Kambinda', minutes: 7,
+      category: 'Moeda & Finanças', author: 'Dr. Kambinda', authorRole: 'Escritor convidado', minutes: 7,
       publishedAt: _daysAgo(20), views: 1980, likes: 210, comments: 29, shares: 41, viewGrowth: 9,
     ),
     FeedContent(
       id: 'a9', type: FeedContentType.article, scene: EhScene.rubber,
       title: 'Agricultura e desenvolvimento regional no interior',
       subtitle: 'O papel do café, da mandioca e da pecuária nas províncias do interior.',
-      category: 'Agricultura', author: 'Beatriz Neto', minutes: 6,
+      category: 'Agricultura', author: 'Beatriz Neto', authorRole: 'Investigadora', minutes: 6,
       publishedAt: _daysAgo(6), views: 2510, likes: 260, comments: 33, shares: 58, viewGrowth: 47,
     ),
     FeedContent(
       id: 'a10', type: FeedContentType.article, scene: EhScene.institution,
       title: 'Diversificação: para lá da dependência do petróleo',
       subtitle: 'Renda petrolífera, doença holandesa e os desafios de uma economia mais equilibrada.',
-      category: 'Economia Política', author: 'Prof. Carlos Lopes', minutes: 10,
+      category: 'Economia Política', author: 'Prof. Carlos Lopes', authorRole: 'Editor-chefe', minutes: 10,
       publishedAt: _daysAgo(0), views: 890, likes: 96, comments: 12, shares: 20, viewGrowth: 95,
+    ),
+    // ----- Publicações de comunidades onde o utilizador está inserido -----
+    FeedContent(
+      id: 'c1', type: FeedContentType.article, scene: EhScene.market,
+      title: 'Debate da semana: a ferrovia mudou mesmo o interior?',
+      subtitle: 'Membros partilham fontes e perspetivas sobre o impacto do Caminho de Ferro de Benguela.',
+      category: 'Infraestrutura', author: 'Ana Muachia', authorRole: 'Moderadora', minutes: 5,
+      publishedAt: _daysAgo(1), views: 1240, likes: 176, comments: 53, shares: 21, viewGrowth: 66,
+      community: 'História Económica',
+    ),
+    FeedContent(
+      id: 'c2', type: FeedContentType.article, scene: EhScene.currency,
+      title: 'Como explicar inflação estrutural a estudantes?',
+      subtitle: 'Fio de discussão com exemplos práticos aplicados à realidade angolana.',
+      category: 'Economia Política', author: 'João Domingos', authorRole: 'Membro', minutes: 4,
+      publishedAt: _daysAgo(2), views: 980, likes: 142, comments: 38, shares: 12, viewGrowth: 44,
+      community: 'Economia Aplicada',
+    ),
+    FeedContent(
+      id: 'c3', type: FeedContentType.article, scene: EhScene.institution,
+      title: 'Sessão fechada: renda petrolífera e políticas cambiais',
+      subtitle: 'Análise reservada aos membros aprovados do núcleo de pesquisa.',
+      category: 'Petróleo', author: 'Dr. Kambinda', authorRole: 'Curador', minutes: 9,
+      publishedAt: _daysAgo(3), views: 640, likes: 98, comments: 27, shares: 8, viewGrowth: 33,
+      community: 'Núcleo Jindungo', communityPrivate: true,
+    ),
+    // ----- Fóruns de debate (livres ou de comunidade) -----
+    FeedContent(
+      id: 'f1', type: FeedContentType.forum, scene: EhScene.market,
+      title: 'O comércio pré-colonial foi subestimado pela historiografia?',
+      subtitle: 'Debate aberto sobre as redes de troca no território antes da colonização.',
+      category: 'História de Angola', author: 'Beatriz Neto', authorRole: 'Membro', minutes: 2,
+      publishedAt: _daysAgo(0), views: 720, likes: 88, comments: 41, shares: 12, viewGrowth: 72,
+    ),
+    FeedContent(
+      id: 'f2', type: FeedContentType.forum, scene: EhScene.currency,
+      title: 'Kwanza digital: solução ou miragem para a inflação?',
+      subtitle: 'Fio de debate com dezenas de participações na comunidade.',
+      category: 'Moeda & Finanças', author: 'João Domingos', authorRole: 'Membro', minutes: 3,
+      publishedAt: _daysAgo(1), views: 1980, likes: 214, comments: 132, shares: 40, viewGrowth: 84,
+      community: 'Economia Aplicada',
+    ),
+    FeedContent(
+      id: 'f3', type: FeedContentType.forum, scene: EhScene.institution,
+      title: 'Diamantes vs petróleo: qual moldou mais a economia angolana?',
+      subtitle: 'Discussão viral — está a atrair participações de toda a comunidade.',
+      category: 'Economia Política', author: 'Carlos Lopes', authorRole: 'Admin', minutes: 3,
+      publishedAt: _daysAgo(2), views: 6100, likes: 940, comments: 388, shares: 260, viewGrowth: 150,
+    ),
+    FeedContent(
+      id: 'f4', type: FeedContentType.forum, scene: EhScene.institution,
+      title: 'Sessão fechada: política monetária e câmbio',
+      subtitle: 'Debate reservado aos membros aprovados da comunidade privada.',
+      category: 'Moeda & Finanças', author: 'Dr. Kambinda', authorRole: 'Curador', minutes: 4,
+      publishedAt: _daysAgo(2), views: 520, likes: 74, comments: 33, shares: 9, viewGrowth: 48,
+      community: 'Núcleo Jindungo', communityPrivate: true,
+    ),
+    // ----- Vídeos -----
+    FeedContent(
+      id: 'v1', type: FeedContentType.video, scene: EhScene.institution,
+      title: 'Documentário: o Kwanza e a construção da soberania económica',
+      subtitle: 'Curta em vídeo sobre a criação da moeda nacional e as suas reformas.',
+      category: 'Moeda & Finanças', author: 'EH Vídeo', authorRole: 'Produção', minutes: 14,
+      publishedAt: _daysAgo(2), views: 2870, likes: 356, comments: 41, shares: 88, viewGrowth: 69,
     ),
     // ----- Podcasts -----
     FeedContent(
       id: 'p1', type: FeedContentType.podcast, scene: EhScene.podcast,
       title: 'Conversas com História: a economia do café',
       subtitle: 'Episódio 12 · Especialistas debatem o auge e o declínio do café angolano.',
-      category: 'Agricultura', author: 'Rádio EH', minutes: 28,
+      category: 'Agricultura', author: 'Rádio EH', authorRole: 'Podcast oficial', minutes: 28,
       publishedAt: _daysAgo(3), views: 1620, likes: 240, comments: 18, shares: 44, viewGrowth: 63,
     ),
     FeedContent(
       id: 'p2', type: FeedContentType.podcast, scene: EhScene.podcast,
       title: 'O Kwanza em três atos',
       subtitle: 'Episódio 9 · A história da moeda contada por quem a estuda.',
-      category: 'Moeda & Finanças', author: 'Rádio EH', minutes: 22,
+      category: 'Moeda & Finanças', author: 'Rádio EH', authorRole: 'Podcast oficial', minutes: 22,
       publishedAt: _daysAgo(9), views: 2040, likes: 310, comments: 26, shares: 70, viewGrowth: 30,
     ),
     FeedContent(
       id: 'p3', type: FeedContentType.podcast, scene: EhScene.podcast,
       title: 'Corredores de exportação: Lobito e o mundo',
       subtitle: 'Episódio 7 · Infraestrutura, portos e comércio regional.',
-      category: 'Infraestrutura', author: 'Rádio EH', minutes: 31,
+      category: 'Infraestrutura', author: 'Rádio EH', authorRole: 'Podcast oficial', minutes: 31,
       publishedAt: _daysAgo(2), views: 980, likes: 120, comments: 9, shares: 22, viewGrowth: 58,
     ),
     // ----- Quizzes -----
@@ -133,27 +205,76 @@ class FeedService {
       id: 'q1', type: FeedContentType.quiz, scene: EhScene.rubber,
       title: 'Quiz: O café em Angola',
       subtitle: '5 perguntas · Teste o que aprendeu sobre o ciclo do café.',
-      category: 'Agricultura', author: 'Equipa EH', minutes: 3,
+      category: 'Agricultura', author: 'Equipa EH', authorRole: 'Equipa editorial', minutes: 3,
       publishedAt: _daysAgo(1), views: 1450, likes: 180, comments: 0, shares: 15, viewGrowth: 70,
     ),
     FeedContent(
       id: 'q2', type: FeedContentType.quiz, scene: EhScene.currency,
       title: 'Quiz: A história do Kwanza',
       subtitle: '6 perguntas · Da criação às reformas monetárias.',
-      category: 'Moeda & Finanças', author: 'Equipa EH', minutes: 4,
+      category: 'Moeda & Finanças', author: 'Equipa EH', authorRole: 'Equipa editorial', minutes: 4,
       publishedAt: _daysAgo(4), views: 1210, likes: 140, comments: 0, shares: 11, viewGrowth: 40,
     ),
     FeedContent(
       id: 'q3', type: FeedContentType.quiz, scene: EhScene.market,
       title: 'Quiz: Rotas e comércio',
       subtitle: '5 perguntas · Do Reino do Kongo às ferrovias do século XX.',
-      category: 'Comércio', author: 'Equipa EH', minutes: 3,
+      category: 'Comércio', author: 'Equipa EH', authorRole: 'Equipa editorial', minutes: 3,
       publishedAt: _daysAgo(7), views: 760, likes: 88, comments: 0, shares: 7, viewGrowth: 25,
     ),
   ];
 
   List<FeedContent> get _articles =>
       _catalog.where((c) => c.type == FeedContentType.article || c.type == FeedContentType.jindungo).toList();
+
+  /// Títulos dos artigos — usados, por exemplo, para associar um artigo a um
+  /// fórum de debate na sua criação.
+  List<String> get articleTitles => _articles.map((c) => c.title).toList();
+
+  /// Todo o catálogo (leitura), para ecrãs como o Explorar.
+  List<FeedContent> get catalog => List.unmodifiable(_catalog);
+
+  /// Constrói uma entrada de feed (conteúdo + motivo) para um conteúdo — reutiliza
+  /// as mesmas regras de rotulagem do feed principal.
+  FeedEntry entryFor(FeedContent c) => FeedEntry(
+        content: c,
+        reason: _discoverReason(c),
+        reasonCategory: _fromMyCommunity(c) ? c.communityHandle : null,
+      );
+
+  /// Pontuação de viralidade (para ordenar conteúdos/fóruns "virais").
+  double viralScore(FeedContent c) => _trendScore(c);
+
+  // -------------------------------------------------- Categorias do Explorar
+
+  /// Score de sugestão: popularidade + recência + afinidade com os interesses.
+  double _suggestScore(FeedContent c) {
+    final interest = favoriteCategories.contains(c.category) || readingHistory.contains(c.category);
+    return _popularity(c) + _recency(c) * 25 + (interest ? 2500 : 0);
+  }
+
+  /// Tudo (mais recente primeiro).
+  List<FeedContent> exploreAll() =>
+      [..._catalog]..sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
+
+  /// Virais — maior pontuação de tendência primeiro.
+  List<FeedContent> exploreViral() =>
+      [..._catalog]..sort((a, b) => _trendScore(b).compareTo(_trendScore(a)));
+
+  /// Novos — publicados há menos tempo primeiro.
+  List<FeedContent> exploreNew() =>
+      [..._catalog]..sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
+
+  /// Do interesse do utilizador — categorias favoritas ou já lidas.
+  List<FeedContent> exploreForYou() {
+    final interests = {...favoriteCategories, ...readingHistory};
+    return _catalog.where((c) => interests.contains(c.category)).toList()
+      ..sort((a, b) => (_popularity(b) + _recency(b) * 30).compareTo(_popularity(a) + _recency(a) * 30));
+  }
+
+  /// Sugeridos — mistura de popularidade, recência e afinidade.
+  List<FeedContent> exploreSuggested() =>
+      [..._catalog]..sort((a, b) => _suggestScore(b).compareTo(_suggestScore(a)));
 
   // --------------------------------------------------------------- Métricas
 
@@ -307,7 +428,7 @@ class FeedService {
   static const int _pageSize = 5;
 
   /// Número máximo de páginas do feed de descoberta antes do rodapé.
-  int get maxDiscoverPages => 4;
+  int get maxDiscoverPages => 8;
 
   bool hasMoreDiscover(int page) => page < maxDiscoverPages;
 
@@ -317,20 +438,39 @@ class FeedService {
   /// dar a sensação de descoberta contínua (scroll infinito).
   List<FeedEntry> discoverPage(int page, {int seed = 0}) {
     final pageSeed = seed + page * 97;
-    final ranked = [..._catalog]..sort((a, b) => (_popularity(b) +
-            _recency(b) * 25 +
-            _jitter(b, pageSeed) * 60)
-        .compareTo(_popularity(a) + _recency(a) * 25 + _jitter(a, pageSeed) * 60));
+    double score(FeedContent c) {
+      final interest = favoriteCategories.contains(c.category) || readingHistory.contains(c.category);
+      final fromMyCommunity = c.community != null && userCommunities.contains(c.community);
+      return _popularity(c) +
+          _recency(c) * 25 +
+          (interest ? 3000 : 0) +
+          (fromMyCommunity ? 3500 : 0) +
+          _jitter(c, pageSeed) * 60;
+    }
+
+    final ranked = [..._catalog]..sort((a, b) => score(b).compareTo(score(a)));
     final diversified = _diversify(ranked);
     final start = (page * _pageSize) % diversified.length;
     final window = <FeedContent>[];
     for (var i = 0; i < _pageSize; i++) {
       window.add(diversified[(start + i) % diversified.length]);
     }
-    return [for (final c in window) FeedEntry(content: c, reason: _discoverReason(c))];
+    return [
+      for (final c in window)
+        FeedEntry(
+          content: c,
+          reason: _discoverReason(c),
+          reasonCategory: _fromMyCommunity(c) ? c.communityHandle : null,
+        ),
+    ];
   }
 
+  bool _fromMyCommunity(FeedContent c) => c.community != null && userCommunities.contains(c.community);
+
   FeedReason _discoverReason(FeedContent c) {
+    if (_fromMyCommunity(c)) return FeedReason.community;
+    // Conteúdo/debate viral aparece como tendência, mesmo fora das favoritas.
+    if (c.viewGrowth >= 80) return FeedReason.trending;
     if (!favoriteCategories.contains(c.category) && !readingHistory.contains(c.category)) {
       return FeedReason.discover;
     }
