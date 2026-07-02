@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PermissionCode } from '@prisma/client';
 import { AuthUser, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { AdminListUsersDto } from './dto/admin-list-users.dto';
+import { SetUserRoleDto } from './dto/set-user-role.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { UsersService } from './users.service';
@@ -44,6 +45,12 @@ export class UsersController {
     return this.users.favorites(user.id);
   }
 
+  @ApiOperation({ summary: 'Get own profile stats', description: 'Aggregated counters: points, rank, contentsCompleted, quizzesTaken.' })
+  @Get('me/stats')
+  stats(@CurrentUser() user: AuthUser) {
+    return this.users.stats(user.id);
+  }
+
   @ApiOperation({ summary: '[Admin] List all users (paginated)', description: 'Query params: ?search= (name), ?isActive= (boolean), ?page=, ?limit=' })
   @Permissions(PermissionCode.USER_MANAGE)
   @Get()
@@ -60,5 +67,26 @@ export class UsersController {
     @Body() dto: UpdateUserStatusDto,
   ) {
     return this.users.updateStatus(user.id, targetId, dto);
+  }
+
+  @ApiOperation({
+    summary: '[Admin] Promote or demote a user',
+    description:
+      'Replaces the target user role. A Super Admin can never be modified; only a Super Admin may grant/revoke admin-level roles.',
+  })
+  @Permissions(PermissionCode.USER_MANAGE)
+  @Patch(':id/role')
+  setRole(@CurrentUser() user: AuthUser, @Param('id') targetId: string, @Body() dto: SetUserRoleDto) {
+    return this.users.setRole(user, targetId, dto.role);
+  }
+
+  @ApiOperation({
+    summary: '[Admin] Remove (soft-delete) a user account',
+    description: 'A Super Admin can never be removed; only a Super Admin may remove an Admin.',
+  })
+  @Permissions(PermissionCode.USER_MANAGE)
+  @Delete(':id')
+  remove(@CurrentUser() user: AuthUser, @Param('id') targetId: string) {
+    return this.users.removeUser(user, targetId);
   }
 }

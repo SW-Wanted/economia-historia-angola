@@ -7,14 +7,36 @@ import { extractList } from '../services/types/api.types'
 import type { ContentType } from '../services/types/api.types'
 import { getErrorMessage } from '../utils/errors'
 import { useAuth, canPublishContent } from '../contexts/AuthContext'
+import FileUpload from '../components/ui/FileUpload'
+import {
+  IMAGE_CONSTRAINTS,
+  DOCUMENT_CONSTRAINTS,
+  VIDEO_CONSTRAINTS,
+  AUDIO_CONSTRAINTS,
+  type FileConstraints,
+} from '../services/api/upload.service'
 
-type FormType = 'Microtexto' | 'Jindungo' | 'Documento de Arquivo'
+type FormType = 'Microtexto' | 'Jindungo' | 'Documento de Arquivo' | 'Vídeo' | 'Podcast'
 
 const TYPE_MAP: Record<FormType, { type: ContentType; isJindungo?: boolean }> = {
   'Microtexto': { type: 'MICROTEXT' },
   'Jindungo': { type: 'ARTICLE', isJindungo: true },
   'Documento de Arquivo': { type: 'PDF' },
+  'Vídeo': { type: 'VIDEO' },
+  'Podcast': { type: 'AUDIO' },
 }
+
+// Configuração do ficheiro principal exigido por cada tipo de conteúdo.
+const MEDIA_CONFIG: Partial<
+  Record<FormType, { label: string; hint: string; variant: 'image' | 'document'; constraints: FileConstraints }>
+> = {
+  'Documento de Arquivo': { label: 'Ficheiro PDF', hint: 'PDF ou Word · máx. 15 MB', variant: 'document', constraints: DOCUMENT_CONSTRAINTS },
+  'Vídeo': { label: 'Ficheiro de Vídeo', hint: 'MP4, WebM ou MOV · máx. 200 MB', variant: 'document', constraints: VIDEO_CONSTRAINTS },
+  'Podcast': { label: 'Ficheiro de Áudio', hint: 'MP3, WAV ou OGG · máx. 50 MB', variant: 'document', constraints: AUDIO_CONSTRAINTS },
+}
+
+// Tipos que dispensam corpo de texto (o conteúdo é o próprio ficheiro).
+const MEDIA_ONLY: FormType[] = ['Vídeo', 'Podcast']
 
 interface Category { id: string; name: string; slug: string }
 
@@ -27,9 +49,14 @@ export default function SubmeterArtigo() {
   const [body, setBody] = useState('')
   const [summary, setSummary] = useState('')
   const [categoryId, setCategoryId] = useState('')
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null)
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [categories, setCategories] = useState<Category[]>([])
+
+  const mediaConfig = MEDIA_CONFIG[contentType]
+  const isMediaOnly = MEDIA_ONLY.includes(contentType)
 
   useEffect(() => {
     contentService.list({ limit: 50 })
@@ -52,7 +79,8 @@ export default function SubmeterArtigo() {
     e.preventDefault()
     setError('')
     if (!title.trim()) { setError('O título é obrigatório.'); return }
-    if (!body.trim()) { setError('O conteúdo é obrigatório.'); return }
+    if (!isMediaOnly && !body.trim()) { setError('O conteúdo é obrigatório.'); return }
+    if (mediaConfig && !mediaUrl) { setError(`Anexe o ${mediaConfig.label.toLowerCase()}.`); return }
 
     const mapped = TYPE_MAP[contentType]
     setLoading(true)
@@ -62,10 +90,12 @@ export default function SubmeterArtigo() {
         slug: slugify(title.trim()) + '-' + Date.now().toString(36),
         type: mapped.type,
         summary: summary.trim() || undefined,
-        body: body.trim(),
+        body: body.trim() || undefined,
         visibility: mapped.isJindungo ? 'AUTHENTICATED' : 'PUBLIC',
         isJindungo: mapped.isJindungo,
         categoryId: categoryId || undefined,
+        thumbnailUrl: thumbnailUrl || undefined,
+        mediaUrl: mediaUrl || undefined,
       })
       navigate('/confirmacao/publicacao', { state: { isPublisher } })
     } catch (err: unknown) {
@@ -92,7 +122,7 @@ export default function SubmeterArtigo() {
           </h1>
           <p className="text-body-md font-body text-secondary mb-8">
             {isPublisher
-              ? 'Crie conteúdo para o arquivo histórico. O conteúdo será guardado como rascunho — a publicação directa está em desenvolvimento.'
+              ? 'Crie conteúdo para o arquivo histórico. É guardado como rascunho e pode ser submetido para revisão ou publicado no painel de gestão.'
               : 'Contribua com o seu conhecimento para o arquivo histórico de Angola.'}
           </p>
 
@@ -100,14 +130,14 @@ export default function SubmeterArtigo() {
             <div className="flex flex-col gap-2">
               <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Tipo de Conteúdo</label>
               <div className="flex gap-4 flex-wrap">
-                {(['Microtexto', 'Jindungo', 'Documento de Arquivo'] as FormType[]).map((type) => (
+                {(['Microtexto', 'Jindungo', 'Documento de Arquivo', 'Vídeo', 'Podcast'] as FormType[]).map((type) => (
                   <label key={type} className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
                       name="type"
                       value={type}
                       checked={contentType === type}
-                      onChange={() => setContentType(type)}
+                      onChange={() => { setContentType(type); setMediaUrl(null); setError('') }}
                       className="accent-primary"
                     />
                     <span className="text-sm font-semibold text-text font-sans">{type}</span>
@@ -159,17 +189,44 @@ export default function SubmeterArtigo() {
               </div>
             )}
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Conteúdo</label>
-              <textarea
-                rows={10}
-                placeholder="Escreva o conteúdo do artigo aqui..."
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                required
-                className="input resize-none"
+            {/* Ficheiro principal (vídeo, áudio ou documento), conforme o tipo. */}
+            {mediaConfig && (
+              <FileUpload
+                key={contentType}
+                id="content-media"
+                label={mediaConfig.label}
+                hint={mediaConfig.hint}
+                variant={mediaConfig.variant}
+                constraints={mediaConfig.constraints}
+                onUploaded={(result) => setMediaUrl(result?.publicUrl ?? null)}
+                disabled={loading}
               />
-            </div>
+            )}
+
+            {/* Imagem de capa (miniatura) — apresentada na listagem e na página do conteúdo. */}
+            <FileUpload
+              id="content-thumbnail"
+              label="Imagem de Capa (opcional)"
+              hint="JPG, PNG, WebP ou GIF · máx. 5 MB"
+              variant="image"
+              constraints={IMAGE_CONSTRAINTS}
+              existingUrl={thumbnailUrl}
+              onUploaded={(result) => setThumbnailUrl(result?.publicUrl ?? null)}
+              disabled={loading}
+            />
+
+            {!isMediaOnly && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Conteúdo</label>
+                <textarea
+                  rows={10}
+                  placeholder="Escreva o conteúdo do artigo aqui..."
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  className="input resize-none"
+                />
+              </div>
+            )}
 
             {error && (
               <div className="alert-error rounded-button">

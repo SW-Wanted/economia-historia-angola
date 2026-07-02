@@ -14,6 +14,12 @@ export class NotificationsController {
     return this.notifications.list(user.id);
   }
 
+  // Registada antes de `:id/read` para não ser capturada como um `:id`.
+  @Patch('read-all')
+  markAllRead(@CurrentUser() user: AuthUser) {
+    return this.notifications.markAllRead(user.id);
+  }
+
   @Patch(':id/read')
   markRead(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.notifications.markRead(user.id, id);

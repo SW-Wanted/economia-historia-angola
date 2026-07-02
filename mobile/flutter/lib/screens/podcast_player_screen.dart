@@ -1,91 +1,148 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
+import '../models/feed.dart';
 import '../widgets/eh_illustration.dart';
 import '../widgets/screen_frame.dart';
 
 /// Duração da amostra gratuita (modo prévia): 30 segundos.
 const _kPreviewSeconds = 30;
 
-/// Leitor de podcast (offline-friendly: o áudio real seria descarregável).
+/// Leitor de podcast. Quando recebe um [content] com áudio real (ficheiro
+/// carregado na criação ou ligação externa), reproduz o áudio verdadeiro. Sem
+/// media — ou no modo prévia de visitante — mostra um leitor ilustrativo.
 class PodcastPlayerScreen extends StatefulWidget {
-  const PodcastPlayerScreen({super.key});
+  const PodcastPlayerScreen({super.key, this.content, this.preview = false});
+
+  final FeedContent? content;
+  final bool preview;
 
   @override
   State<PodcastPlayerScreen> createState() => _PodcastPlayerScreenState();
 }
 
 class _PodcastPlayerScreenState extends State<PodcastPlayerScreen> {
-  static const _totalSeconds = 28 * 60; // 28:00
+  AudioPlayer? _player;
+  bool _ready = false;
+  String? _error;
+  Duration _position = Duration.zero;
+  Duration _total = Duration.zero;
+  final _subs = <StreamSubscription<dynamic>>[];
 
-  bool _preview = false;
-  bool _initialized = false;
-  bool _playing = false;
-  bool _limitReached = false;
-  int _seconds = (0.35 * _totalSeconds).round();
-  Timer? _timer;
+  bool get _preview => widget.preview;
+
+  String? get _mediaUrl => widget.content?.playbackUrl;
+
+  String get _title => widget.content?.title ?? 'O Petróleo e o Futuro de Angola';
+
+  /// Rótulo apresentado acima do título: o tipo do conteúdo ("Podcast"), não a
+  /// categoria editorial (que pode ter sido gravada como "Artigo").
+  String get _category => widget.content?.type.label ?? 'Podcast';
+
+  String get _description =>
+      widget.content?.body ??
+      'Uma conversa sobre a dependência do petróleo na economia angolana e os '
+          'caminhos para a diversificação, ligando história e presente.';
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_initialized) return;
-    _initialized = true;
-    // `arguments == true` → modo prévia (visitante): só os primeiros 30s.
-    _preview = ModalRoute.of(context)?.settings.arguments == true;
-    if (_preview) _seconds = 0;
+  void initState() {
+    super.initState();
+    final url = _mediaUrl;
+    if (url != null) _initPlayer(url);
+  }
+
+  Future<void> _initPlayer(String url) async {
+    final player = AudioPlayer();
+    _player = player;
+    _subs.add(player.positionStream.listen((p) {
+      if (!mounted) return;
+      // No modo prévia, corta a reprodução ao atingir os 30s de amostra.
+      if (_preview && p.inSeconds >= _kPreviewSeconds) {
+        player.pause();
+        player.seek(const Duration(seconds: _kPreviewSeconds));
+      }
+      setState(() => _position = p);
+    }));
+    _subs.add(player.playerStateStream.listen((_) {
+      if (mounted) setState(() {});
+    }));
+    try {
+      final duration = await player.setUrl(url);
+      if (!mounted) return;
+      setState(() {
+        _total = duration ?? Duration.zero;
+        _ready = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _error = 'Não foi possível carregar o áudio.');
+    }
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    for (final s in _subs) {
+      s.cancel();
+    }
+    _player?.dispose();
     super.dispose();
   }
 
+  bool get _playing => _player?.playing ?? false;
+
+  bool get _previewEnded => _preview && _position.inSeconds >= _kPreviewSeconds;
+
   void _togglePlay() {
-    if (_limitReached) return;
-    setState(() => _playing = !_playing);
+    final player = _player;
+    if (player == null || !_ready) return;
     if (_playing) {
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+      player.pause();
     } else {
-      _timer?.cancel();
+      if (_preview && _position.inSeconds >= _kPreviewSeconds) {
+        player.seek(Duration.zero);
+      }
+      player.play();
     }
   }
 
-  void _tick() {
-    final cap = _preview ? _kPreviewSeconds : _totalSeconds;
-    setState(() {
-      _seconds++;
-      if (_seconds >= cap) {
-        _seconds = cap;
-        _playing = false;
-        _limitReached = true;
-        _timer?.cancel();
-      }
-    });
+  Future<void> _seekBy(int seconds) async {
+    final player = _player;
+    if (player == null || !_ready) return;
+    var target = _position + Duration(seconds: seconds);
+    if (target < Duration.zero) target = Duration.zero;
+    final cap = _preview ? const Duration(seconds: _kPreviewSeconds) : _total;
+    if (cap > Duration.zero && target > cap) target = cap;
+    await player.seek(target);
   }
 
-  String _fmt(int s) => '${(s ~/ 60).toString().padLeft(2, '0')}:${(s % 60).toString().padLeft(2, '0')}';
+  String _fmt(Duration d) =>
+      '${d.inMinutes.toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {
-    final cap = _preview ? _kPreviewSeconds : _totalSeconds;
-    final progress = cap == 0 ? 0.0 : (_seconds / cap).clamp(0.0, 1.0);
+    final cap = _preview ? const Duration(seconds: _kPreviewSeconds) : _total;
+    final progress = cap.inMilliseconds == 0
+        ? 0.0
+        : (_position.inMilliseconds / cap.inMilliseconds).clamp(0.0, 1.0);
     return ScreenFrame(
       title: 'Podcast',
       showBack: true,
       children: [
-        EhIllustration(scene: EhScene.podcast, height: 200, borderRadius: BorderRadius.circular(24)),
+        EhIllustration(scene: EhScene.podcast, imageUrl: widget.content?.imageUrl, height: 200, borderRadius: BorderRadius.circular(24)),
         const SizedBox(height: 24),
-        Text('Conversas de Economia', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.primary, letterSpacing: 1)),
+        Text(_category, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.primary, letterSpacing: 1)),
         const SizedBox(height: 4),
-        Text('O Petróleo e o Futuro de Angola', style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 24)),
-        const SizedBox(height: 6),
-        Text('Episódio 4 • com Dr. Kambinda',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary)),
+        Text(_title, style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 24)),
         const SizedBox(height: 24),
+        if (_error != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(_error!, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.error)),
+          ),
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: AppColors.primary,
@@ -93,12 +150,12 @@ class _PodcastPlayerScreenState extends State<PodcastPlayerScreen> {
             thumbColor: AppColors.primary,
             trackHeight: 4,
           ),
-          // Na prévia o áudio não é navegável — reflete apenas a amostra decorrida.
           child: Slider(
             value: progress.toDouble(),
-            onChanged: _preview
+            // Sem media (ou prévia) o slider não é navegável.
+            onChanged: (!_ready || _preview)
                 ? null
-                : (v) => setState(() => _seconds = (v * _totalSeconds).round()),
+                : (v) => _player?.seek(Duration(milliseconds: (v * _total.inMilliseconds).round())),
           ),
         ),
         Padding(
@@ -106,8 +163,9 @@ class _PodcastPlayerScreenState extends State<PodcastPlayerScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(_fmt(_seconds), style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
-              Text(_preview ? 'Amostra 00:30' : '28:00', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+              Text(_fmt(_position), style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+              Text(_preview ? 'Amostra 00:30' : _fmt(_total),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
             ],
           ),
         ),
@@ -115,24 +173,24 @@ class _PodcastPlayerScreenState extends State<PodcastPlayerScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconButton(tooltip: 'Recuar 10 segundos', iconSize: 34, onPressed: () {}, icon: const Icon(Icons.replay_10, color: AppColors.primary)),
+            IconButton(tooltip: 'Recuar 10 segundos', iconSize: 34, onPressed: _ready ? () => _seekBy(-10) : null, icon: const Icon(Icons.replay_10, color: AppColors.primary)),
             const SizedBox(width: 16),
             GestureDetector(
               onTap: _togglePlay,
               child: Container(
                 width: 72, height: 72,
                 decoration: BoxDecoration(
-                  color: _limitReached ? AppColors.outline : AppColors.primary,
+                  color: _previewEnded ? AppColors.outline : AppColors.primary,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(_limitReached ? Icons.lock_outline : (_playing ? Icons.pause : Icons.play_arrow), color: Colors.white, size: 38),
+                child: Icon(_previewEnded ? Icons.lock_outline : (_playing ? Icons.pause : Icons.play_arrow), color: Colors.white, size: 38),
               ),
             ),
             const SizedBox(width: 16),
-            IconButton(tooltip: 'Avançar 30 segundos', iconSize: 34, onPressed: () {}, icon: const Icon(Icons.forward_30, color: AppColors.primary)),
+            IconButton(tooltip: 'Avançar 30 segundos', iconSize: 34, onPressed: _ready ? () => _seekBy(30) : null, icon: const Icon(Icons.forward_30, color: AppColors.primary)),
           ],
         ),
-        if (_preview && _limitReached) ...[
+        if (_preview && _previewEnded) ...[
           const SizedBox(height: 20),
           _previewGate(context),
         ],
@@ -154,8 +212,7 @@ class _PodcastPlayerScreenState extends State<PodcastPlayerScreen> {
         Text('Sobre o episódio', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
         const SizedBox(height: 8),
         Text(
-          'Uma conversa sobre a dependência do petróleo na economia angolana e os '
-          'caminhos para a diversificação, ligando história e presente.',
+          _description,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted, height: 1.5),
         ),
       ],

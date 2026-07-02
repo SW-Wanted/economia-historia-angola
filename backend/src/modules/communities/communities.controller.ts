@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthUser, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
@@ -18,6 +18,12 @@ export class CommunitiesController {
   }
 
   @ApiBearerAuth()
+  @Get(':id')
+  detail(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.communities.detail(id, user.id);
+  }
+
+  @ApiBearerAuth()
   @Post()
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateCommunityDto) {
     return this.communities.create(user.id, dto);
@@ -27,6 +33,12 @@ export class CommunitiesController {
   @Post(':id/join')
   join(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.communities.join(user.id, id);
+  }
+
+  @ApiBearerAuth()
+  @Delete(':id/membership')
+  leave(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.communities.leave(user.id, id);
   }
 
   @ApiBearerAuth()

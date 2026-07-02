@@ -53,4 +53,13 @@ export const userService = {
       `/users/${userId}/status`,
       { isActive },
     ),
+
+  // Promove/despromove um utilizador (substitui o papel). Regras de Super Admin
+  // são garantidas no backend; a UI apenas oculta ações inválidas.
+  setRole: (userId: string, role: string) =>
+    api.patch<AdminUser>(`/users/${userId}/role`, { role }),
+
+  // Remove (soft-delete) a conta de um utilizador.
+  remove: (userId: string) =>
+    api.delete<{ id: string; email: string; name: string; isActive: boolean }>(`/users/${userId}`),
 }

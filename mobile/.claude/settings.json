@@ -1,0 +1,50 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(flutter analyze lib/widgets/preview_sheet.dart lib/screens/landing_screen.dart lib/screens/reading_screen.dart lib/screens/video_player_screen.dart lib/screens/podcast_player_screen.dart lib/screens/forum_topic_screen.dart)",
+      "Bash(cd /d/Labs/projetos/economia-historia-angola && ls -la && echo \"---MOBILE---\" && ls -la mobile/ 2>/dev/null | head -50)",
+      "Read(//d/Labs/projetos/economia-historia-angola/**)",
+      "Bash(cd /d/Labs/projetos/economia-historia-angola && echo \"===FLUTTER LIB===\" && find mobile/flutter/lib -type f 2>/dev/null | head -100 && echo \"===PUBSPEC===\" && cat mobile/flutter/pubspec.yaml 2>/dev/null)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(cd /d/Labs/projetos/economia-historia-angola && echo \"===JWT expiry config===\" && grep -rnE \"expiresIn|ACCESS_TOKEN|JWT_.*EXPIR|accessTtl|expires\" backend/src/modules/auth/ backend/src/config/ 2>/dev/null | head; echo \"===splash / session restore===\" && grep -rn \"isAuthenticated\\\\|restoreSession\\\\|autoLogin\\\\|splash\" mobile/flutter/lib/screens/splash_screen.dart mobile/flutter/lib/main.dart 2>/dev/null | head)",
+      "Bash(cd /d/Labs/projetos/economia-historia-angola && echo \"===refresh controller===\" && sed -n '30,50p' backend/src/modules/auth/auth.controller.ts && echo \"===register screen backend call===\" && grep -n \"BackendService\\\\|register\\\\|submitWriter\" mobile/flutter/lib/screens/register_screen.dart | head)",
+      "Bash(cd /d/Labs/projetos/economia-historia-angola/backend && echo \"===RegisterDto===\" && cat src/modules/auth/dto/register.dto.ts 2>/dev/null && echo \"===env keys===\" && grep -nE \"DATABASE_URL|JWT_SECRET|CORS_ORIGINS|PORT|apiPrefix|accessTtl|refreshTtl\" src/config/*.ts 2>/dev/null | head -20 && echo \"===.env.example===\" && ls backend/../backend/*.env* backend/.env* 2>/dev/null; find . -maxdepth 1 -name \".env*\" 2>/dev/null)",
+      "Read(//d/Labs/projetos/economia-historia-angola/mobile/flutter/backend/**)",
+      "Bash(cd /d/Labs/projetos/economia-historia-angola && echo \"===mobile/DOCKER_BACKEND.md===\" && cat mobile/DOCKER_BACKEND.md && echo \"\" && echo \"===backend docker-compose ports===\" && grep -nE \"ports|3001|5432|postgres|backend\" backend/docker-compose.yml | head)",
+      "Bash(node _repro_register.js)",
+      "Bash(grep -iA3 \"column\\\\|P2022\\\\|does not exist\")",
+      "Bash(npx prisma *)",
+      "Bash(npx dotenv *)",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" -X POST http://localhost:3001/api/v1/auth/register -H \"Content-Type: application/json\" -d '{\"name\":\"Jose Teste\",\"email\":\"jose_final@ex.com\",\"username\":\"josefinal\",\"password\":\"jose12345\"}')",
+      "Bash(curl -s -X POST http://localhost:3001/api/v1/auth/register -H \"Content-Type: application/json\" -d '{\"name\":\"Rank Fix\",\"email\":\"rankfix@ex.com\",\"username\":\"rankfix\",\"password\":\"jose12345\"}' -o /dev/null -w \"register HTTP %{http_code}\\\\n\")",
+      "Bash(curl -s -o /dev/null -w \"health HTTP %{http_code}\\\\n\" http://localhost:3001/api/v1/health)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3001/api/v1/health)",
+      "Bash(curl -s http://localhost:3001/api/v1/contents)",
+      "Bash(curl -s http://localhost:3001/api/v1/quizzes)",
+      "Bash(curl -s http://localhost:3001/api/v1/forums)",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" http://localhost:3001/api/v1/quizzes/weekly)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:3001/api/v1/quizzes)",
+      "Bash(flutter pub *)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:3001/api/v1/health)",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" -X POST http://localhost:3001/api/v1/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"josesim@gmail.com\",\"password\":\"jose12345\"}')",
+      "PowerShell(& flutter pub get 2>&1)",
+      "Bash(echo \"---exit $?---\")",
+      "Bash(xargs grep -l \"s3\")",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3001/api/v1/contents\" -TimeoutSec 5 -UseBasicParsing; \"UP status=$\\($r.StatusCode\\)\" } catch { \"DOWN or error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Get-Process chrome -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Process dart,flutter_tester -ErrorAction SilentlyContinue)"
+    ],
+    "additionalDirectories": [
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\users",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\prisma",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\quizzes\\dto",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\quizzes",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\stats",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\users\\dto",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\uploads",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\contents"
+    ]
+  }
+}

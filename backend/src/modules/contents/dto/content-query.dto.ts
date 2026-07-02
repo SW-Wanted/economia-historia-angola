@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { ContentType } from '@prisma/client';
+import { ContentStatus, ContentType } from '@prisma/client';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 
@@ -8,6 +8,11 @@ export class ContentQueryDto extends PaginationDto {
   @IsOptional()
   @IsEnum(ContentType)
   type?: ContentType;
+
+  @ApiPropertyOptional({ enum: ContentStatus, description: 'Filtro de estado (apenas no painel de gestão).' })
+  @IsOptional()
+  @IsEnum(ContentStatus)
+  status?: ContentStatus;
 
   @ApiPropertyOptional()
   @IsOptional()
