@@ -1,0 +1,19 @@
+Organização dos Fóruns na Comunidade
+
+Criação de Conteúdo:
+	-Todos os membros podem criar tópicos.
+	-Existe a funcionalidade de denúncia, caso o conteúdo seja inadequado.
+
+Comunidade:
+	 Dentro da comunidade é possível criar discussões:
+	-Podem ser públicas ou privadas.
+	-Se forem privadas, é necessário aprovação para entrar.
+	Também é possível publicar dentro de categorias, que podem ser:
+	-Públicas
+	-Privadas
+
+Convites:
+	-Caso permitido, é possível convidar membros por:
+	E-mail
+	Código de acesso
+      …

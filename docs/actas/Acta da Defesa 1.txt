@@ -1,0 +1,19 @@
+*Resumo – Pontos da apresentação de protótipos no Figma*
+
+1. *Secção "Conteúdo"*  
+   - Vários itens listados para permitir scroll na página.
+   - Objetivo: simular navegação real com conteúdo extenso.
+
+2. *Uso de Variáveis*  
+   - Trabalho com variáveis para filtros, barras de pesquisa e outros elementos interativos.
+   - Aproveitar recursos do Figma para criar protótipos dinâmicos e funcionais.
+
+3. *Linkagem de Telas*  
+   - Todas as telas precisam estar linkadas 
+   - Regra: qualquer botão ou secção que mostre uma prévia/apresentação de algo deve levar para a sua tela principal.
+   - Nenhuma tela “morta” – tudo navegável.
+
+4. *Conteúdos e Comentários*  
+   - Adicionar tarefa: criação de *Sala de Discussão*.
+   - Sala de Discussão = secção de comentários privada.
+   - Professor decide quem pode comentar/visualizar.
