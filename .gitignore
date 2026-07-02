@@ -19,6 +19,8 @@ web/yarn.lock
 web/.pnp.*
 web/.pnp.js
 web/.pnp.cjs
+web/.env
+web/*.env
 
 #  Mobile (Flutter) --->
 mobile/.dart_tool/
@@ -30,6 +32,8 @@ mobile/.pub/
 mobile/build/
 mobile/ios/Flutter/Generated.xcconfig
 mobile/ios/Flutter/flutter_export_environment.sh
+mobile/.env
+mobile/*.env
 
 # Backend (Node/Prisma) --->
 backend/node_modules/
