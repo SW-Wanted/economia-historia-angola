@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_spacing.dart';
+import '../core/routes/app_routes.dart';
 import '../core/utils/responsive.dart';
 import '../services/mock_data_service.dart';
 import '../widgets/comment_tile.dart';
@@ -34,10 +35,16 @@ class _ForumTopicScreenState extends State<ForumTopicScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // `arguments == true` → modo prévia (visitante): mostra o tópico mas oculta
+    // os comentários (só visíveis após entrar).
+    final preview = ModalRoute.of(context)?.settings.arguments == true;
     final comments = const MockDataService().comments();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tópico'),
+        centerTitle: true,
+        title: Text('Tópico',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
             tooltip: 'Denunciar',
@@ -76,25 +83,62 @@ class _ForumTopicScreenState extends State<ForumTopicScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Text('${comments.length} comentarios', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
-                          const Spacer(),
-                          Text('Mais recentes', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
-                          const Icon(Icons.expand_more, size: 18, color: AppColors.secondary),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      for (final c in comments) ...[CommentTile(comment: c), const SizedBox(height: 10)],
+                      if (preview)
+                        _commentsGate(context, comments.length)
+                      else ...[
+                        Row(
+                          children: [
+                            Text('${comments.length} comentarios', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
+                            const Spacer(),
+                            Text('Mais recentes', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+                            const Icon(Icons.expand_more, size: 18, color: AppColors.secondary),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        for (final c in comments) ...[CommentTile(comment: c), const SizedBox(height: 10)],
+                      ],
                     ],
                   ),
                 ),
-                _composer(),
+                if (!preview) _composer(),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _commentsGate(BuildContext context, int count) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(color: AppColors.surfaceLow, borderRadius: BorderRadius.circular(16)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Icon(Icons.lock_outline, color: AppColors.primary, size: 20),
+          const SizedBox(width: 8),
+          Expanded(child: Text('$count comentários reservados', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15))),
+        ]),
+        const SizedBox(height: 6),
+        Text('Entre para ver a discussão e participar. Os comentários são exclusivos para membros.',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary, height: 1.35)),
+        const SizedBox(height: 14),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.register1),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            icon: const Icon(Icons.arrow_forward, size: 18),
+            label: const Text('Criar conta para ver comentários'),
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextButton(
+          onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
+          style: TextButton.styleFrom(foregroundColor: AppColors.secondary),
+          child: const Text('Já tenho conta — Entrar'),
+        ),
+      ]),
     );
   }
 
