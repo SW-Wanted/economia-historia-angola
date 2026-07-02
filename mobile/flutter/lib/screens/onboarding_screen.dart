@@ -10,7 +10,7 @@ class OnboardingScreen extends StatelessWidget {
   final int step;
 
   static const _data = [
-    ('Aprenda com contexto', 'Microtextos claros ligam história, economia e cultura angolana.', Icons.auto_stories_outlined),
+    ('Aprenda com contexto', 'Artigos claros ligam história, economia e cultura angolana.', Icons.auto_stories_outlined),
     ('Explore por província', 'Mapas e temas ajudam a perceber como cada regiao moldou o pais.', Icons.map_outlined),
     ('Teste e participe', 'Quizzes, ranking e fórum tornam a aprendizagem viva e comunitaria.', Icons.quiz_outlined),
   ];

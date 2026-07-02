@@ -32,13 +32,13 @@ class _OfflineModeScreenState extends State<OfflineModeScreen> {
             const Icon(Icons.wifi_off, color: AppColors.navy),
             const SizedBox(width: 12),
             Expanded(child: Text(
-              'Os microtextos guardados ficam disponiveis sem ligacao a internet.',
+              'Os artigos guardados ficam disponíveis sem ligação à internet.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.navy),
             )),
           ]),
         ),
         const SizedBox(height: 24),
-        const SectionTitle('Microtextos'),
+        const SectionTitle('Artigos'),
         const SizedBox(height: 12),
         DataLoader<List<ContentItem>>(
           future: _future,

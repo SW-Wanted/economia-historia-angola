@@ -308,7 +308,7 @@ class _ProvinceCard extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _stat(context, Icons.article_outlined, '${meta.articles}', 'Artigos')),
+              Expanded(child: _stat(context, Icons.layers_outlined, '${meta.articles}', 'Conteúdo')),
               Expanded(child: _stat(context, Icons.people_outline, '${meta.authors}', 'Autores')),
               Expanded(child: _stat(context, Icons.history_edu_outlined, '${meta.historical}', 'Históricos')),
             ],
