@@ -290,9 +290,113 @@ export class ContentsService {
     });
   }
 
-  requestJindungoAccess(userId: string, contentId: string) {
-    return this.prisma.accessRequest.create({
-      data: { userId, contentId, permission: PermissionCode.JINDUNGO_ACCESS },
+  /// Um utilizador pede acesso a um texto Jindungo. Idempotente: se já existir um
+  /// pedido PENDING ou ACTIVE para o mesmo conteúdo, devolve-o em vez de duplicar.
+  /// Notifica os moderadores/admins (quem tem CONTENT_APPROVE) do novo pedido.
+  async requestJindungoAccess(userId: string, contentId: string, reason?: string) {
+    const content = await this.prisma.content.findFirst({
+      where: { id: contentId, deletedAt: null },
+      select: { id: true, title: true, isJindungo: true },
     });
+    if (!content) throw new NotFoundException('Conteúdo não encontrado.');
+
+    const existing = await this.prisma.accessRequest.findFirst({
+      where: {
+        userId,
+        contentId,
+        permission: PermissionCode.JINDUNGO_ACCESS,
+        status: { in: [MembershipStatus.PENDING, MembershipStatus.ACTIVE] },
+      },
+    });
+    if (existing) return existing;
+
+    const request = await this.prisma.accessRequest.create({
+      data: { userId, contentId, permission: PermissionCode.JINDUNGO_ACCESS, reason: reason?.trim() || null },
+    });
+
+    void this.notifyApproversOfAccessRequest(content.title, userId, contentId).catch(() => void 0);
+    return request;
+  }
+
+  /// Lista os pedidos de acesso Jindungo por estado (default: PENDING) para o
+  /// painel de moderação. Requer CONTENT_APPROVE (garantido no controller).
+  listAccessRequests(status: MembershipStatus = MembershipStatus.PENDING) {
+    return this.prisma.accessRequest.findMany({
+      where: { permission: PermissionCode.JINDUNGO_ACCESS, status },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: {
+        user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        content: { select: { id: true, title: true } },
+      },
+    });
+  }
+
+  /// Aprova ou rejeita um pedido de acesso Jindungo. `approve=true` concede o
+  /// acesso (ACTIVE) ao conteúdo específico; `false` rejeita (REJECTED). Notifica
+  /// o requerente da decisão. Apenas transita pedidos ainda PENDING.
+  async reviewAccessRequest(reviewer: AuthUser, requestId: string, approve: boolean) {
+    const request = await this.prisma.accessRequest.findUnique({
+      where: { id: requestId },
+      include: { content: { select: { id: true, title: true } } },
+    });
+    if (!request) throw new NotFoundException('Pedido de acesso não encontrado.');
+    if (request.status !== MembershipStatus.PENDING) {
+      throw new ForbiddenException('Este pedido já foi decidido.');
+    }
+
+    const status = approve ? MembershipStatus.ACTIVE : MembershipStatus.REJECTED;
+    const updated = await this.prisma.accessRequest.update({
+      where: { id: requestId },
+      data: { status, reviewedBy: reviewer.id, reviewedAt: new Date() },
+    });
+
+    const title = request.content?.title ?? 'conteúdo restrito';
+    void this.notifications
+      .create(
+        request.userId,
+        NotificationType.MODERATION,
+        approve ? 'Acesso concedido' : 'Acesso recusado',
+        approve
+          ? `O seu pedido de acesso a "${title}" foi aprovado. Já pode ler o texto.`
+          : `O seu pedido de acesso a "${title}" foi recusado.`,
+        { contentId: request.contentId, access: approve },
+      )
+      .catch(() => void 0);
+
+    return updated;
+  }
+
+  /// Notifica todos os utilizadores com CONTENT_APPROVE sobre um novo pedido de
+  /// acesso Jindungo, para que possam decidir no painel de moderação.
+  private async notifyApproversOfAccessRequest(contentTitle: string, requesterId: string, contentId: string) {
+    const approvers = await this.prisma.user.findMany({
+      where: {
+        deletedAt: null,
+        isActive: true,
+        roles: {
+          some: {
+            role: { permissions: { some: { permission: { code: PermissionCode.CONTENT_APPROVE } } } },
+          },
+        },
+      },
+      select: { id: true },
+    });
+    const requester = await this.prisma.user.findUnique({
+      where: { id: requesterId },
+      select: { name: true },
+    });
+    const who = requester?.name ?? 'Um utilizador';
+    await Promise.all(
+      approvers.map((approver) =>
+        this.notifications.create(
+          approver.id,
+          NotificationType.MODERATION,
+          'Novo pedido de acesso Jindungo',
+          `${who} pediu acesso a "${contentTitle}".`,
+          { contentId, kind: 'access-request' },
+        ),
+      ),
+    );
   }
 }

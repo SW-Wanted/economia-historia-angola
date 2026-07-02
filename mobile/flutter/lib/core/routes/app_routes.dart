@@ -60,6 +60,7 @@ import '../../screens/subscription_screen.dart';
 import '../../screens/super_admin_chain_screen.dart';
 import '../../screens/super_admin_screen.dart';
 import '../../screens/content_moderation_screen.dart';
+import '../../screens/jindungo_access_screen.dart';
 import '../../screens/podcast_player_screen.dart';
 import '../../screens/video_player_screen.dart';
 
@@ -115,6 +116,7 @@ class AppRoutes {
   static const superAdmin = '/super-admin';
   static const superAdminChain = '/super-admin-chain';
   static const contentModeration = '/content-moderation';
+  static const jindungoAccess = '/jindungo-access';
   static const community = '/community';
   static const communityDetail = '/community/detail';
   static const createCommunity = '/community/create';
@@ -200,6 +202,7 @@ class AppRoutes {
       superAdmin => SuperAdminScreen(user: settings.arguments is AppUser ? settings.arguments as AppUser : null),
       superAdminChain => const SuperAdminChainScreen(),
       contentModeration => const ContentModerationScreen(),
+      jindungoAccess => const JindungoAccessScreen(),
       community => const CommunityScreen(),
       communityDetail => CommunityDetailScreen(
           community: settings.arguments is CommunityCategory ? settings.arguments as CommunityCategory : null),

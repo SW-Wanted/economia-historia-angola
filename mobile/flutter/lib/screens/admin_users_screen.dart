@@ -4,7 +4,6 @@ import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../models/app_user.dart';
 import '../services/backend_service.dart';
-import '../services/mock_data_service.dart';
 import '../widgets/filter_chips_row.dart';
 import '../widgets/screen_frame.dart';
 
@@ -20,10 +19,24 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   final TextEditingController _search = TextEditingController();
   static const _filters = ['Todos', 'Utilizadores', 'Escritores', 'Admins', 'Super Admins'];
 
+  List<AppUser>? _all; // null enquanto carrega
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
   @override
   void dispose() {
     _search.dispose();
     super.dispose();
+  }
+
+  Future<void> _load() async {
+    final users = await BackendService.instance.adminUsers();
+    if (!mounted) return;
+    setState(() => _all = users);
   }
 
   bool _matchesFilter(AppUser u) => switch (_filter) {
@@ -38,8 +51,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   Widget build(BuildContext context) {
     final me = BackendService.instance.cachedUser;
     final query = _search.text.trim().toLowerCase();
-    final users = const MockDataService()
-        .users()
+    final all = _all;
+    final users = (all ?? const <AppUser>[])
         .where(_matchesFilter)
         .where((u) => query.isEmpty || u.name.toLowerCase().contains(query))
         .toList();
@@ -57,7 +70,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         const SizedBox(height: 14),
         FilterChipsRow(labels: _filters, selected: _filter, onSelected: (i) => setState(() => _filter = i)),
         const SizedBox(height: 16),
-        if (users.isEmpty)
+        if (all == null)
+          const Padding(padding: EdgeInsets.only(top: 48), child: Center(child: CircularProgressIndicator()))
+        else if (users.isEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 48),
             child: Center(
@@ -105,7 +120,11 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => Navigator.pushNamed(context, AppRoutes.superAdmin, arguments: user),
+        onTap: () async {
+          await Navigator.pushNamed(context, AppRoutes.superAdmin, arguments: user);
+          // Recarrega ao voltar, refletindo mudanças de papel/estado/remoção.
+          if (mounted) _load();
+        },
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(

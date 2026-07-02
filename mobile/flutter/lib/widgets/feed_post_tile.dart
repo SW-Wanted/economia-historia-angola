@@ -33,6 +33,8 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
       AnimationController(vsync: this, duration: const Duration(milliseconds: 650));
 
   Timer? _viewTimer;
+  bool _requestingAccess = false;
+  bool _accessRequested = false;
 
   FeedContent get _c => widget.entry.content;
 
@@ -389,6 +391,26 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
     );
   }
 
+  /// Envia o pedido de acesso a um texto Jindungo ao moderador. Mostra o estado
+  /// (a enviar / pedido enviado) e informa o utilizador do resultado.
+  Future<void> _requestJindungoAccess() async {
+    setState(() => _requestingAccess = true);
+    final ok = await BackendService.instance.requestContentAccess(_c.id);
+    if (!mounted) return;
+    setState(() {
+      _requestingAccess = false;
+      _accessRequested = ok;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok
+            ? 'Pedido de acesso enviado. Será notificado quando for aprovado.'
+            : 'Não foi possível enviar o pedido. Tente novamente.'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   /// Aviso explícito, por baixo do conteúdo, com o motivo da restrição e a ação
   /// para obter acesso.
   Widget _restrictedBanner(BuildContext context) {
@@ -416,20 +438,35 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
               children: [
                 Text(message, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.textMuted, height: 1.35)),
                 const SizedBox(height: 8),
-                SizedBox(
-                  height: 32,
-                  child: FilledButton.icon(
-                    onPressed: widget.onOpen,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5),
+                if (_accessRequested)
+                  Row(children: [
+                    const Icon(Icons.hourglass_top_rounded, size: 15, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Text('Pedido enviado — aguarda aprovação',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: AppColors.primary, fontWeight: FontWeight.w700)),
+                  ])
+                else
+                  SizedBox(
+                    height: 32,
+                    child: FilledButton.icon(
+                      // Comunidade privada segue o fluxo de adesão (abrir); Jindungo
+                      // pede acesso ao moderador via backend.
+                      onPressed: _requestingAccess
+                          ? null
+                          : (private ? widget.onOpen : _requestJindungoAccess),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5),
+                      ),
+                      icon: _requestingAccess
+                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : Icon(private ? Icons.key_outlined : Icons.lock_open_rounded, size: 15),
+                      label: Text(private ? 'Pedir acesso' : 'Pedir acesso'),
                     ),
-                    icon: Icon(private ? Icons.key_outlined : Icons.lock_open_rounded, size: 15),
-                    label: Text(private ? 'Pedir acesso' : 'Desbloquear'),
                   ),
-                ),
               ],
             ),
           ),

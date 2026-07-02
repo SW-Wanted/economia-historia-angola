@@ -73,6 +73,7 @@ UserRole userRoleFromCode(String? code) => switch (code) {
 
 class AppUser {
   const AppUser({
+    this.id,
     required this.name,
     required this.initials,
     required this.role,
@@ -87,6 +88,11 @@ class AppUser {
     this.avatarUrl,
     this.coverUrl,
   });
+
+  /// Identificador no backend. `null` para utilizadores mock/anónimos. Necessário
+  /// para as ações de gestão (mudar papel, bloquear, remover) que endereçam o
+  /// utilizador por id.
+  final String? id;
 
   final String name;
   final String initials;
@@ -140,6 +146,7 @@ class AppUser {
   bool canPromote(AppUser other) => canManage(other);
 
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
+        id: json['id'] as String?,
         name: json['name'] as String? ?? '',
         initials: json['initials'] as String? ?? _initialsOf(json['name'] as String? ?? ''),
         role: userRoleFromCode(json['role'] as String?),
@@ -152,6 +159,7 @@ class AppUser {
       );
 
   Map<String, dynamic> toJson() => {
+        'id': id,
         'name': name,
         'initials': initials,
         'role': role.code,
@@ -164,6 +172,7 @@ class AppUser {
       };
 
   AppUser copyWith({UserRole? role, int? superAdminGrade}) => AppUser(
+        id: id,
         name: name,
         initials: initials,
         role: role ?? this.role,
