@@ -18,7 +18,7 @@ class QuizResultScreen extends StatelessWidget {
 
     final (title, message) = switch (pct) {
       >= 80 => ('Excelente!', 'Domínio sólido do tema. Continue a explorar os textos com Jindungo para aprofundar.'),
-      >= 50 => ('Bom trabalho!', 'Vai no bom caminho. Reveja os microtextos da categoria para reforçar os conceitos.'),
+      >= 50 => ('Bom trabalho!', 'Vai no bom caminho. Reveja os artigos da categoria para reforçar os conceitos.'),
       _ => ('Continue a praticar', 'Sugerimos rever os conteúdos do módulo antes de tentar de novo. Cada tentativa conta.'),
     };
 
@@ -48,7 +48,7 @@ class QuizResultScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 10),
           _tip(context, 'Reveja "O ciclo do café em Angola"'),
-          _tip(context, 'Leia o microtexto sobre o Kwanza'),
+          _tip(context, 'Leia o artigo sobre o Kwanza'),
           _tip(context, 'Explore o mapa interativo da sua província'),
         ]),
       ),
