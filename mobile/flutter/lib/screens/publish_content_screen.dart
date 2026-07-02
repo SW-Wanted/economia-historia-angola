@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../core/permissions/app_permissions.dart';
 import '../core/routes/app_routes.dart';
+import '../models/article_draft.dart';
 import '../services/backend_service.dart';
 import '../services/feed_service.dart';
 import '../widgets/community_picker.dart';
@@ -304,7 +305,25 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
                 icon: Icons.check_rounded,
                 onPressed: () {
                   Navigator.pop(sheetContext);
-                  Navigator.pushNamed(context, AppRoutes.publishConfirmation);
+                  // Abre o conteúdo criado, refletindo tudo o que foi introduzido.
+                  Navigator.pushReplacementNamed(
+                    context,
+                    AppRoutes.reading,
+                    arguments: ArticleDraft(
+                      title: _titleCtrl.text.trim(),
+                      typeLabel: _typeLabel,
+                      category: _category,
+                      body: _bodyCtrl.text,
+                      source: _extraCtrl.text,
+                      community: _community,
+                      jindungo: _jindungo,
+                      exclusive: _exclusive,
+                      privateRoom: _privateRoom,
+                    ),
+                  );
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Conteúdo publicado')));
                 },
               ),
             ),

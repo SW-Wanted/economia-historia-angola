@@ -6,6 +6,7 @@ import '../models/feed.dart';
 import '../services/backend_service.dart';
 import '../services/feed_service.dart';
 import '../widgets/angola_map.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/bottom_nav_shell.dart';
 import '../widgets/eh_illustration.dart';
 import '../widgets/feed_post_tile.dart';
@@ -573,13 +574,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _footer(BuildContext context) {
     if (_hasMore) {
       return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 28),
-        child: Center(
-          child: SizedBox(
-            width: 26, height: 26,
-            child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.primary),
-          ),
-        ),
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Center(child: AppLoadingIndicator(size: 72, showDots: false)),
       );
     }
     return Padding(

@@ -141,7 +141,7 @@ class AppRoutes {
       reading => const ReadingScreen(),
       restrictedContent => const RestrictedContentScreen(),
       unlockedText => const ReadingScreen(unlocked: true),
-      map => const MapScreen(),
+      map => MapScreen(preview: settings.arguments == true),
       provinceContents => const ProvinceContentsScreen(),
       quizHub => const QuizHubScreen(),
       quizQuestion => const QuizQuestionScreen(),

@@ -29,7 +29,10 @@ class _DiscussionRoomScreenState extends State<DiscussionRoomScreen> {
     final comments = const MockDataService().comments();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sala de Discussão'),
+        centerTitle: true,
+        title: Text('Sala de Discussão',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
             tooltip: 'Gerir participantes',

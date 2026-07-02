@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../models/notification_item.dart';
 import '../services/backend_service.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/notification_tile.dart';
 import '../widgets/screen_frame.dart';
@@ -37,7 +38,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         title: 'Notificações',
         showBack: true,
         children: [
-          Padding(padding: EdgeInsets.only(top: 80), child: Center(child: CircularProgressIndicator())),
+          Padding(padding: EdgeInsets.only(top: 60), child: Center(child: AppLoadingIndicator(message: 'A carregar...'))),
         ],
       );
     }

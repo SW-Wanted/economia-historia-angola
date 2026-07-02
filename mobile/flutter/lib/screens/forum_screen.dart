@@ -79,11 +79,10 @@ class _ForumScreenState extends State<ForumScreen> {
         backgroundColor: AppColors.surface,
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          centerTitle: false,
+          centerTitle: true,
           title: Text('Fórum',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.w800)),
-          titleSpacing: 20,
+                  color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800)),
         ),
         body: SafeArea(
           child: Center(

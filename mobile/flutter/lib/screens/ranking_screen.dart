@@ -4,6 +4,7 @@ import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../models/ranking_user.dart';
 import '../services/backend_service.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/filter_chips_row.dart';
 import '../widgets/ranking_item.dart';
 import '../widgets/screen_frame.dart';
@@ -42,7 +43,7 @@ class _RankingScreenState extends State<RankingScreen> {
         title: 'Ranking',
         showBack: true,
         children: [
-          Padding(padding: EdgeInsets.only(top: 80), child: Center(child: CircularProgressIndicator())),
+          Padding(padding: EdgeInsets.only(top: 60), child: Center(child: AppLoadingIndicator(message: 'A carregar...'))),
         ],
       );
     }
