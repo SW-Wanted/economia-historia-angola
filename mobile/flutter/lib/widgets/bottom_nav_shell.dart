@@ -14,10 +14,14 @@ import 'create_menu_sheet.dart';
 /// Substitui apenas a aparência/comportamento — a navegação e a lógica de
 /// negócio mantêm-se: cada ícone abre a mesma rota de sempre.
 class BottomNavShell extends StatefulWidget {
-  const BottomNavShell({super.key, required this.child, required this.index});
+  const BottomNavShell({super.key, required this.child, required this.index, this.floatingButton});
 
   final Widget child;
   final int index;
+
+  /// Botão flutuante opcional (ex.: mapa no Explorar). Aparece e desaparece em
+  /// sincronia com a barra de navegação (mesmo comportamento de scroll).
+  final Widget? floatingButton;
 
   static const _routes = [AppRoutes.dashboard, AppRoutes.explore, AppRoutes.forum, AppRoutes.profile];
 
@@ -112,6 +116,26 @@ class _BottomNavShellState extends State<BottomNavShell> {
               ),
             ),
           ),
+          // Botão flutuante (ex.: mapa) — sincronizado com a barra. Sai pela
+          // direita (para fora do ecrã) e volta pela direita → esquerda.
+          if (widget.floatingButton != null)
+            Positioned(
+              right: 22,
+              bottom: (bottomInset > 0 ? bottomInset : 14) + 82,
+              child: IgnorePointer(
+                ignoring: !_visible,
+                child: AnimatedSlide(
+                  duration: const Duration(milliseconds: 320),
+                  curve: Curves.easeOutCubic,
+                  offset: _visible ? Offset.zero : const Offset(2.4, 0),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 220),
+                    opacity: _visible ? 1 : 0,
+                    child: widget.floatingButton!,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
