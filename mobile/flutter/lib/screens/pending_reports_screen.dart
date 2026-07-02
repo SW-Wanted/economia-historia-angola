@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../models/content_report.dart';
 import '../services/backend_service.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/eh_card.dart';
 import '../widgets/screen_frame.dart';
 
@@ -59,8 +60,8 @@ class _PendingReportsScreenState extends State<PendingReportsScreen> {
         showBack: true,
         children: [
           Padding(
-            padding: EdgeInsets.only(top: 80),
-            child: Center(child: CircularProgressIndicator()),
+            padding: EdgeInsets.only(top: 60),
+            child: Center(child: AppLoadingIndicator(message: 'A carregar...')),
           ),
         ],
       );

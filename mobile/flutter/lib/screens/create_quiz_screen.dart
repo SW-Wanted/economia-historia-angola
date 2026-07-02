@@ -5,6 +5,7 @@ import '../core/routes/app_routes.dart';
 import '../models/feed.dart';
 import '../models/quiz_question.dart';
 import '../services/quiz_generator.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/eh_button.dart';
 import '../widgets/eh_card.dart';
 import '../widgets/screen_frame.dart';
@@ -220,11 +221,8 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 48),
       child: Column(children: [
-        const SizedBox(
-          width: 46, height: 46,
-          child: CircularProgressIndicator(strokeWidth: 3, color: AppColors.primary),
-        ),
-        const SizedBox(height: 20),
+        const AppLoadingIndicator(size: 96, showDots: false),
+        const SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           const Icon(Icons.auto_awesome, color: AppColors.primary, size: 18),
           const SizedBox(width: 8),

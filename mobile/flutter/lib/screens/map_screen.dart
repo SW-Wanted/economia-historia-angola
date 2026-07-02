@@ -39,11 +39,20 @@ const _meta = <String, _Meta>{
 };
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  const MapScreen({super.key, this.preview = false});
+
+  /// Modo visitante (a partir da landing): mostra todas as províncias, mas
+  /// apenas 3 ficam disponíveis — as restantes aparecem bloqueadas (cadeado) e
+  /// o acesso aos conteúdos só é possível após entrar.
+  final bool preview;
 
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
+
+/// Províncias disponíveis no modo prévia (visitante). As restantes ficam
+/// bloqueadas, mas continuam visíveis no mapa.
+const _previewProvinceIds = {'AOLUA', 'AOBGU', 'AOHUA'};
 
 class _MapScreenState extends State<MapScreen> {
   late final List<AngolaGeo> _geos;
@@ -61,7 +70,24 @@ class _MapScreenState extends State<MapScreen> {
     _aspect = _bounds.width / _bounds.height;
   }
 
-  void _select(String id) => setState(() => _selected = _selected == id ? null : id);
+  /// Ids bloqueados no modo prévia (todas menos as disponíveis).
+  Set<String> get _lockedIds =>
+      _geos.map((g) => g.id).where((id) => !_previewProvinceIds.contains(id)).toSet();
+
+  /// Uma província está bloqueada quando estamos em modo prévia e ela não
+  /// pertence ao conjunto de províncias disponíveis.
+  bool _isLocked(String id) => widget.preview && !_previewProvinceIds.contains(id);
+
+  void _select(String id) {
+    if (_isLocked(id)) {
+      setState(() => _selected = id);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('Província bloqueada — entre para desbloquear todas.')));
+      return;
+    }
+    setState(() => _selected = _selected == id ? null : id);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,8 +97,11 @@ class _MapScreenState extends State<MapScreen> {
       Text('Explore Angola por província', style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 24)),
       const SizedBox(height: 6),
       Text(
-        'Toque numa província para ver indicadores económicos, marcos históricos e '
-        'conteúdos locais. Uma forma de ligar geografia, economia e história.',
+        widget.preview
+            ? 'Explore Angola por província. Nesta amostra, 3 províncias estão disponíveis; '
+                'as restantes ficam bloqueadas — entre para desbloquear todas.'
+            : 'Toque numa província para ver indicadores económicos, marcos históricos e '
+                'conteúdos locais. Uma forma de ligar geografia, economia e história.',
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondary, height: 1.5),
       ),
       const SizedBox(height: 18),
@@ -101,7 +130,11 @@ class _MapScreenState extends State<MapScreen> {
                   key: ValueKey(selectedGeo.id),
                   name: selectedGeo.name,
                   meta: _meta[selectedGeo.id]!,
-                  onOpen: () => Navigator.pushNamed(context, AppRoutes.provinceContents),
+                  locked: _isLocked(selectedGeo.id),
+                  onOpen: () => Navigator.pushNamed(
+                    context,
+                    _isLocked(selectedGeo.id) ? AppRoutes.login : AppRoutes.provinceContents,
+                  ),
                 ),
         ),
       ),
@@ -150,6 +183,7 @@ class _MapScreenState extends State<MapScreen> {
                     bounds: _bounds,
                     selected: _selected,
                     hovered: _hovered,
+                    lockedIds: widget.preview ? _lockedIds : const {},
                   ),
                 ),
               ),
@@ -210,44 +244,49 @@ class _MapScreenState extends State<MapScreen> {
   Widget _provinceTile(BuildContext context, AngolaGeo g) {
     final m = _meta[g.id]!;
     final isSelected = _selected == g.id;
-    return Material(
-      color: isSelected ? AppColors.surfaceContainer : AppColors.surface,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
+    final locked = _isLocked(g.id);
+    return Opacity(
+      opacity: locked ? .55 : 1,
+      child: Material(
+        color: isSelected && !locked ? AppColors.surfaceContainer : AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        onTap: () => _select(g.id),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: .4)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 46, height: 46,
-                decoration: BoxDecoration(color: AppColors.surfaceContainer, borderRadius: BorderRadius.circular(12)),
-                child: const Icon(Icons.place_outlined, color: AppColors.primary),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _select(g.id),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: isSelected && !locked ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: .4)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 46, height: 46,
+                  decoration: BoxDecoration(color: AppColors.surfaceContainer, borderRadius: BorderRadius.circular(12)),
+                  child: Icon(locked ? Icons.lock_outline : Icons.place_outlined, color: AppColors.primary),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(g.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
+                      Text(locked ? 'Bloqueada — entre para desbloquear' : m.focus,
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(g.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
-                    Text(m.focus, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+                    Text(m.weight, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800)),
+                    Text('da economia', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary, fontSize: 11)),
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(m.weight, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800)),
-                  Text('da economia', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary, fontSize: 11)),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -260,11 +299,14 @@ class _MapScreenState extends State<MapScreen> {
 // ---------------------------------------------------------------------------
 
 class _ProvinceCard extends StatelessWidget {
-  const _ProvinceCard({super.key, required this.name, required this.meta, required this.onOpen});
+  const _ProvinceCard({super.key, required this.name, required this.meta, required this.onOpen, this.locked = false});
 
   final String name;
   final _Meta meta;
   final VoidCallback onOpen;
+
+  /// Quando verdadeiro, o acesso aos conteúdos está bloqueado (modo visitante).
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
@@ -321,13 +363,13 @@ class _ProvinceCard extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: onOpen,
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+                backgroundColor: locked ? AppColors.surfaceContainer : AppColors.primary,
+                foregroundColor: locked ? AppColors.secondary : Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              icon: const Icon(Icons.menu_book_outlined, size: 18),
-              label: const Text('VER CONTEÚDOS'),
+              icon: Icon(locked ? Icons.lock_outline : Icons.menu_book_outlined, size: 18),
+              label: Text(locked ? 'ENTRE PARA VER CONTEÚDOS' : 'VER CONTEÚDOS'),
             ),
           ),
         ],
@@ -352,12 +394,21 @@ class _ProvinceCard extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _AngolaMapPainter extends CustomPainter {
-  _AngolaMapPainter({required this.geos, required this.bounds, required this.selected, required this.hovered});
+  _AngolaMapPainter({
+    required this.geos,
+    required this.bounds,
+    required this.selected,
+    required this.hovered,
+    this.lockedIds = const {},
+  });
 
   final List<AngolaGeo> geos;
   final Rect bounds;
   final String? selected;
   final String? hovered;
+
+  /// Províncias bloqueadas (modo prévia): pintadas esbatidas e com cadeado.
+  final Set<String> lockedIds;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -374,23 +425,37 @@ class _AngolaMapPainter extends CustomPainter {
       ..strokeWidth = 0.7 / fit.scale;
 
     for (final g in geos) {
+      final isLocked = lockedIds.contains(g.id);
       final isSelected = g.id == selected;
       final isHovered = g.id == hovered;
-      fill.color = isSelected
-          ? AppColors.primary
-          : isHovered
-              ? AppColors.navyContainer
-              : const Color(0xFF013A55);
+      fill.color = isLocked
+          ? const Color(0xFF012A3E)
+          : isSelected
+              ? AppColors.primary
+              : isHovered
+                  ? AppColors.navyContainer
+                  : const Color(0xFF013A55);
       canvas.drawPath(g.path, fill);
-      border.color = isSelected ? Colors.white : Colors.white.withValues(alpha: .22);
+      border.color = isSelected && !isLocked ? Colors.white : Colors.white.withValues(alpha: isLocked ? .10 : .22);
       canvas.drawPath(g.path, border);
     }
 
     canvas.restore();
 
-    // Rótulo da província ativa (selecionada tem prioridade sobre hover).
+    // Cadeados nas províncias bloqueadas.
+    for (final g in geos) {
+      if (!lockedIds.contains(g.id)) continue;
+      final center = Offset(
+        fit.offset.dx + g.centroid.dx * fit.scale,
+        fit.offset.dy + g.centroid.dy * fit.scale,
+      );
+      _paintLock(canvas, center);
+    }
+
+    // Rótulo da província ativa (selecionada tem prioridade sobre hover), exceto
+    // quando bloqueada — aí basta o cadeado.
     final labelId = selected ?? hovered;
-    if (labelId != null) {
+    if (labelId != null && !lockedIds.contains(labelId)) {
       final g = geos.firstWhere((e) => e.id == labelId);
       final center = Offset(
         fit.offset.dx + g.centroid.dx * fit.scale,
@@ -398,6 +463,17 @@ class _AngolaMapPainter extends CustomPainter {
       );
       _paintLabel(canvas, g.name, center);
     }
+  }
+
+  void _paintLock(Canvas canvas, Offset center) {
+    final tp = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(Icons.lock.codePoint),
+        style: const TextStyle(fontSize: 12, fontFamily: 'MaterialIcons', color: Colors.white70),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, center - Offset(tp.width / 2, tp.height / 2));
   }
 
   void _paintLabel(Canvas canvas, String text, Offset center) {
@@ -422,5 +498,5 @@ class _AngolaMapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _AngolaMapPainter old) =>
-      old.selected != selected || old.hovered != hovered;
+      old.selected != selected || old.hovered != hovered || old.lockedIds != lockedIds;
 }

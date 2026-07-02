@@ -4,14 +4,33 @@ import 'package:flutter/rendering.dart';
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../models/content_item.dart';
+import '../models/feed.dart';
+import '../services/feed_service.dart';
 import '../services/mock_data_service.dart';
+import '../widgets/angola_map.dart';
 import '../widgets/eh_button.dart';
 import '../widgets/eh_card.dart';
 import '../widgets/eh_illustration.dart';
 import '../widgets/highlight_card.dart';
+import '../widgets/preview_sheet.dart';
 import '../widgets/section_title.dart';
 import '../widgets/screen_frame.dart';
 import '../widgets/stat_tile.dart';
+
+/// Itens de pré-visualização por tipo de conteúdo, a partir do catálogo.
+List<PreviewItem> previewItemsFor(String feature) {
+  final fs = FeedService.instance;
+  final type = switch (feature) {
+    'Artigos' => FeedContentType.article,
+    'Vídeos' => FeedContentType.video,
+    'Podcasts' => FeedContentType.podcast,
+    'Quizzes' => FeedContentType.quiz,
+    'Fórum' => FeedContentType.forum,
+    _ => null,
+  };
+  final src = type == null ? fs.catalog : fs.catalog.where((c) => c.type == type).toList();
+  return [for (final c in src.take(5)) PreviewItem(c.title, c.subtitle)];
+}
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -44,7 +63,7 @@ class _LandingScreenState extends State<LandingScreen> {
       Positioned.fill(
         child: NotificationListener<UserScrollNotification>(
           onNotification: _onScroll,
-          child: ScreenFrame(title: 'Economia com História', showNotifications: false, paddingBottom: 150, children: [
+          child: ScreenFrame(title: 'Economia com História', showNotifications: false, showLogo: true, paddingBottom: 110, children: [
       // ---------- Hero ----------
       _hero(context),
       const SizedBox(height: 30),
@@ -72,7 +91,12 @@ class _LandingScreenState extends State<LandingScreen> {
               tag: h.tag,
               title: h.title,
               scene: scene,
-              onTap: () => Navigator.pushNamed(context, AppRoutes.reading),
+              onTap: () => showContentPreview(
+                context,
+                title: 'Leia agora',
+                icon: Icons.menu_book_outlined,
+                items: [for (final x in data.highlights()) PreviewItem(x.title, x.tag)],
+              ),
             );
           },
         ),
@@ -92,7 +116,9 @@ class _LandingScreenState extends State<LandingScreen> {
       const SectionTitle('Explore a comunidade'),
       const SizedBox(height: 14),
       EhCard(
-        onTap: () => Navigator.pushNamed(context, AppRoutes.community),
+        // A comunidade é reservada a membros: sem prévia. Só quem tiver conta
+        // (após entrar) pode aceder.
+        onTap: () => Navigator.pushNamed(context, AppRoutes.login),
         child: Row(children: [
           Container(
             width: 48, height: 48,
@@ -103,23 +129,16 @@ class _LandingScreenState extends State<LandingScreen> {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('Junte-se à comunidade', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15)),
-              Text('Partilhe ideias e aprenda em conjunto.',
+              Text('Entre para participar — exclusivo para membros.',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
             ]),
           ),
-          const Icon(Icons.chevron_right, color: AppColors.outline),
+          const Icon(Icons.lock_outline, color: AppColors.outline, size: 18),
         ]),
       ),
       const SizedBox(height: 12),
       Row(children: [
-        Expanded(
-          child: _QuickCard(
-            icon: Icons.forum_outlined,
-            title: 'Fóruns públicos',
-            subtitle: 'Leia os debates abertos.',
-            onTap: () => Navigator.pushNamed(context, AppRoutes.forum),
-          ),
-        ),
+        Expanded(child: _MapCard(onTap: () => Navigator.pushNamed(context, AppRoutes.map, arguments: true))),
         const SizedBox(width: 12),
         Expanded(
           child: _QuickCard(
@@ -131,16 +150,6 @@ class _LandingScreenState extends State<LandingScreen> {
         ),
       ]),
       const SizedBox(height: 30),
-
-      // ---------- Valores ----------
-      Row(children: const [
-        Expanded(child: _Stat(icon: Icons.menu_book_outlined, label: 'Leitura livre')),
-        SizedBox(width: 10),
-        Expanded(child: _Stat(icon: Icons.public, label: '18 províncias')),
-        SizedBox(width: 10),
-        Expanded(child: _Stat(icon: Icons.school_outlined, label: 'Rigor académico')),
-      ]),
-      const SizedBox(height: 24),
 
       // ---------- Sabia que? ----------
       EhCard(
@@ -155,6 +164,16 @@ class _LandingScreenState extends State<LandingScreen> {
           Text(data.didYouKnow()),
         ]),
       ),
+      const SizedBox(height: 24),
+
+      // ---------- Valores (abaixo de "Sabia que?") ----------
+      Row(children: const [
+        Expanded(child: _Stat(icon: Icons.menu_book_outlined, label: 'Leitura livre')),
+        SizedBox(width: 10),
+        Expanded(child: _Stat(icon: Icons.public, label: '18 províncias')),
+        SizedBox(width: 10),
+        Expanded(child: _Stat(icon: Icons.school_outlined, label: 'Rigor académico')),
+      ]),
       const SizedBox(height: 24),
 
       // ---------- A comunidade em números ----------
@@ -357,11 +376,13 @@ class _FeatureData {
 class _ExploreSection extends StatelessWidget {
   const _ExploreSection();
 
+  // A `route` aponta para o ecrã aberto ao tocar num item desbloqueado da
+  // prévia (em modo prévia — parcial/limitado).
   static const _features = [
-    _FeatureData(Icons.menu_book_outlined, 'Artigos', 'Explore artigos sobre História da Economia.', AppRoutes.explore, AppColors.primary),
+    _FeatureData(Icons.menu_book_outlined, 'Artigos', 'Explore artigos sobre História da Economia.', AppRoutes.reading, AppColors.primary),
+    _FeatureData(Icons.play_circle_outline, 'Vídeos', 'Aprenda vendo especialistas.', AppRoutes.videoPlayer, AppColors.navy),
     _FeatureData(Icons.headphones_outlined, 'Podcasts', 'Aprenda ouvindo especialistas.', AppRoutes.podcastPlayer, AppColors.navy),
-    _FeatureData(Icons.quiz_outlined, 'Quizzes', 'Teste os seus conhecimentos.', AppRoutes.quizHub, AppColors.tertiary),
-    _FeatureData(Icons.forum_outlined, 'Fórum', 'Participe em debates com a comunidade.', AppRoutes.forum, AppColors.success),
+    _FeatureData(Icons.forum_outlined, 'Fórum', 'Participe em debates com a comunidade.', AppRoutes.forumTopic, AppColors.success),
   ];
 
   @override
@@ -450,7 +471,7 @@ class _FeatureCardState extends State<_FeatureCard> {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
-              onTap: () => Navigator.pushNamed(context, d.route),
+              onTap: () => showContentPreview(context, title: d.title, icon: d.icon, items: previewItemsFor(d.title), previewRoute: d.route),
               onHighlightChanged: (v) => setState(() => _pressed = v),
               child: Padding(
                 padding: const EdgeInsets.all(12),
@@ -511,6 +532,23 @@ class _QuickCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15)),
           Text(subtitle, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+        ]),
+      );
+}
+
+/// Cartão do mapa interativo, com o símbolo do mapa de Angola.
+class _MapCard extends StatelessWidget {
+  const _MapCard({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => EhCard(
+        onTap: onTap,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SizedBox(width: 26, height: 26, child: AngolaMap(fill: AppColors.primary)),
+          const SizedBox(height: 10),
+          Text('Mapa interativo', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15)),
+          Text('Explore as 18 províncias.', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
         ]),
       );
 }
