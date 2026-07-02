@@ -242,7 +242,7 @@ class _LandingScreenState extends State<LandingScreen> {
                 Text('A economia de Angola contada pela sua história',
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(color: Colors.white, height: 1.15)),
                 const SizedBox(height: 10),
-                Text('Microtextos, debates e quizzes sobre as raízes económicas do país — do Kwanza ao Caminho de Ferro de Benguela.',
+                Text('Artigos, debates e quizzes sobre as raízes económicas do país — do Kwanza ao Caminho de Ferro de Benguela.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: .88), height: 1.5)),
                 const SizedBox(height: 22),
                 EhButton(label: 'Começar agora', inverted: true, fullWidth: false, onPressed: () => Navigator.pushNamed(context, AppRoutes.register1)),
