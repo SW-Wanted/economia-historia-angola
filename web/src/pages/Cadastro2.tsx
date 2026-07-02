@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import { useRegistration } from '../contexts/RegistrationContext'
+import {
+  writerApplicationService,
+  type CreateWriterApplicationDto,
+} from '../services/api/writer-application.service'
+import { ApiError } from '../services/api/client'
+import { getErrorMessage } from '../utils/errors'
 import CadastroStepper from '../components/CadastroStepper'
 
 const INTEREST_AREAS = [
@@ -28,10 +36,17 @@ const MAX_MOTIVATION = 500
 
 export default function Cadastro2() {
   const navigate = useNavigate()
-  const [isWriter, setIsWriter] = useState(false)
-  const [selectedAreas, setSelectedAreas] = useState<string[]>([])
-  const [motivation, setMotivation] = useState('')
+  const { register } = useAuth()
+  const { data, reset } = useRegistration()
+
+  const isWriter = data.wantsWriter
+
+  const [selectedAreas, setSelectedAreas] = useState<string[]>(
+    data.interests ? data.interests.split(',').filter(Boolean) : [],
+  )
+  const [motivation, setMotivation] = useState(data.motivation)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   // Multi-select dropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -39,27 +54,31 @@ export default function Cadastro2() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // Campos da candidatura de Escritor
-  const [biography, setBiography] = useState('')
-  const [academicBackground, setAcademicBackground] = useState('')
-  const [institution, setInstitution] = useState('')
-  const [specialization, setSpecialization] = useState('')
-  const [researchExperience, setResearchExperience] = useState('')
-  const [economicHistoryAreas, setEconomicHistoryAreas] = useState('')
-  const [interestTopics, setInterestTopics] = useState('')
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
-  const [previousPublications, setPreviousPublications] = useState('')
-  const [portfolio, setPortfolio] = useState('')
+  // Campos exclusivos da candidatura de Escritor (pertencem à WriterApplication)
+  const [biography, setBiography] = useState(data.writer?.biography ?? '')
+  const [academicBackground, setAcademicBackground] = useState(data.writer?.academicBackground ?? '')
+  const [institution, setInstitution] = useState(data.writer?.institution ?? '')
+  const [specialization, setSpecialization] = useState(data.writer?.specialization ?? '')
+  const [researchExperience, setResearchExperience] = useState(data.writer?.researchExperience ?? '')
+  const [economicHistoryAreas, setEconomicHistoryAreas] = useState(data.writer?.economicHistoryAreas ?? '')
+  const [interestTopics, setInterestTopics] = useState(data.writer?.interestTopics ?? '')
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
+    data.writer?.languages ? data.writer.languages.split(',').filter(Boolean) : [],
+  )
+  const [previousPublications, setPreviousPublications] = useState(data.writer?.previousPublications ?? '')
+  const [portfolio, setPortfolio] = useState(data.writer?.portfolio ?? '')
 
+  // Evita que a guarda de fluxo dispare depois de o registo iniciar (o reset()
+  // limpa o contexto e esvaziaria email/password momentaneamente).
+  const submittingRef = useRef(false)
+
+  // Guarda de fluxo: sem dados da etapa 1, regressa ao início.
   useEffect(() => {
-    const storedName = sessionStorage.getItem('reg_name')
-    const storedEmail = sessionStorage.getItem('reg_email')
-    if (!storedName || !storedEmail) {
+    if (submittingRef.current) return
+    if (!data.email || !data.password) {
       navigate('/cadastro')
-      return
     }
-    setIsWriter(sessionStorage.getItem('reg_writer') === 'true')
-  }, [navigate])
+  }, [data.email, data.password, navigate])
 
   // Fechar dropdown ao clicar fora ou pressionar Escape
   useEffect(() => {
@@ -126,7 +145,14 @@ export default function Cadastro2() {
     return null
   }
 
-  function proceed(skip: boolean) {
+  /**
+   * Etapa final do cadastro.
+   * 1. Cria sempre um utilizador USER via POST /auth/register (auto-autentica).
+   * 2. Se o Switch estiver activo, submete automaticamente a candidatura de
+   *    Escritor via POST /writer-applications, que fica com estado PENDING no backend.
+   * @param skipInterests salta os interesses opcionais (apenas para não-escritores).
+   */
+  async function handleSubmit(skipInterests: boolean) {
     setError('')
 
     if (isWriter) {
@@ -134,26 +160,61 @@ export default function Cadastro2() {
       if (writerError) { setError(writerError); return }
     }
 
-    sessionStorage.setItem('reg_interests', skip ? '' : selectedAreas.join(','))
-    sessionStorage.setItem('reg_motivation', skip ? '' : motivation.trim())
+    const interests = skipInterests ? '' : selectedAreas.join(',')
+    const motivationValue = skipInterests ? '' : motivation.trim()
 
-    if (isWriter) {
-      const writerData = {
-        biography: biography.trim(),
-        academicBackground: academicBackground.trim(),
-        institution: institution.trim(),
-        specialization: specialization.trim(),
-        researchExperience: researchExperience.trim(),
-        economicHistoryAreas: economicHistoryAreas.trim(),
-        languages: selectedLanguages.join(','),
-        interestTopics: interestTopics.trim(),
-        ...(previousPublications.trim() ? { previousPublications: previousPublications.trim() } : {}),
-        ...(portfolio.trim() ? { portfolio: portfolio.trim() } : {}),
+    submittingRef.current = true
+    setLoading(true)
+    try {
+      // 1. Criar a conta (utilizador USER) — auto-autentica via tokens.
+      await register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        ...(interests ? { interests } : {}),
+        ...(motivationValue ? { motivation: motivationValue } : {}),
+      })
+
+      // 2. Submeter candidatura de Escritor, se aplicável.
+      let writerApplied = false
+      if (isWriter) {
+        const dto: CreateWriterApplicationDto = {
+          fullName: data.name,
+          biography: biography.trim(),
+          academicBackground: academicBackground.trim(),
+          institution: institution.trim(),
+          specialization: specialization.trim(),
+          researchExperience: researchExperience.trim(),
+          economicHistoryAreas: economicHistoryAreas.trim(),
+          languages: selectedLanguages.join(','),
+          interestTopics: interestTopics.trim(),
+          ...(previousPublications.trim() ? { previousPublications: previousPublications.trim() } : {}),
+          ...(portfolio.trim() ? { portfolio: portfolio.trim() } : {}),
+        }
+        try {
+          await writerApplicationService.apply(dto)
+          writerApplied = true
+        } catch {
+          writerApplied = false
+        }
       }
-      sessionStorage.setItem('reg_writer_data', JSON.stringify(writerData))
-    }
 
-    navigate('/cadastro/3')
+      // Passar o resultado para a tela de confirmação e limpar o estado do fluxo.
+      sessionStorage.setItem('reg_writer_applied', writerApplied ? 'true' : 'false')
+      sessionStorage.setItem('reg_wanted_writer', isWriter ? 'true' : 'false')
+      reset()
+
+      navigate('/cadastro/sucesso')
+    } catch (err: unknown) {
+      // 409 no registo = email já registado (mensagem específica e acionável).
+      if (err instanceof ApiError && err.statusCode === 409) {
+        setError('Este email já está registado. Inicie sessão ou utilize outro email.')
+      } else {
+        setError(getErrorMessage(err))
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -176,7 +237,7 @@ export default function Cadastro2() {
       <main className="w-full max-w-[520px] bg-surface rounded-card shadow-card border border-outline-variant/45">
         {/* Barra de progresso isolada com overflow-hidden próprio */}
         <div className="h-0.5 bg-surface-container-high rounded-t-card overflow-hidden">
-          <div className="h-full bg-primary transition-all duration-700 ease-out" style={{ width: '66%' }} />
+          <div className="h-full bg-primary transition-all duration-700 ease-out" style={{ width: '100%' }} />
         </div>
 
         {/* Stepper */}
@@ -610,7 +671,8 @@ export default function Cadastro2() {
             <button
               type="button"
               onClick={() => navigate('/cadastro')}
-              className="btn-secondary flex-shrink-0"
+              disabled={loading}
+              className="btn-secondary flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Voltar
             </button>
@@ -620,8 +682,9 @@ export default function Cadastro2() {
             {!isWriter && (
               <button
                 type="button"
-                onClick={() => proceed(true)}
-                className="text-secondary text-sm font-semibold font-sans hover:text-text active:text-primary transition-colors duration-150 px-2 py-1.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                onClick={() => handleSubmit(true)}
+                disabled={loading}
+                className="text-secondary text-sm font-semibold font-sans hover:text-text active:text-primary transition-colors duration-150 px-2 py-1.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Saltar
               </button>
@@ -629,11 +692,23 @@ export default function Cadastro2() {
 
             <button
               type="button"
-              onClick={() => proceed(false)}
-              className="btn-primary"
+              onClick={() => handleSubmit(false)}
+              disabled={loading}
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Continuar
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              {loading ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : isWriter ? (
+                <>
+                  Criar Conta e Candidatar
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </>
+              ) : (
+                <>
+                  Criar Conta
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </>
+              )}
             </button>
           </div>
         </div>

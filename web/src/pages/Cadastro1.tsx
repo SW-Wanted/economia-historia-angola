@@ -1,23 +1,41 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useRegistration } from '../contexts/RegistrationContext'
 import CadastroStepper from '../components/CadastroStepper'
 
 export default function Cadastro1() {
   const navigate = useNavigate()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [wantsWriter, setWantsWriter] = useState(false)
+  const { data, patch } = useRegistration()
+
+  const [name, setName] = useState(data.name)
+  const [email, setEmail] = useState(data.email)
+  const [password, setPassword] = useState(data.password)
+  const [confirmPassword, setConfirmPassword] = useState(data.password)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [wantsWriter, setWantsWriter] = useState(data.wantsWriter)
   const [error, setError] = useState('')
+
+  // Validação em tempo real da palavra-passe
+  const passwordLengthOk = password.length >= 8
+  const passwordsMatch = password.length > 0 && confirmPassword.length > 0 && password === confirmPassword
+  const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     if (!name.trim()) { setError('Por favor, introduza o seu nome completo.'); return }
     if (!email.trim()) { setError('Por favor, introduza um email válido.'); return }
+    if (!passwordLengthOk) { setError('A palavra-passe deve ter pelo menos 8 caracteres.'); return }
+    if (!confirmPassword.trim()) { setError('Por favor, confirme a sua palavra-passe.'); return }
+    if (password !== confirmPassword) { setError('As palavras-passe não coincidem.'); return }
 
-    sessionStorage.setItem('reg_name', name.trim())
-    sessionStorage.setItem('reg_email', email.trim())
-    sessionStorage.setItem('reg_writer', wantsWriter ? 'true' : 'false')
+    patch({
+      name: name.trim(),
+      email: email.trim(),
+      password,
+      wantsWriter,
+    })
     navigate('/cadastro/2')
   }
 
@@ -40,7 +58,7 @@ export default function Cadastro1() {
       <main className="w-full max-w-[440px] bg-surface rounded-card shadow-card border border-outline-variant/45 overflow-hidden">
         {/* Barra de progresso */}
         <div className="h-0.5 w-full bg-surface-container-high">
-          <div className="h-full bg-primary transition-all duration-700 ease-out" style={{ width: '33%' }} />
+          <div className="h-full bg-primary transition-all duration-700 ease-out" style={{ width: '50%' }} />
         </div>
 
         {/* Stepper */}
@@ -90,6 +108,100 @@ export default function Cadastro1() {
               />
             </div>
 
+            {/* Palavra-passe */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                Palavra-passe
+              </label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[18px]">
+                  lock
+                </span>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Mínimo 8 caracteres"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  className="input pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors"
+                  aria-label={showPassword ? 'Ocultar' : 'Mostrar'}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {showPassword ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
+              {password.length > 0 && (
+                <div className="flex items-center gap-1.5 animate-fade-in">
+                  <span
+                    className={`material-symbols-outlined text-[14px] ${passwordLengthOk ? 'text-success' : 'text-outline'}`}
+                    style={{ fontVariationSettings: passwordLengthOk ? "'FILL' 1" : "'FILL' 0" }}
+                  >
+                    {passwordLengthOk ? 'check_circle' : 'radio_button_unchecked'}
+                  </span>
+                  <span className={`text-xs font-body ${passwordLengthOk ? 'text-success' : 'text-outline'}`}>
+                    Mínimo 8 caracteres
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Confirmar Palavra-passe */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">
+                Confirmar Palavra-passe
+              </label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[18px]">
+                  lock
+                </span>
+                <input
+                  type={showConfirm ? 'text' : 'password'}
+                  placeholder="Repita a palavra-passe"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className={[
+                    'input pl-10 pr-10 transition-colors',
+                    passwordsMatch ? 'border-success/60 focus:border-success focus:ring-success/10' : '',
+                    passwordMismatch ? 'border-error/50 focus:border-error focus:ring-error/10' : '',
+                  ].join(' ')}
+                />
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  {confirmPassword.length > 0 && (passwordsMatch || passwordMismatch) ? (
+                    <span
+                      className={`material-symbols-outlined text-[18px] ${passwordsMatch ? 'text-success' : 'text-error'}`}
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      {passwordsMatch ? 'check_circle' : 'cancel'}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm((v) => !v)}
+                      className="text-outline hover:text-primary transition-colors"
+                      aria-label={showConfirm ? 'Ocultar' : 'Mostrar'}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        {showConfirm ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+              {passwordMismatch && (
+                <p className="text-xs text-error font-body animate-fade-in">
+                  As palavras-passe não coincidem.
+                </p>
+              )}
+            </div>
+
             {/* Switch — Candidatar-me a Escritor */}
             <div className="border border-outline-variant/50 rounded-card p-4 bg-surface-container-low/50">
               <div className="flex items-start gap-3">
@@ -127,8 +239,8 @@ export default function Cadastro1() {
                     </button>
                   </div>
                   <p className="text-xs text-secondary font-body mt-1.5 leading-relaxed">
-                    Os escritores podem publicar artigos e contribuir com conteúdos educativos.
-                    A candidatura será analisada pela administração.
+                    Os escritores podem publicar artigos, criar fóruns e contribuir com conteúdos
+                    educativos. A candidatura será analisada pela administração.
                   </p>
                 </div>
               </div>

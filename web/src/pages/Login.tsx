@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { ApiError } from '../services/api/client'
+import { getErrorMessage } from '../utils/errors'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -28,7 +30,12 @@ export default function Login() {
       await login({ email: email.trim(), password })
       navigate(from, { replace: true })
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao iniciar sessão. Tente novamente.')
+      // Num ecrã de login, 401 significa credenciais erradas (não "sessão expirada").
+      if (err instanceof ApiError && err.statusCode === 401) {
+        setError('Email ou palavra-passe incorretos.')
+      } else {
+        setError(getErrorMessage(err))
+      }
     } finally {
       setLoading(false)
     }

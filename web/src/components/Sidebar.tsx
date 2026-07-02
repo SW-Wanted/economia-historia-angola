@@ -100,7 +100,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-sidebar bg-surface border-r border-outline-variant/25 flex flex-col z-50 overflow-hidden">
+    <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-sidebar bg-surface border-r border-outline-variant/25 flex-col z-50 overflow-hidden">
 
       {/* Brand */}
       <div className="px-5 pt-6 pb-4 flex-shrink-0">

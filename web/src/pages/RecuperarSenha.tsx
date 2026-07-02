@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../services/api/auth.service'
+import { getErrorMessage } from '../utils/errors'
 
 export default function RecuperarSenha() {
   const navigate = useNavigate()
@@ -18,8 +19,7 @@ export default function RecuperarSenha() {
       await authService.forgotPassword(email.trim())
       setSent(true)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao enviar instruções. Tente novamente.'
-      setError(msg)
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }

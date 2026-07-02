@@ -7,7 +7,6 @@ import SplashScreen from '../pages/SplashScreen'
 import Login from '../pages/Login'
 import Cadastro1 from '../pages/Cadastro1'
 import Cadastro2 from '../pages/Cadastro2'
-import Cadastro3 from '../pages/Cadastro3'
 import CadastroSucesso from '../pages/CadastroSucesso'
 import RecuperarSenha from '../pages/RecuperarSenha'
 import Onboarding1 from '../pages/Onboarding1'
@@ -75,7 +74,8 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/cadastro" element={<Cadastro1 />} />
       <Route path="/cadastro/2" element={<Cadastro2 />} />
-      <Route path="/cadastro/3" element={<Cadastro3 />} />
+      {/* Compat: a antiga etapa 3 (palavra-passe) foi fundida na etapa 1. */}
+      <Route path="/cadastro/3" element={<Navigate to="/cadastro" replace />} />
       <Route path="/cadastro/sucesso" element={<CadastroSucesso />} />
       <Route path="/recuperar-senha" element={<RecuperarSenha />} />
 
