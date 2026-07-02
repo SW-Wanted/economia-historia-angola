@@ -5,6 +5,8 @@ import { useAuth, getUserInitials, getUserRole, canCreateContent } from '../cont
 import { userService } from '../services/api/user.service'
 import { quizService } from '../services/api/quiz.service'
 import { writerApplicationService } from '../services/api/writer-application.service'
+import FileUpload from '../components/ui/FileUpload'
+import { IMAGE_CONSTRAINTS } from '../services/api/upload.service'
 import { ApiError } from '../services/api/client'
 import { getErrorMessage } from '../utils/errors'
 import { extractList } from '../services/types/api.types'
@@ -73,6 +75,7 @@ export default function Perfil() {
   const [editCourse, setEditCourse] = useState('')
   const [editInterests, setEditInterests] = useState('')
   const [editMotivation, setEditMotivation] = useState('')
+  const [editAvatarUrl, setEditAvatarUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
 
@@ -114,6 +117,7 @@ export default function Perfil() {
     setEditCourse(user?.course ?? '')
     setEditInterests(user?.interests ?? '')
     setEditMotivation(user?.motivation ?? '')
+    setEditAvatarUrl(user?.avatarUrl ?? null)
     setSaveError('')
     setEditing(true)
   }
@@ -130,6 +134,8 @@ export default function Perfil() {
         course: editCourse.trim() || undefined,
         interests: editInterests.trim() || undefined,
         motivation: editMotivation.trim() || undefined,
+        // '' limpa o avatar no backend (removido); URL preenchida define-o.
+        avatarUrl: editAvatarUrl ?? '',
       })
       await refreshUser()
       setEditing(false)
@@ -187,6 +193,16 @@ export default function Perfil() {
 
             {editing ? (
               <div className="space-y-4">
+                <FileUpload
+                  id="avatar-upload"
+                  label="Foto de Perfil"
+                  hint="JPG, PNG, WebP ou GIF · máx. 5 MB"
+                  variant="image"
+                  constraints={IMAGE_CONSTRAINTS}
+                  existingUrl={editAvatarUrl}
+                  disabled={saving}
+                  onUploaded={(result) => setEditAvatarUrl(result?.publicUrl ?? null)}
+                />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-label-lg text-text-muted font-sans mb-1.5">Nome</label>
