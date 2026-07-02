@@ -22,22 +22,30 @@ class FilterChipsRow extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: labels.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (context, i) {
           final active = i == selected;
-          return ChoiceChip(
-            label: Text(labels[i]),
-            selected: active,
-            onSelected: (_) => onSelected(i),
-            showCheckmark: false,
-            labelStyle: TextStyle(
-              color: active ? Colors.white : AppColors.secondary,
-              fontWeight: FontWeight.w600,
+          // Mesmo estilo dos filtros do Explorar/Fórum, para consistência visual.
+          return GestureDetector(
+            onTap: () => onSelected(i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              decoration: BoxDecoration(
+                color: active ? AppColors.navy : AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(99),
+                border: Border.all(color: active ? AppColors.navy : AppColors.outlineVariant.withValues(alpha: .6)),
+              ),
+              child: Text(
+                labels[i],
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontSize: 14,
+                      color: active ? Colors.white : AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
             ),
-            backgroundColor: AppColors.surface,
-            selectedColor: AppColors.navy,
-            side: BorderSide(color: active ? AppColors.navy : AppColors.outlineVariant),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
           );
         },
       ),
