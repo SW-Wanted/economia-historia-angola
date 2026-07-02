@@ -38,6 +38,10 @@ export class UploadsService {
     const asset = await this.prisma.asset.create({
       data: { uploaderId, key, bucket, mimeType: dto.mimeType, sizeBytes: dto.sizeBytes },
     });
-    return { uploadUrl, assetId: asset.id, key, expiresIn: 900 };
+    // URL público final do ficheiro (após o PUT para uploadUrl), montado a partir
+    // da base pública do bucket — usado como avatarUrl/coverUrl do utilizador.
+    const publicBase = this.config.get<string>('s3.publicBaseUrl', '').replace(/\/+$/, '');
+    const publicUrl = publicBase ? `${publicBase}/${key}` : key;
+    return { uploadUrl, assetId: asset.id, key, publicUrl, expiresIn: 900 };
   }
 }

@@ -23,6 +23,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
 import { SyncModule } from './modules/sync/sync.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { WriterApplicationsModule } from './modules/writer-applications/writer-applications.module';
+import { StatsModule } from './modules/stats/stats.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { WriterApplicationsModule } from './modules/writer-applications/writer-a
     SyncModule,
     ReportsModule,
     WriterApplicationsModule,
+    StatsModule,
     RealtimeModule,
   ],
   providers: [

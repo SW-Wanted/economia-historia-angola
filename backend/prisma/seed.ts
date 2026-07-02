@@ -21,6 +21,8 @@ const rolePermissions: Record<RoleCode, PermissionCode[]> = {
     PermissionCode.CONTENT_CREATE,
     PermissionCode.CONTENT_UPDATE_OWN,
     PermissionCode.JINDUNGO_WRITE,
+    PermissionCode.QUIZ_MANAGE,
+    PermissionCode.COMMUNITY_CREATE,
   ],
   PROFESSOR: [
     PermissionCode.COMMENT_CREATE,

@@ -25,6 +25,27 @@ export class CreateContentDto {
   @IsString()
   body?: string;
 
+  @ApiPropertyOptional({ description: 'URL de origem/referência externa do conteúdo.' })
+  @IsOptional()
+  @IsString()
+  sourceUrl?: string;
+
+  @ApiPropertyOptional({ description: 'URL pública do ficheiro principal (vídeo, áudio, PDF ou documento).' })
+  @IsOptional()
+  @IsString()
+  mediaUrl?: string;
+
+  @ApiPropertyOptional({ description: 'URL pública da imagem de capa/miniatura.' })
+  @IsOptional()
+  @IsString()
+  thumbnailUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Duração em segundos (vídeo/áudio).' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  durationSeconds?: number;
+
   @ApiPropertyOptional({ enum: Visibility })
   @IsOptional()
   @IsEnum(Visibility)
@@ -40,24 +61,8 @@ export class CreateContentDto {
   @IsString()
   categoryId?: string;
 
-  @ApiPropertyOptional({ description: 'URL pública do ficheiro principal (vídeo, áudio, PDF ou documento).' })
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  mediaUrl?: string;
-
-  @ApiPropertyOptional({ description: 'URL pública da imagem de capa/miniatura.' })
-  @IsOptional()
-  @IsString()
-  thumbnailUrl?: string;
-
-  @ApiPropertyOptional({ description: 'URL de origem/referência externa do conteúdo.' })
-  @IsOptional()
-  @IsString()
-  sourceUrl?: string;
-
-  @ApiPropertyOptional({ description: 'Duração em segundos (vídeo/áudio).' })
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  durationSeconds?: number;
+  categoryName?: string;
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -23,6 +24,13 @@ class ApiClient {
   final String baseUrl;
   String? accessToken;
   String? refreshToken;
+
+  /// Renova a sessão usando o refresh token. Deve devolver o novo par de tokens
+  /// ou lançar em caso de falha. Definido pelo [BackendService] para manter o
+  /// [ApiClient] desacoplado da lógica de autenticação.
+  Future<void> Function()? onUnauthorized;
+
+  bool _refreshing = false;
 
   bool get isAuthenticated => accessToken != null && refreshToken != null;
 
@@ -50,6 +58,11 @@ class ApiClient {
     return value is Map<String, dynamic> ? value : <String, dynamic>{};
   }
 
+  Future<Map<String, dynamic>> delete(String path, {Map<String, dynamic>? body}) async {
+    final value = await _send('DELETE', path, body: body);
+    return value is Map<String, dynamic> ? value : <String, dynamic>{};
+  }
+
   Uri _uri(String path, Map<String, String?> query) {
     final base = Uri.parse(baseUrl);
     final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
@@ -71,21 +84,69 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? body,
     Map<String, String?> query = const {},
+    bool retryOnUnauthorized = true,
   }) async {
-    final headers = <String, String>{
-      'Accept': 'application/json',
-      if (body != null) 'Content-Type': 'application/json',
-      if (accessToken != null) 'Authorization': 'Bearer $accessToken',
-    };
     final uri = _uri(path, query);
     final encodedBody = body == null ? null : jsonEncode(body);
-    final response = switch (method) {
-      'GET' => await _http.get(uri, headers: headers),
-      'POST' => await _http.post(uri, headers: headers, body: encodedBody),
-      'PATCH' => await _http.patch(uri, headers: headers, body: encodedBody),
+    final http.Response response;
+    try {
+      response = await _dispatch(method, uri, encodedBody, body != null);
+    } on TimeoutException {
+      throw ApiException(_networkMessage(uri));
+    } on http.ClientException {
+      throw ApiException(_networkMessage(uri));
+    }
+
+    // Access token expirado (15 min): tenta renovar uma única vez e repetir.
+    // Não renova o próprio endpoint de refresh para evitar recursão.
+    if (response.statusCode == 401 &&
+        retryOnUnauthorized &&
+        !_refreshing &&
+        onUnauthorized != null &&
+        refreshToken != null &&
+        !path.contains('/auth/refresh')) {
+      try {
+        _refreshing = true;
+        await onUnauthorized!.call();
+      } catch (_) {
+        // Refresh falhou — a sessão está inválida; devolve o erro original.
+      } finally {
+        _refreshing = false;
+      }
+      if (accessToken != null) {
+        final http.Response retry;
+        try {
+          retry = await _dispatch(method, uri, encodedBody, body != null);
+        } on TimeoutException {
+          throw ApiException(_networkMessage(uri));
+        } on http.ClientException {
+          throw ApiException(_networkMessage(uri));
+        }
+        return _decode(retry);
+      }
+    }
+
+    return _decode(response);
+  }
+
+  Future<http.Response> _dispatch(String method, Uri uri, String? encodedBody, bool hasBody) {
+    final headers = <String, String>{
+      'Accept': 'application/json',
+      'Cache-Control': 'no-store',
+      'Pragma': 'no-cache',
+      if (hasBody) 'Content-Type': 'application/json',
+      if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+    };
+    return switch (method) {
+      'GET' => _http.get(uri, headers: headers).timeout(const Duration(seconds: 20)),
+      'POST' => _http.post(uri, headers: headers, body: encodedBody).timeout(const Duration(seconds: 20)),
+      'PATCH' => _http.patch(uri, headers: headers, body: encodedBody).timeout(const Duration(seconds: 20)),
+      'DELETE' => _http.delete(uri, headers: headers, body: encodedBody).timeout(const Duration(seconds: 20)),
       _ => throw const ApiException('Metodo HTTP nao suportado.'),
     };
+  }
 
+  dynamic _decode(http.Response response) {
     final decoded = response.body.isEmpty ? null : jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) return decoded;
 
@@ -93,5 +154,10 @@ class ApiClient {
         ? (decoded['message'] is List ? (decoded['message'] as List).join(', ') : decoded['message']?.toString())
         : null;
     throw ApiException(message ?? 'Erro ao comunicar com o backend.', statusCode: response.statusCode);
+  }
+
+  String _networkMessage(Uri uri) {
+    return 'Não foi possível comunicar com o backend em ${uri.origin}. '
+        'Confirme se o servidor está ligado e se o telemóvel/emulador consegue aceder a esse endereço.';
   }
 }
