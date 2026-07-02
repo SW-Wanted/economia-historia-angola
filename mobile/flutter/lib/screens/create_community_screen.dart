@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
+import '../core/routes/app_routes.dart';
 import '../widgets/eh_button.dart';
 import '../widgets/screen_frame.dart';
 import '../widgets/section_title.dart';
@@ -95,6 +96,15 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
             ),
           ),
         ),
+        if (_private) ...[
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.invite),
+            icon: const Icon(Icons.person_add_alt),
+            label: const Text('Gerir convites'),
+            style: OutlinedButton.styleFrom(foregroundColor: AppColors.primary, side: const BorderSide(color: AppColors.primary)),
+          ),
+        ],
         const SizedBox(height: 24),
         EhButton(label: 'Criar comunidade', icon: Icons.groups_outlined, onPressed: _submit),
       ],

@@ -25,7 +25,9 @@ import '../../screens/invite_screen.dart';
 import '../../screens/landing_screen.dart';
 import '../../screens/library_screen.dart';
 import '../../screens/login_screen.dart';
+import '../../screens/manage_content_screen.dart';
 import '../../screens/manage_forums_screen.dart';
+import '../../screens/management_panel_screen.dart';
 import '../../screens/map_screen.dart';
 import '../../screens/notifications_screen.dart';
 import '../../screens/offline_mode_screen.dart';
@@ -48,6 +50,7 @@ import '../../screens/register_screen.dart';
 import '../../screens/report_screen.dart';
 import '../../screens/restricted_content_screen.dart';
 import '../../screens/search_results_screen.dart';
+import '../../screens/settings_screen.dart';
 import '../../screens/splash_screen.dart';
 import '../../screens/subscription_screen.dart';
 import '../../screens/super_admin_chain_screen.dart';
@@ -116,6 +119,9 @@ class AppRoutes {
   static const invite = '/invite';
   static const report = '/report';
   static const pendingReports = '/pending-reports';
+  static const settings = '/settings';
+  static const manageContent = '/manage-content';
+  static const managementPanel = '/management-panel';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = switch (settings.name) {
@@ -177,6 +183,9 @@ class AppRoutes {
       invite => const InviteScreen(),
       report => const ReportScreen(),
       pendingReports => const PendingReportsScreen(),
+      AppRoutes.settings => const SettingsScreen(),
+      manageContent => const ManageContentScreen(),
+      managementPanel => const ManagementPanelScreen(),
       _ => const SplashScreen(),
     };
 
