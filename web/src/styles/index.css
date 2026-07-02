@@ -9,9 +9,10 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /* Cores alinhadas à app Mobile (app_colors.dart): background #F2F2F0, text #251817. */
   body {
-    background-color: #F4F2F0;
-    color: #1A0F0F;
+    background-color: #F2F2F0;
+    color: #251817;
     font-family: 'Lexend', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -20,7 +21,7 @@
 
   ::selection {
     background-color: rgba(139, 26, 26, 0.14);
-    color: #1A0F0F;
+    color: #251817;
   }
 
   :focus-visible {
@@ -85,7 +86,7 @@
 
   .card {
     @apply bg-surface rounded-card
-           border border-outline-variant/30
+           border border-outline-variant/45
            shadow-card;
   }
 
@@ -153,8 +154,8 @@
 
   /* ── Page containers ─────────────────────────────────────── */
 
-  .page-content        { @apply px-8 py-10 max-w-[1200px] mx-auto; }
-  .page-content-narrow { @apply px-8 py-10 max-w-[800px] mx-auto; }
+  .page-content        { @apply px-5 py-6 sm:px-8 sm:py-10 max-w-[1200px] mx-auto; }
+  .page-content-narrow { @apply px-5 py-6 sm:px-8 sm:py-10 max-w-[800px] mx-auto; }
 
   /* ── Filter chips ────────────────────────────────────────── */
 
@@ -163,10 +164,11 @@
            border transition-all duration-150 whitespace-nowrap
            cursor-pointer active:scale-[0.97];
   }
-  .filter-chip-active   { @apply filter-chip bg-primary text-white border-primary shadow-xs; }
+  /* Espelha o FilterChipsRow da Mobile: chip activo em Navy, inactivo em surface. */
+  .filter-chip-active   { @apply filter-chip bg-navy text-white border-navy shadow-xs; }
   .filter-chip-inactive {
-    @apply filter-chip bg-surface border-outline-variant/45 text-text/70
-           hover:border-primary/40 hover:text-primary hover:bg-primary/5;
+    @apply filter-chip bg-surface border-outline-variant/60 text-secondary
+           hover:border-navy/40 hover:text-navy hover:bg-navy/5;
   }
 
   /* ── Stat cards ──────────────────────────────────────────── */

@@ -12,7 +12,7 @@ export default function EmptyState({ icon, title, message, action }: EmptyStateP
     <EhCard padding="p-10">
       <div className="flex flex-col items-center text-center gap-3">
         <span
-          className="material-symbols-outlined text-primary/30"
+          className="material-symbols-outlined text-primary"
           style={{ fontSize: '48px' }}
         >
           {icon}

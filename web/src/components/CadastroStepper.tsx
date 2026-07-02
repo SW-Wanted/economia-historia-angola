@@ -1,20 +1,19 @@
 import { Fragment } from 'react'
 
 interface CadastroStepperProps {
-  currentStep: 1 | 2 | 3
+  currentStep: 1 | 2
 }
 
 const STEPS = [
-  { label: 'Dados' },
-  { label: 'Interesses' },
-  { label: 'Segurança' },
+  { label: 'Conta' },
+  { label: 'Perfil' },
 ]
 
 export default function CadastroStepper({ currentStep }: CadastroStepperProps) {
   return (
     <div className="flex items-start justify-center w-full">
       {STEPS.map((step, idx) => {
-        const n = (idx + 1) as 1 | 2 | 3
+        const n = (idx + 1) as 1 | 2
         const done = n < currentStep
         const active = n === currentStep
 
