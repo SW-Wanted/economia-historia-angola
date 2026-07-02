@@ -1,108 +1,268 @@
-﻿import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useNavigate, useLocation, NavigateFunction } from 'react-router-dom'
 import AppShell from '../components/AppShell'
+import { contentService } from '../services/api/content.service'
+import { useAuth, hasPermission } from '../contexts/AuthContext'
+import { getErrorMessage } from '../utils/errors'
+import type { Content, User } from '../services/types/api.types'
+
+function readingMinutes(body: string | null): number {
+  if (!body) return 1
+  return Math.max(1, Math.round(body.trim().split(/\s+/).length / 200))
+}
+
+function JindungoLock({
+  contentId,
+  user,
+  onNavigate,
+}: {
+  contentId: string | undefined
+  user: User | null
+  onNavigate: NavigateFunction
+}) {
+  const [requesting, setRequesting] = useState(false)
+  const [requested, setRequested] = useState(false)
+  const [requestError, setRequestError] = useState('')
+
+  async function handleRequest() {
+    if (!contentId) return
+    setRequesting(true)
+    setRequestError('')
+    try {
+      await contentService.requestAccess(contentId)
+      setRequested(true)
+    } catch (err: unknown) {
+      setRequestError(getErrorMessage(err))
+    } finally {
+      setRequesting(false)
+    }
+  }
+
+  return (
+    <div className="card p-12 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-primary/8 flex items-center justify-center mx-auto mb-5">
+        <span className="material-symbols-outlined text-primary text-[32px]">lock</span>
+      </div>
+      <h3 className="text-headline-lg font-bold text-text font-sans mb-2">Conteúdo Exclusivo</h3>
+      <p className="text-body-md text-secondary font-reading mb-6 max-w-sm mx-auto leading-relaxed">
+        Os textos Jindungo são análises aprofundadas disponíveis para investigadores com conta verificada.
+      </p>
+
+      {requested ? (
+        <div className="alert-success rounded-xl max-w-sm mx-auto">
+          <span className="material-symbols-outlined text-success text-[20px] flex-shrink-0"
+            style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          <div className="text-left">
+            <p className="text-sm font-bold text-success font-sans">Pedido enviado!</p>
+            <p className="text-body-md text-secondary font-body mt-0.5">
+              O seu pedido de acesso foi enviado. Um moderador irá analisar brevemente.
+            </p>
+          </div>
+        </div>
+      ) : !user ? (
+        <div className="flex flex-col gap-3 items-center">
+          <button onClick={() => onNavigate('/cadastro')} className="btn-primary">
+            <span className="material-symbols-outlined text-[18px]">person_add</span>
+            Criar Conta Gratuita
+          </button>
+          <button onClick={() => onNavigate('/entrar')} className="btn-ghost text-sm">
+            Já tenho conta — Iniciar Sessão
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 items-center">
+          <button
+            onClick={handleRequest}
+            disabled={requesting}
+            className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {requesting ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-[18px]">key</span>
+                Solicitar Acesso
+              </>
+            )}
+          </button>
+          {requestError && (
+            <p className="text-sm text-error font-body">{requestError}</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function LeituraJindungo() {
   const navigate = useNavigate()
-  const [unlocked] = useState(true)
+  const location = useLocation()
+  const { user } = useAuth()
+  const contentId = (location.state as { contentId?: string } | null)?.contentId
+
+  const [content, setContent] = useState<Content | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [scrollPct, setScrollPct] = useState(0)
+  const articleRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!contentId) { setError('Nenhum conteúdo selecionado.'); setLoading(false); return }
+    contentService.get(contentId)
+      .then(setContent)
+      .catch((err) => setError(getErrorMessage(err)))
+      .finally(() => setLoading(false))
+  }, [contentId])
+
+  const reportProgress = useCallback((pct: number) => {
+    if (!contentId || !user) return
+    contentService.updateProgress(contentId, pct).catch(() => {})
+  }, [contentId, user])
+
+  useEffect(() => {
+    function onScroll() {
+      const el = articleRef.current
+      if (!el) return
+      const visible = window.innerHeight - Math.max(0, el.getBoundingClientRect().top)
+      const pct = Math.min(100, Math.round((visible / el.scrollHeight) * 100))
+      setScrollPct(pct)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    if (scrollPct > 0 && scrollPct % 25 === 0) reportProgress(scrollPct)
+  }, [scrollPct, reportProgress])
+
+  const unlocked = !content?.isJindungo || hasPermission(user, 'JINDUNGO_ACCESS', 'JINDUNGO_WRITE')
+  const paragraphs = content?.body && unlocked ? content.body.split(/\n{2,}/).filter(Boolean) : []
+  const mins = readingMinutes(content?.body ?? null)
+
+  if (!loading && error) {
+    return (
+      <AppShell showSearch={false}>
+        <div className="page-content-narrow text-center py-20">
+          <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center mx-auto mb-4">
+            <span className="material-symbols-outlined text-primary/30 text-[32px]">nutrition</span>
+          </div>
+          <p className="text-body-md text-secondary font-body mb-6">{error}</p>
+          <button onClick={() => navigate('/explorar')} className="btn-primary">Ir para Explorar</button>
+        </div>
+      </AppShell>
+    )
+  }
 
   return (
     <AppShell showSearch={false}>
-      <div className="px-10 py-8 max-w-[800px] mx-auto">
+      {/* Reading progress — fixed under topbar */}
+      <div className="fixed top-topbar left-sidebar right-0 z-30 h-[3px] bg-surface-container">
+        <div className="h-full bg-primary transition-all duration-500 ease-out" style={{ width: `${scrollPct}%` }} />
+      </div>
+
+      <div className="page-content-narrow pt-8 pb-16 animate-fade-in">
         <button
           onClick={() => navigate('/explorar')}
-          className="flex items-center gap-2 text-[#5d5f5d] hover:text-[#8B1A1A] transition-colors mb-8 text-sm font-semibold"
+          className="flex items-center gap-2 text-secondary hover:text-primary transition-colors duration-150 mb-8 text-sm font-semibold font-sans"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Voltar ao Arquivo
         </button>
 
-        {/* Jindungo badge */}
-        <div className="flex items-center gap-3 mb-4">
-          <span className="bg-[#8B1A1A] text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">nutrition</span>
-            Texto Jindungo
-          </span>
-          <span className="text-xs text-[#5d5f5d]">22 min de leitura</span>
-          <span className="text-xs text-[#5d5f5d]">•</span>
-          <span className="text-xs text-[#5d5f5d]">Análise Profunda</span>
-        </div>
+        {loading ? (
+          <div className="space-y-4">
+            <div className="skeleton h-5 w-48 rounded" />
+            <div className="skeleton h-12 w-5/6 rounded-lg" />
+            <div className="skeleton h-6 w-full rounded" />
+            <div className="skeleton h-72 rounded-card" />
+            {[1, 2, 3, 4].map((i) => <div key={i} className="skeleton h-4 rounded" />)}
+          </div>
+        ) : content ? (
+          <>
+            <header className="mb-8">
+              {/* Badges */}
+              <div className="flex items-center gap-3 flex-wrap mb-5">
+                <span className="badge bg-primary text-white flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">nutrition</span>
+                  Análise Aprofundada
+                </span>
+                {content.category && <span className="badge-muted">{content.category.name}</span>}
+                <span className="text-[12px] text-secondary font-body flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[13px]">schedule</span>
+                  {mins} min de leitura
+                </span>
+              </div>
 
-        <h1 className="text-[40px] font-extrabold text-[#1c1b1b] leading-tight mb-4">
-          A Geopolítica do Diamante na Lunda Norte
-        </h1>
+              {/* Title */}
+              <h1 className="text-display-lg font-extrabold text-text font-sans tracking-tight leading-tight mb-4">
+                {content.title}
+              </h1>
 
-        <p className="text-xl text-[#58413f] italic mb-8" style={{ fontFamily: 'Merriweather, serif' }}>
-          "Para entender o brilho de hoje, precisamos de olhar para as cicatrizes de ontem no solo da Lunda."
-        </p>
+              {/* Summary */}
+              {content.summary && (
+                <p className="text-body-xl text-secondary font-reading leading-relaxed mb-6 italic border-l-4 border-primary/30 pl-4">
+                  {content.summary}
+                </p>
+              )}
 
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-[#eae7e7] flex items-center justify-center">
-              <span className="material-symbols-outlined text-[#5d5f5d]">person</span>
+              {/* Author row */}
+              {content.author && (
+                <div className="flex items-center gap-3 py-4 border-t border-b border-outline-variant/20">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/8 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-[11px] font-bold text-primary font-sans leading-none">
+                      {content.author.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-text font-sans">{content.author.name}</p>
+                    <p className="text-[11px] text-secondary font-body">Autor · Análise Jindungo</p>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2">
+                    <button onClick={() => navigate('/forum')} className="btn-icon" title="Discutir">
+                      <span className="material-symbols-outlined text-[20px]">forum</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </header>
+
+            {/* Cover — styled for Jindungo (rich editorial look) */}
+            <div className="w-full h-64 rounded-card mb-8 overflow-hidden relative"
+              style={{ background: 'linear-gradient(135deg, #8B1A1A 0%, #5A1010 60%, #2A0808 100%)' }}>
+              <div className="absolute inset-0 opacity-[0.04]"
+                style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="material-symbols-outlined text-white/10" style={{ fontSize: '160px' }}>history_edu</span>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/40 to-transparent">
+                <span className="text-white/60 text-xs font-body">Análise aprofundada · Economia com História</span>
+              </div>
             </div>
-            <div>
-              <span className="text-sm font-bold text-[#1c1b1b]">Dr. Paulo Vunge</span>
-              <p className="text-xs text-[#5d5f5d]">Historiador Sénior</p>
+
+            {unlocked ? (
+              <article ref={articleRef} className="prose-article">
+                {paragraphs.length > 0 ? (
+                  paragraphs.map((p, i) => <p key={i}>{p}</p>)
+                ) : (
+                  <p style={{ color: '#8A706D', fontStyle: 'italic', fontFamily: 'Lexend' }}>Conteúdo não disponível.</p>
+                )}
+              </article>
+            ) : (
+              <JindungoLock contentId={contentId} user={user} onNavigate={navigate} />
+            )}
+
+            <div className="flex justify-between items-center mt-12 pt-6 border-t border-outline-variant/20">
+              <button onClick={() => navigate('/explorar')} className="btn-ghost">
+                <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                Mais análises
+              </button>
+              <button onClick={() => navigate('/forum')} className="btn-secondary">
+                <span className="material-symbols-outlined text-[18px]">forum</span>
+                Discutir no Fórum
+              </button>
             </div>
-          </div>
-        </div>
-
-        {/* Cover */}
-        <div className="w-full h-72 bg-[#8B1A1A] rounded-xl flex items-center justify-center mb-8 relative overflow-hidden">
-          <span className="material-symbols-outlined text-white/10" style={{ fontSize: '200px' }}>diamond</span>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="material-symbols-outlined text-white/30" style={{ fontSize: '100px' }}>nutrition</span>
-          </div>
-        </div>
-
-        {unlocked ? (
-          <article style={{ fontFamily: 'Merriweather, serif' }}>
-            <p className="text-lg text-[#1c1b1b] leading-relaxed mb-6">
-              A região da Lunda Norte encerra em si mesma uma das mais complexas narrativas da história económica angolana. Aqui, a riqueza mineral coexistiu sempre com a pobreza humana — uma contradição que define não apenas o passado colonial, mas também os desafios do presente.
-            </p>
-            <p className="text-lg text-[#5d5f5d] leading-relaxed mb-6">
-              Quando a DIAMANG estabeleceu as suas operações na região em 1917, trouxe consigo não apenas tecnologia de extração, mas um sistema completo de controlo social. Os trabalhadores eram recrutados de forma compulsória, as comunidades locais eram deslocadas, e os lucros fluíam para Lisboa e para os acionistas europeus.
-            </p>
-            <blockquote className="border-l-4 border-[#8B1A1A] pl-6 my-8 italic text-[#58413f]">
-              "A Lunda deu ao mundo os seus diamantes. O mundo deu à Lunda as suas cicatrizes."
-            </blockquote>
-            <p className="text-lg text-[#5d5f5d] leading-relaxed mb-6">
-              Após a independência, a ENDIAMA assumiu o controlo das operações, mas os desafios estruturais permaneceram. A guerra civil transformou as minas em fontes de financiamento para ambos os lados do conflito, perpetuando um ciclo de violência e exploração que só terminaria com o cessar-fogo de 2002.
-            </p>
-          </article>
-        ) : (
-          <div className="bg-[#f6f3f2] rounded-xl p-12 text-center border border-[#e0bfbc]">
-            <span className="material-symbols-outlined text-[#8B1A1A]/30 mb-4" style={{ fontSize: '80px' }}>lock</span>
-            <h3 className="text-2xl font-bold text-[#1c1b1b] mb-2">Conteúdo Exclusivo</h3>
-            <p className="text-base text-[#5d5f5d] mb-6" style={{ fontFamily: 'Merriweather, serif' }}>
-              Este texto Jindungo requer uma conta verificada para acesso completo.
-            </p>
-            <button
-              onClick={() => navigate('/cadastro')}
-              className="bg-[#8B1A1A] text-white px-8 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-all"
-            >
-              Criar Conta Grátis
-            </button>
-          </div>
-        )}
-
-        <div className="flex justify-between items-center mt-12 pt-8 border-t border-[#e0bfbc]">
-          <button
-            onClick={() => navigate('/leitura/microtexto')}
-            className="flex items-center gap-2 text-[#5d5f5d] hover:text-[#8B1A1A] transition-colors text-sm font-semibold"
-          >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            Artigo anterior
-          </button>
-          <button
-            onClick={() => navigate('/explorar')}
-            className="flex items-center gap-2 text-[#8B1A1A] hover:opacity-80 transition-colors text-sm font-semibold"
-          >
-            Ver mais artigos
-            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-          </button>
-        </div>
+          </>
+        ) : null}
       </div>
     </AppShell>
   )

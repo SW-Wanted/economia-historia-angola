@@ -3,9 +3,9 @@
 > Plataforma educativa sobre história económica de Angola, disponível em Web e Mobile.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
-[![Next.js](https://img.shields.io/badge/Web-Next.js%2014-black)](./web)
+[![React](https://img.shields.io/badge/Web-React%2018%20%2B%20Vite-61dafb)](./web)
 [![Flutter](https://img.shields.io/badge/Mobile-Flutter%203-blue)](./mobile)
-[![Node.js](https://img.shields.io/badge/Backend-Node.js%20%2B%20Fastify-brightgreen)](./backend)
+[![NestJS](https://img.shields.io/badge/Backend-NestJS%2011%20%2B%20Prisma-e0234e)](./backend)
 
 ---
 
@@ -31,15 +31,15 @@
 
 ```mermaid
 flowchart TB
-    BROWSER["Browser<br/>Utilizador Web"] --> WEB["Next.js 14<br/>App Router + SSR"]
+    BROWSER["Browser<br/>Utilizador Web"] --> WEB["React 18 + Vite<br/>SPA + React Router"]
     PHONE["Telemóvel<br/>Android + iOS"] --> MOBILE["Flutter 3<br/>Android + iOS"]
 
-    WEB --> API["REST API<br/>Node.js + Fastify"]
+    WEB --> API["REST API<br/>NestJS 11 + Prisma"]
     MOBILE --> API
 
-    API --> SUPABASE["Supabase<br/>Auth + Realtime"]
-    API --> POSTGRES["PostgreSQL<br/>Base de Dados"]
-    API --> STORAGE["Storage<br/>Imagens + média"]
+    API --> POSTGRES["PostgreSQL 16<br/>Base de Dados"]
+    API --> REALTIME["Socket.IO<br/>Realtime + Notificações"]
+    API --> STORAGE["S3 / MinIO<br/>Uploads via signed URL"]
 
     classDef top fill:#3a3a3a,stroke:#8a8a8a,color:#f5f5f5;
     classDef web fill:#4b3fb8,stroke:#6f66d6,color:#ffffff;
@@ -51,7 +51,7 @@ flowchart TB
     class WEB web;
     class MOBILE mobile;
     class API api;
-    class SUPABASE,POSTGRES,STORAGE data;
+    class POSTGRES,REALTIME,STORAGE data;
 ```
 
 ---
@@ -60,9 +60,9 @@ flowchart TB
 
 ```text
 economia-historia-angola/
-├── web/          → Frontend Web (Next.js 14 + TailwindCSS)
+├── web/          → Frontend Web (React 18 + Vite + React Router + TailwindCSS)
 ├── mobile/       → App Mobile (Flutter 3 — Android e iOS)
-├── backend/      → API REST (Node.js + Fastify + Prisma)
+├── backend/      → API REST (NestJS 11 + Prisma + PostgreSQL + Socket.IO)
 └── docs/         → Artefactos académicos (requisitos, diagramas, protótipos)
 ```
 
@@ -72,13 +72,14 @@ economia-historia-angola/
 
 | Camada | Tecnologia |
 |---|---|
-| Web | Next.js 14, TailwindCSS, shadcn/ui, Zustand |
+| Web | React 18, Vite 5, React Router 6, TypeScript, TailwindCSS 3 (estado via React Context; cliente `fetch` próprio) |
 | Mobile | Flutter 3, Dart, Material 3, Riverpod, Go Router |
-| Backend | Node.js, Fastify, Prisma ORM, TypeScript |
-| Base de dados | PostgreSQL (via Supabase) |
-| Auth e Storage | Supabase Auth, Supabase Storage |
-| Deploy Web | Vercel |
-| Deploy Backend | Railway |
+| Backend | NestJS 11, Prisma 7 ORM, TypeScript, Socket.IO |
+| Base de dados | PostgreSQL 16 (extensão `citext`) |
+| Auth | JWT (access + refresh) + Argon2 (no próprio backend) |
+| Storage | S3 / Cloudflare R2 / MinIO (upload por signed URL) |
+| Deploy Web | Estáticos (build Vite → `dist/`) |
+| Deploy Backend | Docker (multi-stage) |
 
 ---
 
