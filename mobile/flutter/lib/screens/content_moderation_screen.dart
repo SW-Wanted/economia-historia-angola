@@ -15,7 +15,7 @@ class ContentModerationScreen extends StatefulWidget {
 class _ContentModerationScreenState extends State<ContentModerationScreen> {
   late final List<_Pending> _items = [
     const _Pending('O ciclo do café no Uíge', 'Dr. Kambinda', 'Artigo', EhScene.market),
-    const _Pending('Reformas monetárias: 1990–1999', 'Ana Muachia', 'Microtexto', EhScene.currency),
+    const _Pending('Reformas monetárias: 1990–1999', 'Ana Muachia', 'Artigo', EhScene.currency),
     const _Pending('Conversas de Economia · Ep. 5', 'Dr. Kambinda', 'Podcast', EhScene.podcast),
   ];
 

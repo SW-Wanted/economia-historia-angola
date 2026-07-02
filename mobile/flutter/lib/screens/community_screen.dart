@@ -41,16 +41,17 @@ class CommunityScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        SectionTitle('Categorias', action: TextButton(
-          onPressed: () => Navigator.pushNamed(context, AppRoutes.createTopic),
-          child: const Text('Criar', style: TextStyle(color: AppColors.primary)),
+        SectionTitle('Comunidades', action: TextButton.icon(
+          onPressed: () => Navigator.pushNamed(context, AppRoutes.createCommunity),
+          icon: const Icon(Icons.add, size: 18, color: AppColors.primary),
+          label: const Text('Criar', style: TextStyle(color: AppColors.primary)),
         )),
         const SizedBox(height: 12),
         for (final cat in categories) ...[
           EhCard(
             onTap: () => cat.private
                 ? Navigator.pushNamed(context, AppRoutes.privateForumAccess)
-                : Navigator.pushNamed(context, AppRoutes.forum),
+                : Navigator.pushNamed(context, AppRoutes.communityDetail, arguments: cat),
             child: Row(
               children: [
                 Container(

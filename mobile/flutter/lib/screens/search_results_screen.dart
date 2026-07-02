@@ -5,6 +5,7 @@ import '../core/routes/app_routes.dart';
 import '../models/content_item.dart';
 import '../models/forum_topic.dart';
 import '../services/backend_service.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/content_card.dart';
 import '../widgets/filter_chips_row.dart';
 import '../widgets/forum_topic_item.dart';
@@ -128,7 +129,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       if (!hasQuery)
         _hint(context)
       else if (!_loaded)
-        const Padding(padding: EdgeInsets.only(top: 60), child: Center(child: CircularProgressIndicator()))
+        const Padding(padding: EdgeInsets.only(top: 40), child: Center(child: AppLoadingIndicator(message: 'A pesquisar...')))
       else if (total == 0)
         _noResults(context)
       else ...[

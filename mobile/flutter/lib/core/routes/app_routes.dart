@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../models/app_user.dart';
+import '../../models/community_category.dart';
+import '../../models/feed.dart';
 import '../../screens/admin_panel_screen.dart';
 import '../../screens/admin_users_screen.dart';
 import '../../screens/community_screen.dart';
+import '../../screens/community_detail_screen.dart';
+import '../../screens/create_community_screen.dart';
+import '../../screens/create_content_screen.dart';
+import '../../screens/create_quiz_screen.dart';
 import '../../screens/create_topic_screen.dart';
 import '../../screens/discussion_room_screen.dart';
 import '../../screens/faq_screen.dart';
@@ -19,7 +25,9 @@ import '../../screens/invite_screen.dart';
 import '../../screens/landing_screen.dart';
 import '../../screens/library_screen.dart';
 import '../../screens/login_screen.dart';
+import '../../screens/manage_content_screen.dart';
 import '../../screens/manage_forums_screen.dart';
+import '../../screens/management_panel_screen.dart';
 import '../../screens/map_screen.dart';
 import '../../screens/notifications_screen.dart';
 import '../../screens/offline_mode_screen.dart';
@@ -42,6 +50,7 @@ import '../../screens/register_screen.dart';
 import '../../screens/report_screen.dart';
 import '../../screens/restricted_content_screen.dart';
 import '../../screens/search_results_screen.dart';
+import '../../screens/settings_screen.dart';
 import '../../screens/splash_screen.dart';
 import '../../screens/subscription_screen.dart';
 import '../../screens/super_admin_chain_screen.dart';
@@ -80,6 +89,8 @@ class AppRoutes {
   static const forum = '/forum';
   static const forumTopic = '/forum-topic';
   static const createTopic = '/create-topic';
+  static const createQuiz = '/create-quiz';
+  static const createContent = '/create-content';
   static const privateForumAccess = '/private-forum-access';
   static const profile = '/profile';
   static const editProfile = '/edit-profile';
@@ -100,12 +111,17 @@ class AppRoutes {
   static const superAdminChain = '/super-admin-chain';
   static const contentModeration = '/content-moderation';
   static const community = '/community';
+  static const communityDetail = '/community/detail';
+  static const createCommunity = '/community/create';
   static const discussionRoom = '/discussion-room';
   static const faq = '/faq';
   static const feedback = '/feedback';
   static const invite = '/invite';
   static const report = '/report';
   static const pendingReports = '/pending-reports';
+  static const settings = '/settings';
+  static const manageContent = '/manage-content';
+  static const managementPanel = '/management-panel';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = switch (settings.name) {
@@ -125,7 +141,7 @@ class AppRoutes {
       reading => const ReadingScreen(),
       restrictedContent => const RestrictedContentScreen(),
       unlockedText => const ReadingScreen(unlocked: true),
-      map => const MapScreen(),
+      map => MapScreen(preview: settings.arguments == true),
       provinceContents => const ProvinceContentsScreen(),
       quizHub => const QuizHubScreen(),
       quizQuestion => const QuizQuestionScreen(),
@@ -136,6 +152,8 @@ class AppRoutes {
       forum => const ForumScreen(),
       forumTopic => const ForumTopicScreen(),
       createTopic => const CreateTopicScreen(),
+      createQuiz => CreateQuizScreen(content: settings.arguments is FeedContent ? settings.arguments as FeedContent : null),
+      createContent => const CreateContentScreen(),
       privateForumAccess => const PrivateForumAccessScreen(),
       profile => const ProfileScreen(),
       editProfile => const EditProfileScreen(),
@@ -156,12 +174,18 @@ class AppRoutes {
       superAdminChain => const SuperAdminChainScreen(),
       contentModeration => const ContentModerationScreen(),
       community => const CommunityScreen(),
+      communityDetail => CommunityDetailScreen(
+          community: settings.arguments is CommunityCategory ? settings.arguments as CommunityCategory : null),
+      createCommunity => const CreateCommunityScreen(),
       discussionRoom => const DiscussionRoomScreen(),
       faq => const FaqScreen(),
       feedback => const FeedbackScreen(),
       invite => const InviteScreen(),
       report => const ReportScreen(),
       pendingReports => const PendingReportsScreen(),
+      AppRoutes.settings => const SettingsScreen(),
+      manageContent => const ManageContentScreen(),
+      managementPanel => const ManagementPanelScreen(),
       _ => const SplashScreen(),
     };
 

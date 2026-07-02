@@ -261,10 +261,10 @@ class MockDataService {
       ];
 
   Map<String, String> faq() => const {
-        'O conteúdo e gratuito?': 'Sim. O projeto e sem fins lucrativos; o registo serve para controlo de acesso e metricas. Microtextos estao disponiveis livremente, incluindo em modo offline.',
+        'O conteúdo e gratuito?': 'Sim. O projeto e sem fins lucrativos; o registo serve para controlo de acesso e metricas. Artigos estao disponiveis livremente, incluindo em modo offline.',
         'Quem escreve os textos?': 'Inicialmente a gestão de conteúdos e feita pelo Prof. Carlos Lopes. Escritores, professores e estudantes autorizados tambem podem publicar artigos.',
         'O que sao textos com Jindungo?': 'Sao textos curtos de opinião e visão critica sobre a economia angolana. Exigem login e, por vezes, permissão do autor para serem lidos.',
         'Como participo nos quizzes e rankings?': 'Basta ter conta registada. Os quizzes sao renovados periodicamente para se manterem interessantes.',
-        'Como funciona o modo offline?': 'Os microtextos ficam acessiveis mesmo sem ligacao a internet, com prioridade de leitura.',
+        'Como funciona o modo offline?': 'Os artigos ficam acessiveis mesmo sem ligacao a internet, com prioridade de leitura.',
       };
 }

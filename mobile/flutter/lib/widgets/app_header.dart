@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
+import 'app_logo_mark.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   const AppHeader({
@@ -9,6 +10,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     this.title = 'Economia com História',
     this.showBack = false,
     this.showNotifications = true,
+    this.showLogo = false,
   });
 
   final String title;
@@ -16,6 +18,9 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
   /// Esconder o sino de notificações (ex.: antes de autenticação).
   final bool showNotifications;
+
+  /// Mostrar a marca da aplicação (quadrado branco com o ícone) junto ao título.
+  final bool showLogo;
 
   @override
   Size get preferredSize => const Size.fromHeight(64);
@@ -38,17 +43,28 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             )
           : null,
       automaticallyImplyLeading: false,
-      title: Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontSize: 17)),
-      actions: [
-        // Atalho directo ao menu principal (apenas em páginas secundárias).
-        if (back && showNotifications)
-          IconButton(
-            tooltip: 'Início',
-            onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                context, AppRoutes.dashboard, (route) => false),
-            icon: const Icon(Icons.home_outlined),
+      centerTitle: true,
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showLogo) ...[
+            const AppLogoMark(size: 30, elevation: 4),
+            const SizedBox(width: 10),
+          ],
+          Flexible(
+            child: Text(title,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800)),
           ),
-        if (showNotifications)
+        ],
+      ),
+      actions: [
+        // O sino de notificações só aparece nas páginas-raiz (sem botão de
+        // voltar), onde faz sentido. Nas páginas secundárias o cabeçalho fica
+        // limpo. O atalho de "início" foi removido por ser redundante com o
+        // botão de voltar e a barra de navegação inferior.
+        if (!back && showNotifications)
           IconButton(
             tooltip: 'Notificações',
             onPressed: () => Navigator.pushNamed(context, AppRoutes.notifications),
