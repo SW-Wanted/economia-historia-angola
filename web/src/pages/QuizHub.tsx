@@ -4,6 +4,7 @@ import AppShell from '../components/AppShell'
 import { quizService } from '../services/api/quiz.service'
 import { extractList } from '../services/types/api.types'
 import { useAuth } from '../contexts/AuthContext'
+import { useAuthGate } from '../contexts/AuthGateContext'
 import type { Quiz, RankingEntry, PaginatedResponse } from '../services/types/api.types'
 
 const FILTERS = ['Todos', 'Colonialismo', 'Pós-Independência', 'Comércio Atlântico']
@@ -25,6 +26,7 @@ const LEVEL_CONFIG: Record<Level, { badge: string; bg: string; dot: string }> = 
 export default function QuizHub() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { requireAuth } = useAuthGate()
   const [activeFilter, setActiveFilter] = useState('Todos')
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [rankings, setRankings] = useState<RankingEntry[]>([])
@@ -62,6 +64,16 @@ export default function QuizHub() {
   const completedCount = myRank?.attempts ?? 0
   const topRankings = rankings.slice(0, 5)
 
+  // Visitante vê a lista, dificuldade e nº de perguntas, mas começar um quiz
+  // exige conta (o backend só regista tentativas de utilizadores autenticados).
+  function startQuiz(quizId: string) {
+    requireAuth(() => navigate('/quiz/em-curso', { state: { quizId } }), {
+      title: 'Pronto para testar os seus conhecimentos?',
+      message: 'Crie uma conta gratuita ou inicie sessão para começar o quiz, guardar a pontuação e subir no ranking.',
+      icon: 'quiz',
+    })
+  }
+
   return (
     <AppShell searchPlaceholder="Pesquisar quizzes...">
       <div className="page-content animate-fade-in">
@@ -89,7 +101,7 @@ export default function QuizHub() {
                 )}
                 <div className="flex items-center gap-5">
                   <button
-                    onClick={() => navigate('/quiz/em-curso', { state: { quizId: featured.id } })}
+                    onClick={() => startQuiz(featured.id)}
                     className="btn-white shadow-lg"
                   >
                     <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
@@ -183,7 +195,7 @@ export default function QuizHub() {
                   return (
                     <div
                       key={quiz.id}
-                      onClick={() => navigate('/quiz/em-curso', { state: { quizId: quiz.id } })}
+                      onClick={() => startQuiz(quiz.id)}
                       className="content-card group"
                     >
                       <div className={`h-32 relative bg-gradient-to-br ${cfg.bg} flex items-center justify-center overflow-hidden`}>

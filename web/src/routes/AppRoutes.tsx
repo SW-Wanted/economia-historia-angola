@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from '../components/ProtectedRoute'
 import PermissionRoute from '../components/PermissionRoute'
+import { useAuth } from '../contexts/AuthContext'
 
 // Auth / Public
 import SplashScreen from '../pages/SplashScreen'
@@ -60,11 +61,28 @@ function PermProtected({ children, permissions }: { children: React.ReactNode; p
   )
 }
 
+/**
+ * Entrada da aplicação. Um utilizador autenticado vai directamente para o seu
+ * painel; um Visitante começa na Landing Page pública (mesmo conceito da app
+ * Mobile, onde o Visitante conhece a plataforma antes de criar conta).
+ */
+function RootEntry() {
+  const { isAuthenticated, isLoading } = useAuth()
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F2F2F0]">
+        <div className="w-8 h-8 border-2 border-[#8B1A1A] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+  return <Navigate to={isAuthenticated ? '/dashboard' : '/home'} replace />
+}
+
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Public — splash & onboarding */}
-      <Route path="/" element={<SplashScreen />} />
+      {/* Entrada — decide entre painel (autenticado) e landing (visitante) */}
+      <Route path="/" element={<RootEntry />} />
       <Route path="/splash" element={<SplashScreen />} />
       <Route path="/onboarding/1" element={<Onboarding1 />} />
       <Route path="/onboarding/2" element={<Onboarding2 />} />
@@ -79,51 +97,68 @@ export default function AppRoutes() {
       <Route path="/cadastro/sucesso" element={<CadastroSucesso />} />
       <Route path="/recuperar-senha" element={<RecuperarSenha />} />
 
-      {/* Public — landing */}
+      {/* ─────────────────────────────────────────────────────────────
+          PÚBLICAS — acessíveis ao Visitante (Guest). Cada página aplica
+          "bloqueios inteligentes" (diálogo de autenticação) nas acções
+          reservadas a membros.
+         ───────────────────────────────────────────────────────────── */}
+
+      {/* Landing / Home pública */}
       <Route path="/home-publica" element={<HomeLanding />} />
       <Route path="/home-landing" element={<HomeLanding />} />
       <Route path="/home" element={<HomeLanding />} />
 
-      {/* Protected — main app */}
-      <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
-      <Route path="/explorar" element={<Protected><Explorar /></Protected>} />
-      <Route path="/explorar-arquivo" element={<Protected><Explorar /></Protected>} />
+      {/* Conteúdos — lista, pesquisa e filtros (abrir exige conta) */}
+      <Route path="/explorar" element={<Explorar />} />
+      <Route path="/explorar-arquivo" element={<Explorar />} />
+      <Route path="/pesquisa" element={<ResultadosPesquisa />} />
+      <Route path="/conteudos/provincia" element={<ConteudosProvincia />} />
 
-      {/* Protected — forum */}
-      <Route path="/forum" element={<Protected><Forum /></Protected>} />
-      <Route path="/forum/detalhe" element={<Protected><ForumDetalhe /></Protected>} />
+      {/* Fóruns — ver fóruns, tópicos e respostas (participar exige conta) */}
+      <Route path="/forum" element={<Forum />} />
+      <Route path="/forum/detalhe" element={<ForumDetalhe />} />
+
+      {/* Quizzes — ver lista e detalhes (começar exige conta) */}
+      <Route path="/quiz" element={<QuizHub />} />
+
+      {/* Referência e apresentação */}
+      <Route path="/glossario" element={<Glossario />} />
+      <Route path="/guia-rapido" element={<GuiaRapido />} />
+      <Route path="/guia-investigacao" element={<GuiaInvestigacao />} />
+      <Route path="/comparador" element={<ComparadorPeriodos />} />
+      <Route path="/mapa" element={<MapaInterativo />} />
+      <Route path="/mapa/caminhos-ferro" element={<MapaCaminhosHist />} />
+      <Route path="/ajuda" element={<CentroAjuda />} />
+
+      {/* ─────────────────────────────────────────────────────────────
+          PROTEGIDAS — exigem autenticação.
+         ───────────────────────────────────────────────────────────── */}
+      <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
+
+      {/* Fórum — acções */}
       <Route path="/forum/novo-topico" element={<Protected><SubmeterTopico /></Protected>} />
 
-      {/* Protected — profile */}
+      {/* Perfil */}
       <Route path="/perfil" element={<Protected><Perfil /></Protected>} />
 
-      {/* Protected — quiz */}
-      <Route path="/quiz" element={<Protected><QuizHub /></Protected>} />
+      {/* Quiz — realização */}
       <Route path="/quiz/em-curso" element={<Protected><QuizEmCurso /></Protected>} />
       <Route path="/quiz/resultado" element={<Protected><ResultadoQuiz /></Protected>} />
 
-      {/* Protected — map */}
-      <Route path="/mapa" element={<Protected><MapaInterativo /></Protected>} />
-      <Route path="/mapa/caminhos-ferro" element={<Protected><MapaCaminhosHist /></Protected>} />
-
-      {/* Protected — reading */}
+      {/* Leitura / media (conteúdo completo) */}
       <Route path="/leitura/microtexto" element={<Protected><LeituraMicrotexto /></Protected>} />
       <Route path="/leitura/jindungo" element={<Protected><LeituraJindungo /></Protected>} />
+      <Route path="/aula-video" element={<Protected><AulaVideo /></Protected>} />
+      <Route path="/documento/detalhe" element={<Protected><DetalheDocumento /></Protected>} />
 
-      {/* Protected — library */}
+      {/* Biblioteca pessoal */}
       <Route path="/biblioteca" element={<Protected><MinhasBiblioteca /></Protected>} />
       <Route path="/favoritos" element={<Protected><MeusFavoritos /></Protected>} />
 
-      {/* Protected — reference */}
-      <Route path="/glossario" element={<Protected><Glossario /></Protected>} />
-      <Route path="/guia-rapido" element={<Protected><GuiaRapido /></Protected>} />
-      <Route path="/guia-investigacao" element={<Protected><GuiaInvestigacao /></Protected>} />
-      <Route path="/comparador" element={<Protected><ComparadorPeriodos /></Protected>} />
-
-      {/* Protected — stats */}
+      {/* Estatísticas pessoais */}
       <Route path="/estatisticas" element={<Protected><PainelEstatisticas /></Protected>} />
 
-      {/* Protected — management (permission-gated) */}
+      {/* Management (permission-gated) */}
       <Route path="/gestao/conteudos" element={
         <PermProtected permissions={['CONTENT_CREATE', 'CONTENT_APPROVE', 'CONTENT_PUBLISH', 'CONTENT_DELETE']}>
           <PainelGestaoConteudos />
@@ -140,17 +175,12 @@ export default function AppRoutes() {
         </PermProtected>
       } />
 
-      {/* Protected — confirmations */}
+      {/* Confirmações */}
       <Route path="/confirmacao/publicacao" element={<Protected><ConfirmacaoPublicacao /></Protected>} />
       <Route path="/confirmacao/saida" element={<Protected><ConfirmacaoSaida /></Protected>} />
 
-      {/* Protected — utility */}
+      {/* Notificações */}
       <Route path="/notificacoes" element={<Protected><Notificacoes /></Protected>} />
-      <Route path="/pesquisa" element={<Protected><ResultadosPesquisa /></Protected>} />
-      <Route path="/conteudos/provincia" element={<Protected><ConteudosProvincia /></Protected>} />
-      <Route path="/aula-video" element={<Protected><AulaVideo /></Protected>} />
-      <Route path="/documento/detalhe" element={<Protected><DetalheDocumento /></Protected>} />
-      <Route path="/ajuda" element={<CentroAjuda />} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

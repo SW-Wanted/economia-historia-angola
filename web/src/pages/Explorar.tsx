@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { contentService } from '../services/api/content.service'
 import { extractList } from '../services/types/api.types'
+import { useAuthGate } from '../contexts/AuthGateContext'
 import type { Content } from '../services/types/api.types'
 
 const TYPE_FILTERS: { label: string; type?: string }[] = [
@@ -93,12 +94,24 @@ function ContentThumbnail({ content, size = 'md' }: { content: Content; size?: '
 
 export default function Explorar() {
   const navigate = useNavigate()
+  const { requireAuth } = useAuthGate()
   const [activeFilter, setActiveFilter] = useState('Todos')
   const [contents, setContents] = useState<Content[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   const activeType = TYPE_FILTERS.find((f) => f.label === activeFilter)?.type
+
+  // Visitante pode explorar/pesquisar/filtrar, mas abrir um conteúdo exige
+  // conta: em vez de entrar directamente, mostramos o diálogo de autenticação.
+  function openContent(content: Content) {
+    const route = getContentRoute(content)
+    requireAuth(() => navigate(route, { state: { contentId: content.id } }), {
+      title: 'Este conteúdo é para membros',
+      message: 'Inicie sessão ou crie uma conta gratuita para ler, ouvir e guardar o seu progresso neste conteúdo.',
+      icon: 'menu_book',
+    })
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -189,13 +202,12 @@ export default function Explorar() {
           <div className="grid grid-cols-12 gap-5">
             {filtered.map((content, idx) => {
               const isFeatured = idx % 7 === 0
-              const route = getContentRoute(content)
 
               if (isFeatured) {
                 return (
                   <article
                     key={content.id}
-                    onClick={() => navigate(route, { state: { contentId: content.id } })}
+                    onClick={() => openContent(content)}
                     className="col-span-12 md:col-span-8 card overflow-hidden cursor-pointer group hover:shadow-card-hover hover:-translate-y-0.5 hover:border-outline-variant/55 transition-all duration-200 flex flex-col md:flex-row"
                   >
                     <div className="md:w-5/12 flex-shrink-0 overflow-hidden">
@@ -239,7 +251,7 @@ export default function Explorar() {
               return (
                 <article
                   key={content.id}
-                  onClick={() => navigate(route, { state: { contentId: content.id } })}
+                  onClick={() => openContent(content)}
                   className="col-span-12 md:col-span-4 content-card group"
                 >
                   <div className="overflow-hidden">

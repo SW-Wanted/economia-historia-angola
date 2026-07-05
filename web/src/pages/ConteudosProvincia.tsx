@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { contentService } from '../services/api/content.service'
 import { extractList } from '../services/types/api.types'
+import { useAuthGate } from '../contexts/AuthGateContext'
 import type { Content } from '../services/types/api.types'
 
 function getContentRoute(content: Content): string {
@@ -24,7 +25,16 @@ function getTypeLabel(content: Content): string {
 export default function ConteudosProvincia() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { requireAuth } = useAuthGate()
   const province = (location.state as { province?: string } | null)?.province ?? 'Luanda'
+
+  function openContent(content: Content) {
+    requireAuth(() => navigate(getContentRoute(content), { state: { contentId: content.id } }), {
+      title: 'Este conteúdo é para membros',
+      message: 'Inicie sessão ou crie uma conta gratuita para abrir e ler este conteúdo.',
+      icon: 'menu_book',
+    })
+  }
 
   const [contents, setContents] = useState<Content[]>([])
   const [loading, setLoading] = useState(true)
@@ -113,7 +123,7 @@ export default function ConteudosProvincia() {
             {contents.map((c) => (
               <div
                 key={c.id}
-                onClick={() => navigate(getContentRoute(c), { state: { contentId: c.id } })}
+                onClick={() => openContent(c)}
                 className="bg-surface rounded-card p-6 border border-outline-variant/45 hover:border-primary/40 hover:shadow-md transition-all cursor-pointer flex items-center gap-6 group"
               >
                 <div className="w-12 h-12 bg-surface-container rounded-lg flex items-center justify-center flex-shrink-0">

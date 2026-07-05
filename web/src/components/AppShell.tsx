@@ -14,7 +14,7 @@ interface AppShellProps {
 
 export default function AppShell({ children, title, searchPlaceholder = 'Pesquisar arquivo...', showSearch = true }: AppShellProps) {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const [query, setQuery] = useState('')
 
   function handleSearch(e: React.FormEvent) {
@@ -36,7 +36,7 @@ export default function AppShell({ children, title, searchPlaceholder = 'Pesquis
           <div className="flex items-center gap-3 sm:gap-5 min-w-0">
             {/* Marca só em mobile (não há Sidebar visível). */}
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(isAuthenticated ? '/dashboard' : '/home')}
               className="lg:hidden w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-sm"
               aria-label="Início"
             >
@@ -72,21 +72,44 @@ export default function AppShell({ children, title, searchPlaceholder = 'Pesquis
                 <span className="material-symbols-outlined text-[20px]">search</span>
               </button>
             )}
-            <button
-              onClick={() => navigate('/notificacoes')}
-              className="relative w-9 h-9 flex items-center justify-center rounded-lg text-text/50 hover:text-primary hover:bg-surface-container-low transition-all duration-150"
-              aria-label="Notificações"
-            >
-              <span className="material-symbols-outlined text-[20px]">notifications</span>
-              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-primary rounded-full ring-[1.5px] ring-surface" />
-            </button>
-            <button
-              onClick={() => navigate('/perfil')}
-              className="ml-1 w-8 h-8 rounded-full overflow-hidden border border-outline-variant/40 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center hover:border-primary/40 hover:shadow-xs transition-all duration-150"
-              aria-label="Perfil"
-            >
-              <span className="text-[10px] font-bold text-primary font-sans leading-none">{initials}</span>
-            </button>
+
+            {isAuthenticated ? (
+              <>
+                <button
+                  onClick={() => navigate('/notificacoes')}
+                  className="relative w-9 h-9 flex items-center justify-center rounded-lg text-text/50 hover:text-primary hover:bg-surface-container-low transition-all duration-150"
+                  aria-label="Notificações"
+                >
+                  <span className="material-symbols-outlined text-[20px]">notifications</span>
+                  <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-primary rounded-full ring-[1.5px] ring-surface" />
+                </button>
+                <button
+                  onClick={() => navigate('/perfil')}
+                  className="ml-1 w-8 h-8 rounded-full overflow-hidden border border-outline-variant/40 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center hover:border-primary/40 hover:shadow-xs transition-all duration-150"
+                  aria-label="Perfil"
+                >
+                  <span className="text-[10px] font-bold text-primary font-sans leading-none">{initials}</span>
+                </button>
+              </>
+            ) : (
+              /* Visitante: convite a autenticar em vez de perfil/notificações. */
+              <>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="px-3 h-9 hidden sm:flex items-center rounded-lg text-sm font-semibold font-sans text-secondary hover:text-primary hover:bg-surface-container-low transition-all duration-150"
+                >
+                  Entrar
+                </button>
+                <button
+                  onClick={() => navigate('/cadastro')}
+                  className="ml-1 px-3.5 h-9 flex items-center gap-1.5 rounded-lg text-sm font-bold font-sans bg-primary text-white shadow-xs hover:bg-primary-dark transition-all duration-150"
+                >
+                  <span className="material-symbols-outlined text-[18px]">person_add</span>
+                  <span className="hidden sm:inline">Criar Conta</span>
+                  <span className="sm:hidden">Entrar</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
