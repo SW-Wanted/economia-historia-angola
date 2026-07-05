@@ -55,8 +55,9 @@ class RankingItem extends StatelessWidget {
                     ],
                   ],
                 ),
-                Text('${user.level} • ${user.institution}',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+                if ([user.level, user.institution].any((v) => v.isNotEmpty))
+                  Text([user.level, user.institution].where((v) => v.isNotEmpty).join(' • '),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
                 if (user.badges.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Wrap(

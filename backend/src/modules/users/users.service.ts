@@ -11,6 +11,7 @@ const USER_PUBLIC_SELECT = {
   name: true,
   username: true,
   avatarUrl: true,
+  coverUrl: true,
   bio: true,
   region: true,
   province: true,
@@ -42,7 +43,7 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id },
       data: dto,
-      select: { id: true, email: true, name: true, username: true, avatarUrl: true, bio: true },
+      select: { id: true, email: true, name: true, username: true, avatarUrl: true, coverUrl: true, bio: true },
     });
   }
 
@@ -78,6 +79,34 @@ export class UsersService {
       include: { content: { select: { id: true, title: true, type: true, thumbnailUrl: true, slug: true } } },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  /**
+   * Estatísticas agregadas do perfil (secção "O Meu Progresso").
+   * - points: pontuação global acumulada (ranking global 'all').
+   * - rank: posição global (nº de utilizadores com pontuação superior + 1);
+   *   `null` se o utilizador ainda não tem entrada no ranking.
+   * - contentsCompleted: conteúdos com progresso concluído.
+   * - quizzesTaken: tentativas de quiz submetidas.
+   */
+  async stats(userId: string) {
+    const [globalEntry, contentsCompleted, quizzesTaken] = await Promise.all([
+      this.prisma.rankingEntry.findFirst({
+        where: { userId, scope: 'global', scopeId: null, period: 'all' },
+      }),
+      this.prisma.progress.count({ where: { userId, completedAt: { not: null } } }),
+      this.prisma.quizAttempt.count({ where: { userId, status: 'SUBMITTED' } }),
+    ]);
+
+    const points = globalEntry?.score ?? 0;
+    const rank =
+      globalEntry === null
+        ? null
+        : (await this.prisma.rankingEntry.count({
+            where: { scope: 'global', scopeId: null, period: 'all', score: { gt: points } },
+          })) + 1;
+
+    return { points, rank, contentsCompleted, quizzesTaken };
   }
 
   async listAll(dto: AdminListUsersDto) {

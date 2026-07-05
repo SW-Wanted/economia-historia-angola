@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/routes/app_routes.dart';
 import '../services/api_client.dart';
 import '../services/backend_service.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/eh_button.dart';
 import '../widgets/screen_frame.dart';
 
@@ -17,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _loading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -59,6 +61,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        _form(context),
+        // Loading de ecrã inteiro entre o login e o dashboard: bloqueia a
+        // interação e sinaliza a transição enquanto a sessão é autenticada e o
+        // perfil real é carregado.
+        if (_loading)
+          const Positioned.fill(
+            child: AppLoadingOverlay(message: 'A entrar...'),
+          ),
+      ],
+    );
+  }
+
+  Widget _form(BuildContext context) {
     return ScreenFrame(title: 'Entrar', showBack: true, showNotifications: false, children: [
       Text('Bem-vindo de volta', style: Theme.of(context).textTheme.displayLarge),
       const SizedBox(height: 8),
@@ -73,9 +90,17 @@ class _LoginScreenState extends State<LoginScreen> {
       const SizedBox(height: 14),
       TextField(
         controller: _password,
-        obscureText: true,
+        obscureText: _obscurePassword,
         onSubmitted: (_) => _submit(),
-        decoration: const InputDecoration(labelText: 'Senha', prefixIcon: Icon(Icons.lock_outline)),
+        decoration: InputDecoration(
+          labelText: 'Senha',
+          prefixIcon: const Icon(Icons.lock_outline),
+          suffixIcon: IconButton(
+            icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            tooltip: _obscurePassword ? 'Mostrar' : 'Ocultar',
+          ),
+        ),
       ),
       Align(
         alignment: Alignment.centerRight,

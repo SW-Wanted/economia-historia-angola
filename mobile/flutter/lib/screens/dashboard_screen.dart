@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../models/feed.dart';
+import '../models/weekly_quiz.dart';
 import '../services/backend_service.dart';
 import '../services/feed_service.dart';
 import '../widgets/angola_map.dart';
@@ -41,12 +42,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
   /// Posição (índice de post) onde surge o módulo de descoberta (mapa).
   static const int _mapAfter = 2;
 
+  /// Garante que o catálogo do backend está carregado antes de montar o feed.
+  bool _catalogReady = false;
+
+  /// Quiz da Semana em destaque; `null` enquanto carrega ou quando nenhum admin
+  /// disponibilizou um quiz semanal — nesse caso o cartão não é mostrado.
+  WeeklyQuiz? _weekly;
+
   @override
   void initState() {
     super.initState();
     _seed = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    _loadMore();
+    _bootstrap();
     _controller.addListener(_onScroll);
+  }
+
+  Future<void> _bootstrap() async {
+    final weekly = await BackendService.instance.weeklyQuiz();
+    await _feed.load();
+    if (!mounted) return;
+    setState(() {
+      _weekly = weekly;
+      _catalogReady = true;
+    });
+    _loadMore();
   }
 
   @override
@@ -64,6 +83,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _loadMore() {
     if (_loadingMore || !_hasMore) return;
+    // Catálogo vazio (backend sem conteúdos): não há mais a paginar — evita o
+    // indicador de carregamento infinito no rodapé.
+    if (_catalogReady && _feed.catalog.isEmpty) {
+      setState(() => _hasMore = false);
+      return;
+    }
     setState(() => _loadingMore = true);
     Future<void>.delayed(const Duration(milliseconds: 350), () {
       if (!mounted) return;
@@ -71,14 +96,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _posts.addAll(next);
         _page++;
-        _hasMore = _feed.hasMoreDiscover(_page);
+        _hasMore = next.isNotEmpty && _feed.hasMoreDiscover(_page);
         _loadingMore = false;
       });
     });
   }
 
   Future<void> _refresh() async {
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await _feed.load(force: true);
     if (!mounted) return;
     setState(() {
       _seed = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -94,7 +119,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Conteúdo reservado (Jindungo ou comunidade privada) segue para o ecrã de
     // acesso/desbloqueio, deixando explícita a restrição.
     final route = entry.content.isRestricted ? AppRoutes.restrictedContent : entry.content.type.route;
-    Navigator.pushNamed(context, route);
+    Navigator.pushNamed(context, route, arguments: entry.content);
   }
 
   /// Menu de atalhos (canto superior esquerdo): pequenos cards verticais.
@@ -263,10 +288,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         _greeting(context),
         if (reading.isNotEmpty) _continueReading(context, reading),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: _weeklyChallenge(context),
-        ),
+        // O "Desafio da Semana" só aparece quando existe um quiz semanal real.
+        if (_weekly != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: _weeklyChallenge(context, _weekly!),
+          ),
         _separator(),
       ],
     );
@@ -333,9 +360,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return 'BOA NOITE';
   }
 
-  /// Cartão "Desafio da semana" (quiz em destaque).
-  Widget _weeklyChallenge(BuildContext context) {
+  /// Cartão "Desafio da semana" (quiz em destaque, real).
+  Widget _weeklyChallenge(BuildContext context, WeeklyQuiz quiz) {
     const gold = AppColors.warning;
+    void openQuiz() => Navigator.pushNamed(context, AppRoutes.quizQuestion, arguments: quiz);
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
@@ -361,7 +389,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
-                onTap: () => Navigator.pushNamed(context, AppRoutes.quizQuestion),
+                onTap: openQuiz,
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
@@ -382,14 +410,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ]),
                       ),
                       const SizedBox(height: 12),
-                      Text('Quiz da Semana',
+                      Text(quiz.title,
                           style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
-                      const SizedBox(height: 6),
-                      Text('Teste os seus conhecimentos sobre o Café em Angola. São só 2 minutos!',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70, height: 1.35)),
+                      if (quiz.description.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(quiz.description,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70, height: 1.35)),
+                      ],
                       const SizedBox(height: 14),
                       FilledButton.icon(
-                        onPressed: () => Navigator.pushNamed(context, AppRoutes.quizQuestion),
+                        onPressed: openQuiz,
                         style: FilledButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: AppColors.primary,
@@ -572,10 +602,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ----------------------------------------------------------------- Rodapé
 
   Widget _footer(BuildContext context) {
-    if (_hasMore) {
+    // A carregar o catálogo do backend, ou a paginar mais conteúdos.
+    if (!_catalogReady || _hasMore) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 20),
         child: Center(child: AppLoadingIndicator(size: 72, showDots: false)),
+      );
+    }
+    // Catálogo carregado mas sem qualquer publicação: backend ainda sem conteúdos.
+    if (_posts.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
+        child: Center(
+          child: Column(children: [
+            const Icon(Icons.article_outlined, size: 44, color: AppColors.outline),
+            const SizedBox(height: 12),
+            Text('Ainda não há conteúdos disponíveis',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
+            const SizedBox(height: 4),
+            Text('Assim que forem publicados conteúdos, aparecerão aqui no seu feed.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+          ]),
+        ),
       );
     }
     return Padding(

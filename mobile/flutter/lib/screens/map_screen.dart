@@ -3,40 +3,9 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../core/data/angola_geometry.dart';
 import '../core/routes/app_routes.dart';
+import '../services/backend_service.dart';
 import '../widgets/screen_frame.dart';
 import '../widgets/section_title.dart';
-
-/// Metadados ilustrativos por província (chaveados pelo id do SVG).
-class _Meta {
-  const _Meta(this.focus, this.weight, this.articles, this.authors, this.historical, this.description);
-  final String focus;
-  final String weight;
-  final int articles;
-  final int authors;
-  final int historical;
-  final String description;
-}
-
-const _meta = <String, _Meta>{
-  'AOCAB': _Meta('Petróleo e gás', '12,4%', 34, 9, 18, 'Enclave estratégico, com economia dominada pela exploração petrolífera offshore.'),
-  'AOZAI': _Meta('Petróleo e história', '6,1%', 17, 5, 13, 'Foz do rio Congo e legado do antigo Reino do Kongo, em Mbanza Kongo.'),
-  'AOUIG': _Meta('Café e agricultura', '4,8%', 21, 6, 12, 'Região histórica do café robusta, no norte do país.'),
-  'AOLUA': _Meta('Serviços e comércio', '11,2%', 58, 17, 26, 'Capital e principal centro económico, financeiro e industrial.'),
-  'AOBGO': _Meta('Agricultura periurbana', '3,2%', 12, 4, 8, 'Cinturão agrícola que abastece a capital, junto ao litoral.'),
-  'AOCNO': _Meta('Café e energia', '3,5%', 14, 4, 10, 'Produção de café e energia hidroeléctrica de Cambambe.'),
-  'AOCUS': _Meta('Agricultura e pesca', '4,6%', 19, 5, 11, 'Litoral pesqueiro e vales agrícolas no centro-oeste.'),
-  'AOMAL': _Meta('Agroindústria', '4,1%', 19, 5, 14, 'Terras férteis e as quedas de Kalandula, no interior norte.'),
-  'AOLNO': _Meta('Diamantes', '5,9%', 16, 4, 9, 'Coração diamantífero de Angola, no nordeste.'),
-  'AOLSU': _Meta('Diamantes', '4,3%', 13, 3, 8, 'Exploração diamantífera em torno do Saurimo.'),
-  'AOBGU': _Meta('Pesca e porto do Lobito', '9,8%', 41, 11, 22, 'Litoral pesqueiro e o porto do Lobito, terminal do Caminho de Ferro de Benguela.'),
-  'AOHUA': _Meta('Planalto central', '10,1%', 37, 10, 20, 'Coração do planalto, com forte tradição agrícola e ferroviária.'),
-  'AOBIE': _Meta('Agricultura do planalto', '4,0%', 15, 4, 9, 'Planalto central agrícola, em torno do Kuito.'),
-  'AOMOX': _Meta('Recursos minerais', '5,2%', 14, 4, 9, 'A maior província em área, rica em recursos hídricos e minerais.'),
-  'AOCCU': _Meta('Florestas e turismo', '2,8%', 10, 3, 6, 'Vastas florestas e fauna no sudeste, junto ao Okavango.'),
-  'AOHUI': _Meta('Agricultura e pecuária', '8,5%', 29, 8, 17, 'Planalto da Huíla, referência agropecuária; serra da Leba.'),
-  'AONAM': _Meta('Pesca e mineração', '3,4%', 13, 4, 9, 'Litoral desértico, com pesca e mineração no sudoeste.'),
-  'AOCNN': _Meta('Pecuária', '4,1%', 11, 3, 7, 'Sul fronteiriço e semiárido, com economia ligada à criação de gado.'),
-};
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key, this.preview = false});
@@ -129,11 +98,11 @@ class _MapScreenState extends State<MapScreen> {
               : _ProvinceCard(
                   key: ValueKey(selectedGeo.id),
                   name: selectedGeo.name,
-                  meta: _meta[selectedGeo.id]!,
                   locked: _isLocked(selectedGeo.id),
                   onOpen: () => Navigator.pushNamed(
                     context,
                     _isLocked(selectedGeo.id) ? AppRoutes.login : AppRoutes.provinceContents,
+                    arguments: _isLocked(selectedGeo.id) ? null : selectedGeo.name,
                   ),
                 ),
         ),
@@ -242,7 +211,6 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _provinceTile(BuildContext context, AngolaGeo g) {
-    final m = _meta[g.id]!;
     final isSelected = _selected == g.id;
     final locked = _isLocked(g.id);
     return Opacity(
@@ -273,18 +241,13 @@ class _MapScreenState extends State<MapScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(g.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
-                      Text(locked ? 'Bloqueada — entre para desbloquear' : m.focus,
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+                      if (locked)
+                        Text('Bloqueada — entre para desbloquear',
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(m.weight, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800)),
-                    Text('da economia', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary, fontSize: 11)),
-                  ],
-                ),
+                const Icon(Icons.chevron_right, color: AppColors.outline),
               ],
             ),
           ),
@@ -298,15 +261,24 @@ class _MapScreenState extends State<MapScreen> {
 // Cartão de informações da província
 // ---------------------------------------------------------------------------
 
-class _ProvinceCard extends StatelessWidget {
-  const _ProvinceCard({super.key, required this.name, required this.meta, required this.onOpen, this.locked = false});
+class _ProvinceCard extends StatefulWidget {
+  const _ProvinceCard({super.key, required this.name, required this.onOpen, this.locked = false});
 
   final String name;
-  final _Meta meta;
   final VoidCallback onOpen;
 
   /// Quando verdadeiro, o acesso aos conteúdos está bloqueado (modo visitante).
   final bool locked;
+
+  @override
+  State<_ProvinceCard> createState() => _ProvinceCardState();
+}
+
+class _ProvinceCardState extends State<_ProvinceCard> {
+  /// Contagens reais da província (conteúdos + autores). Só carregadas quando
+  /// a província não está bloqueada; ficam a `null` enquanto carregam.
+  late final Future<({int contents, int authors})>? _statsF =
+      widget.locked ? null : BackendService.instance.provinceStats(widget.name);
 
   @override
   Widget build(BuildContext context) {
@@ -331,45 +303,39 @@ class _ProvinceCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Text(widget.name, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 20)),
+              ),
+            ],
+          ),
+          // Contagens reais — só quando a província está desbloqueada.
+          if (_statsF != null) ...[
+            const SizedBox(height: 16),
+            FutureBuilder<({int contents, int authors})>(
+              future: _statsF,
+              builder: (context, snapshot) {
+                final stats = snapshot.data ?? (contents: 0, authors: 0);
+                return Row(
                   children: [
-                    Text(name, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 20)),
-                    Text(meta.focus, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+                    Expanded(child: _stat(context, Icons.layers_outlined, '${stats.contents}', 'Conteúdos')),
+                    Expanded(child: _stat(context, Icons.people_outline, '${stats.authors}', 'Autores')),
                   ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(color: AppColors.surfaceContainer, borderRadius: BorderRadius.circular(8)),
-                child: Text('${meta.weight} PIB',
-                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 11)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: _stat(context, Icons.layers_outlined, '${meta.articles}', 'Conteúdo')),
-              Expanded(child: _stat(context, Icons.people_outline, '${meta.authors}', 'Autores')),
-              Expanded(child: _stat(context, Icons.history_edu_outlined, '${meta.historical}', 'Históricos')),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(meta.description, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted, height: 1.5)),
+                );
+              },
+            ),
+          ],
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: onOpen,
+              onPressed: widget.onOpen,
               style: FilledButton.styleFrom(
-                backgroundColor: locked ? AppColors.surfaceContainer : AppColors.primary,
-                foregroundColor: locked ? AppColors.secondary : Colors.white,
+                backgroundColor: widget.locked ? AppColors.surfaceContainer : AppColors.primary,
+                foregroundColor: widget.locked ? AppColors.secondary : Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              icon: Icon(locked ? Icons.lock_outline : Icons.menu_book_outlined, size: 18),
-              label: Text(locked ? 'ENTRE PARA VER CONTEÚDOS' : 'VER CONTEÚDOS'),
+              icon: Icon(widget.locked ? Icons.lock_outline : Icons.menu_book_outlined, size: 18),
+              label: Text(widget.locked ? 'ENTRE PARA VER CONTEÚDOS' : 'VER CONTEÚDOS'),
             ),
           ),
         ],

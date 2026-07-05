@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PermissionCode } from '@prisma/client';
 import { AuthUser, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
@@ -48,6 +48,13 @@ export class QuizzesController {
   @Get('rankings')
   ranking(@Query('scope') scope = 'global', @Query('period') period = 'all') {
     return this.quizzes.ranking(scope, period);
+  }
+
+  @Public()
+  @Get('weekly')
+  @ApiOperation({ summary: 'Get the featured "Quiz of the Week" (or null if none is set)' })
+  weekly() {
+    return this.quizzes.weekly();
   }
 
   @Public()

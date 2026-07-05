@@ -23,7 +23,7 @@ extension FeedContentTypeX on FeedContentType {
   IconData get icon => switch (this) {
         FeedContentType.article => Icons.menu_book_outlined,
         FeedContentType.video => Icons.play_circle_outline,
-        FeedContentType.podcast => Icons.headphones_outlined,
+        FeedContentType.podcast => Icons.mic_none_outlined,
         FeedContentType.quiz => Icons.quiz_outlined,
         FeedContentType.jindungo => Icons.local_fire_department_outlined,
         FeedContentType.forum => Icons.forum_outlined,
@@ -134,6 +134,9 @@ class FeedContent {
     this.locked = false,
     this.community,
     this.communityPrivate = false,
+    this.mediaUrl,
+    this.sourceUrl,
+    this.body,
   });
 
   final String id;
@@ -183,6 +186,25 @@ class FeedContent {
   /// A comunidade de origem é privada (acesso reservado a membros aprovados).
   final bool communityPrivate;
 
+  /// URL do ficheiro de media (vídeo/áudio) carregado na criação — o que os
+  /// players reproduzem. `null` para conteúdos sem media (ex.: artigos).
+  final String? mediaUrl;
+
+  /// Ligação de origem/fonte externa (ex.: URL de vídeo do YouTube colado na
+  /// criação, ou referência bibliográfica de um artigo).
+  final String? sourceUrl;
+
+  /// Corpo/descrição completo do conteúdo, quando disponível — usado na leitura
+  /// e como descrição nos players.
+  final String? body;
+
+  /// Endereço de reprodução: prioriza o ficheiro carregado, cai para a fonte.
+  String? get playbackUrl => (mediaUrl != null && mediaUrl!.isNotEmpty)
+      ? mediaUrl
+      : (sourceUrl != null && sourceUrl!.isNotEmpty)
+          ? sourceUrl
+          : null;
+
   /// Identificador de comunidade estilo Reddit: `eh/HistóriaEconómica`.
   String? get communityHandle => community == null ? null : 'eh/${community!.replaceAll(' ', '')}';
 
@@ -217,6 +239,9 @@ class FeedContent {
         locked: locked,
         community: community,
         communityPrivate: communityPrivate,
+        mediaUrl: mediaUrl,
+        sourceUrl: sourceUrl,
+        body: body,
       );
 }
 

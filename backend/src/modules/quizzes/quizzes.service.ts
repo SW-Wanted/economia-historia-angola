@@ -15,6 +15,34 @@ export class QuizzesService {
     });
   }
 
+  /// O "Quiz da Semana" em destaque: o quiz público mais recente marcado como
+  /// semanal, já com as perguntas e opções. Devolve `null` quando nenhum admin
+  /// marcou um quiz como semanal — a app não mostra o cartão de destaque nesse
+  /// caso.
+  weekly() {
+    return this.prisma.quiz.findFirst({
+      where: { visibility: Visibility.PUBLIC, deletedAt: null, isWeekly: true },
+      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
+      include: {
+        category: true,
+        questions: {
+          orderBy: { position: 'asc' },
+          select: {
+            id: true,
+            statement: true,
+            explanation: true,
+            points: true,
+            position: true,
+            options: {
+              orderBy: { position: 'asc' },
+              select: { id: true, text: true, isCorrect: true, position: true },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async findById(id: string) {
     const quiz = await this.prisma.quiz.findFirst({
       where: { id, visibility: Visibility.PUBLIC, deletedAt: null },
