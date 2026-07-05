@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
-import { useAuth, canManageUsers, hasPermission } from '../contexts/AuthContext'
+import { useAuth, canManageUsers, hasPermission, hasRole } from '../contexts/AuthContext'
 import { userService } from '../services/api/user.service'
 import {
   writerApplicationService,
@@ -44,18 +44,44 @@ function roleLabel(code: string): string {
   return labels[code] ?? code
 }
 
+// Papéis atribuíveis, por ordem hierárquica. ADMIN só é oferecido a um Super Admin.
+const ASSIGNABLE_ROLES = ['USER', 'WRITER', 'PROFESSOR', 'MODERATOR', 'ADMIN'] as const
+
 // ── User row ────────────────────────────────────────────────────────────────
 function UserRow({
   u,
   currentUserId,
+  currentUserIsSuperAdmin,
   onStatusChange,
+  onRoleChange,
+  onRemoved,
 }: {
   u: AdminUser
   currentUserId: string
+  currentUserIsSuperAdmin: boolean
   onStatusChange: (id: string, isActive: boolean) => void
+  onRoleChange: (id: string, updated: AdminUser) => void
+  onRemoved: (id: string) => void
 }) {
   const [toggling, setToggling] = useState(false)
+  const [changingRole, setChangingRole] = useState(false)
+  const [removing, setRemoving] = useState(false)
+  const [confirmRemove, setConfirmRemove] = useState(false)
+  const [rowError, setRowError] = useState('')
   const isSelf = u.id === currentUserId
+
+  const targetRoles = (u.roles ?? []).map((r) => r.role.code)
+  const primaryRole = targetRoles[0] ?? 'USER'
+  const targetIsSuperAdmin = targetRoles.includes('SUPER_ADMIN')
+  const targetIsAdmin = targetRoles.includes('ADMIN')
+
+  // Regras (espelham o backend): nunca gerir um Super Admin; só um Super Admin
+  // gere Admins. Nunca sobre a própria conta.
+  const canManageTarget =
+    !isSelf && !targetIsSuperAdmin && (currentUserIsSuperAdmin || !targetIsAdmin)
+
+  // Opções de papel visíveis: ADMIN apenas para um Super Admin.
+  const roleOptions = ASSIGNABLE_ROLES.filter((r) => r !== 'ADMIN' || currentUserIsSuperAdmin)
 
   async function toggle() {
     if (isSelf || toggling) return
@@ -70,46 +96,130 @@ function UserRow({
     }
   }
 
-  const primaryRole = u.roles?.[0]?.role?.code
+  async function changeRole(role: string) {
+    if (role === primaryRole || changingRole) return
+    setChangingRole(true)
+    setRowError('')
+    try {
+      const updated = await userService.setRole(u.id, role)
+      onRoleChange(u.id, updated)
+    } catch (err) {
+      setRowError(getErrorMessage(err))
+    } finally {
+      setChangingRole(false)
+    }
+  }
+
+  async function remove() {
+    setRemoving(true)
+    setRowError('')
+    try {
+      await userService.remove(u.id)
+      onRemoved(u.id)
+    } catch (err) {
+      setRowError(getErrorMessage(err))
+      setRemoving(false)
+      setConfirmRemove(false)
+    }
+  }
 
   return (
-    <div className="flex items-center gap-4 py-4 border-b border-outline-variant/20 last:border-0">
-      <div className="w-9 h-9 rounded-full bg-primary/8 border border-primary/15 flex items-center justify-center flex-shrink-0">
-        <span className="text-[11px] font-bold text-primary font-sans leading-none">
-          {u.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
-        </span>
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-bold text-text font-sans truncate">{u.name}</span>
-          {primaryRole && (
+    <div className="flex flex-col gap-2 py-4 border-b border-outline-variant/20 last:border-0">
+      <div className="flex items-center gap-4">
+        <div className="w-9 h-9 rounded-full bg-primary/8 border border-primary/15 flex items-center justify-center flex-shrink-0">
+          <span className="text-[11px] font-bold text-primary font-sans leading-none">
+            {u.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-bold text-text font-sans truncate">{u.name}</span>
             <span className={`badge text-[10px] ${primaryRole === 'USER' ? 'badge-outline' : 'badge-primary'}`}>
               {roleLabel(primaryRole)}
             </span>
+            {!u.isActive && (
+              <span className="badge text-[10px] text-error border-error/30 bg-error/5">Suspenso</span>
+            )}
+          </div>
+          <p className="text-[11px] text-secondary font-body truncate">{u.email}</p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="text-[11px] text-outline font-body hidden sm:block">{timeAgo(u.createdAt)}</span>
+
+          {/* Promover / despromover — só quando o alvo é gerível. */}
+          {canManageTarget && (
+            <div className="relative">
+              <select
+                value={primaryRole}
+                onChange={(e) => changeRole(e.target.value)}
+                disabled={changingRole}
+                title="Alterar papel"
+                className="text-xs font-semibold font-sans px-2.5 py-1.5 rounded-button border border-outline-variant/50 bg-surface text-text hover:border-primary/40 transition-all disabled:opacity-40 cursor-pointer"
+              >
+                {/* Mostra o papel atual mesmo que não seja atribuível (ex.: já é o próprio). */}
+                {!roleOptions.includes(primaryRole as typeof ASSIGNABLE_ROLES[number]) && (
+                  <option value={primaryRole}>{roleLabel(primaryRole)}</option>
+                )}
+                {roleOptions.map((r) => (
+                  <option key={r} value={r}>{roleLabel(r)}</option>
+                ))}
+              </select>
+              {changingRole && (
+                <span className="absolute -right-5 top-1/2 -translate-y-1/2 w-3 h-3 border border-primary/40 border-t-primary rounded-full animate-spin block" />
+              )}
+            </div>
           )}
-          {!u.isActive && (
-            <span className="badge text-[10px] text-error border-error/30 bg-error/5">Suspenso</span>
+
+          <button
+            onClick={toggle}
+            disabled={toggling || isSelf}
+            title={isSelf ? 'Não pode alterar a sua própria conta' : (u.isActive ? 'Suspender conta' : 'Reativar conta')}
+            className={`text-xs font-semibold font-sans px-3 py-1.5 rounded-button border transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed ${
+              u.isActive
+                ? 'border-error/30 text-error hover:bg-error/5'
+                : 'border-success/30 text-success hover:bg-success/5'
+            }`}
+          >
+            {toggling ? (
+              <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin block" />
+            ) : u.isActive ? 'Suspender' : 'Reativar'}
+          </button>
+
+          {/* Remover — só quando o alvo é gerível. */}
+          {canManageTarget && (
+            confirmRemove ? (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={remove}
+                  disabled={removing}
+                  title="Confirmar remoção"
+                  className="text-xs font-bold font-sans px-2.5 py-1.5 rounded-button border border-error text-white bg-error hover:bg-error/90 transition-all disabled:opacity-50"
+                >
+                  {removing ? (
+                    <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin block" />
+                  ) : 'Confirmar'}
+                </button>
+                <button
+                  onClick={() => setConfirmRemove(false)}
+                  disabled={removing}
+                  className="text-xs font-semibold font-sans px-2 py-1.5 rounded-button border border-outline-variant/50 text-secondary hover:border-outline transition-all"
+                >
+                  Não
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmRemove(true)}
+                title="Remover utilizador"
+                className="text-secondary hover:text-error transition-colors p-1.5 rounded-button"
+              >
+                <span className="material-symbols-outlined text-[18px]">delete</span>
+              </button>
+            )
           )}
         </div>
-        <p className="text-[11px] text-secondary font-body truncate">{u.email}</p>
       </div>
-      <div className="flex items-center gap-3 flex-shrink-0">
-        <span className="text-[11px] text-outline font-body hidden sm:block">{timeAgo(u.createdAt)}</span>
-        <button
-          onClick={toggle}
-          disabled={toggling || isSelf}
-          title={isSelf ? 'Não pode alterar a sua própria conta' : (u.isActive ? 'Suspender conta' : 'Reativar conta')}
-          className={`text-xs font-semibold font-sans px-3 py-1.5 rounded-button border transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed ${
-            u.isActive
-              ? 'border-error/30 text-error hover:bg-error/5'
-              : 'border-success/30 text-success hover:bg-success/5'
-          }`}
-        >
-          {toggling ? (
-            <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin block" />
-          ) : u.isActive ? 'Suspender' : 'Reativar'}
-        </button>
-      </div>
+      {rowError && <p className="text-[11px] text-error font-body pl-1">{rowError}</p>}
     </div>
   )
 }
@@ -384,6 +494,7 @@ export default function GestaoUtilizadores() {
   const { user } = useAuth()
   const canManage = canManageUsers(user)
   const canReviewReports = hasPermission(user, 'REPORT_REVIEW')
+  const currentUserIsSuperAdmin = hasRole(user, 'SUPER_ADMIN')
 
   // Tabs
   const tabs: { id: TabId; label: string; icon: string }[] = [
@@ -660,9 +771,17 @@ export default function GestaoUtilizadores() {
                       key={u.id}
                       u={u}
                       currentUserId={user?.id ?? ''}
+                      currentUserIsSuperAdmin={currentUserIsSuperAdmin}
                       onStatusChange={(id, isActive) =>
                         setUsers((prev) => prev.map((x) => x.id === id ? { ...x, isActive } : x))
                       }
+                      onRoleChange={(id, updated) =>
+                        setUsers((prev) => prev.map((x) => x.id === id ? { ...x, ...updated } : x))
+                      }
+                      onRemoved={(id) => {
+                        setUsers((prev) => prev.filter((x) => x.id !== id))
+                        setUsersTotal((t) => Math.max(0, t - 1))
+                      }}
                     />
                   ))}
                   {users.length < usersTotal && (

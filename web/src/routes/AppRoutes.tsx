@@ -25,6 +25,7 @@ import Perfil from '../pages/Perfil'
 import QuizHub from '../pages/QuizHub'
 import QuizEmCurso from '../pages/QuizEmCurso'
 import ResultadoQuiz from '../pages/ResultadoQuiz'
+import CriarQuiz from '../pages/CriarQuiz'
 import MapaInterativo from '../pages/MapaInterativo'
 import MapaCaminhosHist from '../pages/MapaCaminhosHist'
 import LeituraMicrotexto from '../pages/LeituraMicrotexto'
@@ -96,6 +97,7 @@ export default function AppRoutes() {
       <Route path="/cadastro/3" element={<Navigate to="/cadastro" replace />} />
       <Route path="/cadastro/sucesso" element={<CadastroSucesso />} />
       <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+      <Route path="/redefinir-senha" element={<RecuperarSenha />} />
 
       {/* ─────────────────────────────────────────────────────────────
           PÚBLICAS — acessíveis ao Visitante (Guest). Cada página aplica
@@ -172,6 +174,11 @@ export default function AppRoutes() {
       <Route path="/gestao/submeter-artigo" element={
         <PermProtected permissions={['CONTENT_CREATE']}>
           <SubmeterArtigo />
+        </PermProtected>
+      } />
+      <Route path="/gestao/quizzes/novo" element={
+        <PermProtected permissions={['QUIZ_MANAGE']}>
+          <CriarQuiz />
         </PermProtected>
       } />
 
