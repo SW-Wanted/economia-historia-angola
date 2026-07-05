@@ -1,9 +1,10 @@
 import { ReactNode, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from './Sidebar'
-import MobileBottomNav from './MobileBottomNav'
+import MobileDrawer from './MobileDrawer'
 import Icon from './Icon'
 import { useAuth, getUserInitials } from '../contexts/AuthContext'
+import { SidebarProvider, useSidebar } from '../contexts/SidebarContext'
 
 interface AppShellProps {
   children: ReactNode
@@ -12,9 +13,10 @@ interface AppShellProps {
   showSearch?: boolean
 }
 
-export default function AppShell({ children, title, searchPlaceholder = 'Pesquisar arquivo...', showSearch = true }: AppShellProps) {
+function AppShellInner({ children, title, searchPlaceholder = 'Pesquisar arquivo...', showSearch = true }: AppShellProps) {
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
+  const { collapsed, openMobile } = useSidebar()
   const [query, setQuery] = useState('')
 
   function handleSearch(e: React.FormEvent) {
@@ -24,23 +26,34 @@ export default function AppShell({ children, title, searchPlaceholder = 'Pesquis
 
   const initials = getUserInitials(user)
 
+  // Offsets acompanham a sidebar: em Tablet (md) há um rail reduzido (76px); em
+  // Desktop (lg) segue o estado recolhido/expandido; abaixo de md não há sidebar
+  // fixa (navegação no drawer), logo sem offset.
+  const asideOffset = collapsed
+    ? 'md:left-sidebar-collapsed'
+    : 'md:left-sidebar-collapsed lg:left-sidebar'
+  const mainOffset = collapsed
+    ? 'md:ml-sidebar-collapsed'
+    : 'md:ml-sidebar-collapsed lg:ml-sidebar'
+
   return (
     <div className="bg-background text-text min-h-screen font-body">
       <Sidebar />
+      <MobileDrawer />
 
       {/* Top bar */}
-      <header className="fixed top-0 right-0 left-0 lg:left-sidebar bg-surface/95 backdrop-blur-sm z-40 border-b border-outline-variant/20">
+      <header className={`fixed top-0 right-0 left-0 ${asideOffset} bg-surface/95 backdrop-blur-sm z-40 border-b border-outline-variant/20 transition-[left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]`}>
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-topbar max-w-[1200px] mx-auto">
 
-          {/* Left: brand (mobile) + title + search */}
-          <div className="flex items-center gap-3 sm:gap-5 min-w-0">
-            {/* Marca só em mobile (não há Sidebar visível). */}
+          {/* Left: hamburger (mobile) + title + search */}
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            {/* Hamburger — abre o drawer em Tablet/Mobile. */}
             <button
-              onClick={() => navigate(isAuthenticated ? '/dashboard' : '/home')}
-              className="lg:hidden w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-sm"
-              aria-label="Início"
+              onClick={openMobile}
+              className="lg:hidden w-10 h-10 -ml-1 flex items-center justify-center rounded-lg text-text/70 hover:text-primary hover:bg-surface-container-low transition-all duration-150 flex-shrink-0"
+              aria-label="Abrir menu"
             >
-              <Icon name="account_balance" filled className="text-white text-[20px]" />
+              <span className="material-symbols-outlined text-[24px]">menu</span>
             </button>
             {title && (
               <h1 className="text-[15px] font-bold text-text font-sans tracking-tight whitespace-nowrap truncate">{title}</h1>
@@ -115,12 +128,17 @@ export default function AppShell({ children, title, searchPlaceholder = 'Pesquis
       </header>
 
       {/* Main content */}
-      <main className="lg:ml-sidebar pt-topbar pb-24 lg:pb-0 min-h-screen">
+      <main className={`${mainOffset} pt-topbar pb-10 min-h-screen transition-[margin] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]`}>
         {children}
       </main>
-
-      {/* Navegação inferior (mobile) — espelho da app Mobile. */}
-      <MobileBottomNav />
     </div>
+  )
+}
+
+export default function AppShell(props: AppShellProps) {
+  return (
+    <SidebarProvider>
+      <AppShellInner {...props} />
+    </SidebarProvider>
   )
 }

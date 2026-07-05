@@ -93,6 +93,7 @@ export default {
 
       spacing: {
         'sidebar': '272px',
+        'sidebar-collapsed': '76px',
         'topbar': '64px',
         'max-content': '1200px',
       },
