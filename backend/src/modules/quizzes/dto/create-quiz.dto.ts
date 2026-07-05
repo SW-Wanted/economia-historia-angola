@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Visibility } from '@prisma/client';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class CreateQuizDto {
   @ApiProperty()
@@ -25,4 +25,9 @@ export class CreateQuizDto {
   @IsOptional()
   @IsEnum(Visibility)
   visibility?: Visibility;
+
+  @ApiPropertyOptional({ description: 'Marca este quiz como o "Quiz da Semana" em destaque.' })
+  @IsOptional()
+  @IsBoolean()
+  isWeekly?: boolean;
 }

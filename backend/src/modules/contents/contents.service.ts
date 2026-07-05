@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { ContentStatus, MembershipStatus, PermissionCode, Visibility } from '@prisma/client';
+import { ContentStatus, MembershipStatus, PermissionCode, Prisma, Visibility } from '@prisma/client';
 import { paginate } from '../../common/dto/pagination.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ContentQueryDto } from './dto/content-query.dto';
@@ -12,7 +12,7 @@ export class ContentsService {
   async listPublic(query: ContentQueryDto) {
     const where = {
       status: ContentStatus.PUBLISHED,
-      visibility: Visibility.PUBLIC,
+      visibility: { in: [Visibility.PUBLIC, Visibility.AUTHENTICATED] },
       deletedAt: null,
       type: query.type,
       categoryId: query.categoryId,
@@ -23,7 +23,7 @@ export class ContentsService {
         where,
         ...paginate(query),
         orderBy: { publishedAt: 'desc' },
-        include: { category: true, tags: { include: { tag: true } } },
+        include: { author: { select: { id: true, name: true, avatarUrl: true } }, category: true, tags: { include: { tag: true } } },
       }),
       this.prisma.content.count({ where }),
     ]);
@@ -33,7 +33,12 @@ export class ContentsService {
   async findPublic(id: string) {
     const content = await this.prisma.content.findFirst({
       where: { id, status: ContentStatus.PUBLISHED, visibility: Visibility.PUBLIC, deletedAt: null },
-      include: { category: true, tags: { include: { tag: true } }, comments: { where: { deletedAt: null } } },
+      include: {
+        author: { select: { id: true, name: true, avatarUrl: true } },
+        category: true,
+        tags: { include: { tag: true } },
+        comments: { where: { deletedAt: null } },
+      },
     });
     if (!content) throw new NotFoundException('Content not found or not public');
     return content;
@@ -42,7 +47,7 @@ export class ContentsService {
   async findAuthorized(userId: string, contentId: string, userPermissions: PermissionCode[]) {
     const content = await this.prisma.content.findFirst({
       where: { id: contentId, status: ContentStatus.PUBLISHED, deletedAt: null },
-      include: { category: true, tags: { include: { tag: true } } },
+      include: { author: { select: { id: true, name: true, avatarUrl: true } }, category: true, tags: { include: { tag: true } } },
     });
     if (!content) throw new NotFoundException('Content not found');
 
@@ -69,11 +74,54 @@ export class ContentsService {
     return content;
   }
 
-  create(authorId: string, dto: CreateContentDto) {
+  async create(authorId: string, dto: CreateContentDto) {
     if (dto.isJindungo && dto.visibility === Visibility.PUBLIC) {
       throw new ForbiddenException('Textos com Jindungo require controlled access');
     }
-    return this.prisma.content.create({ data: { ...dto, authorId } });
+    const { categoryName, categoryId, ...data } = dto;
+    // Resolve a categoria para um id escalar antes do create. O runtime do
+    // Prisma Client 7 não aceita a escrita aninhada da relação `category`
+    // (connect/connectOrCreate) neste modelo — apenas o campo escalar
+    // `categoryId` —, pelo que fazemos o upsert da categoria em separado.
+    const resolvedCategoryId = await this.resolveCategoryId(categoryId, categoryName);
+    const contentData: Prisma.ContentUncheckedCreateInput = {
+      ...data,
+      authorId,
+      categoryId: resolvedCategoryId,
+      status: ContentStatus.PUBLISHED,
+      publishedAt: new Date(),
+    };
+
+    return this.prisma.content.create({
+      data: contentData,
+      include: { author: { select: { id: true, name: true, avatarUrl: true } }, category: true },
+    });
+  }
+
+  /// Devolve o id da categoria a associar: usa o id explícito quando fornecido,
+  /// senão cria/reaproveita a categoria pelo nome (via slug). `undefined` quando
+  /// não há categoria.
+  private async resolveCategoryId(categoryId?: string, categoryName?: string) {
+    if (categoryId) return categoryId;
+    const normalized = categoryName?.trim();
+    if (!normalized) return undefined;
+    const slug = this.slugFor(normalized);
+    const category = await this.prisma.category.upsert({
+      where: { slug },
+      update: {},
+      create: { name: normalized, slug },
+    });
+    return category.id;
+  }
+
+  private slugFor(value: string) {
+    const slug = value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return slug || 'conteudo';
   }
 
   favorite(userId: string, contentId: string) {

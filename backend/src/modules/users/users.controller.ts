@@ -44,6 +44,12 @@ export class UsersController {
     return this.users.favorites(user.id);
   }
 
+  @ApiOperation({ summary: 'Get own profile stats', description: 'Aggregated counters: points, rank, contentsCompleted, quizzesTaken.' })
+  @Get('me/stats')
+  stats(@CurrentUser() user: AuthUser) {
+    return this.users.stats(user.id);
+  }
+
   @ApiOperation({ summary: '[Admin] List all users (paginated)', description: 'Query params: ?search= (name), ?isActive= (boolean), ?page=, ?limit=' })
   @Permissions(PermissionCode.USER_MANAGE)
   @Get()

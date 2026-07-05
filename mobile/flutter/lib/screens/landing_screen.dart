@@ -5,6 +5,8 @@ import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../models/content_item.dart';
 import '../models/feed.dart';
+import '../models/landing_stats.dart';
+import '../services/backend_service.dart';
 import '../services/feed_service.dart';
 import '../services/mock_data_service.dart';
 import '../widgets/angola_map.dart';
@@ -41,6 +43,11 @@ class LandingScreen extends StatefulWidget {
 
 class _LandingScreenState extends State<LandingScreen> {
   bool _visible = true;
+
+  /// Contagens reais (membros, conteúdos, quizzes). `null` enquanto carrega ou
+  /// quando o backend está indisponível — nesse caso mantêm-se os valores
+  /// estáticos de apresentação.
+  final Future<LandingStats?> _statsF = BackendService.instance.landingStats();
 
   /// Mostra/esconde o rodapé fixo (botões) conforme a direção do scroll, com o
   /// mesmo comportamento do menu inferior.
@@ -179,13 +186,39 @@ class _LandingScreenState extends State<LandingScreen> {
       // ---------- A comunidade em números ----------
       const SectionTitle('A comunidade em números'),
       const SizedBox(height: 12),
-      Row(children: const [
-        Expanded(child: StatTile(icon: Icons.groups_outlined, value: '1.284', label: 'Membros')),
-        SizedBox(width: 12),
-        Expanded(child: StatTile(icon: Icons.quiz_outlined, value: '312', label: 'Quizzes hoje', color: AppColors.navy)),
-        SizedBox(width: 12),
-        Expanded(child: StatTile(icon: Icons.menu_book_outlined, value: '46', label: 'Conteúdos', color: AppColors.success)),
-      ]),
+      FutureBuilder<LandingStats?>(
+        future: _statsF,
+        builder: (context, snapshot) {
+          final stats = snapshot.data;
+          return Row(children: [
+            Expanded(
+              child: StatTile(
+                icon: Icons.groups_outlined,
+                value: _statValue(stats?.members, fallback: '1.284'),
+                label: 'Membros',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatTile(
+                icon: Icons.quiz_outlined,
+                value: _statValue(stats?.quizzes, fallback: '312'),
+                label: 'Quizzes',
+                color: AppColors.navy,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatTile(
+                icon: Icons.menu_book_outlined,
+                value: _statValue(stats?.contents, fallback: '46'),
+                label: 'Conteúdos',
+                color: AppColors.success,
+              ),
+            ),
+          ]);
+        },
+      ),
           ]),
         ),
       ),
@@ -224,6 +257,19 @@ class _LandingScreenState extends State<LandingScreen> {
         ),
       ),
     );
+  }
+
+  /// Formata uma contagem real com separador de milhar (1284 -> "1.284").
+  /// Quando não há dados do backend (`null`), devolve o valor de apresentação.
+  String _statValue(int? value, {required String fallback}) {
+    if (value == null) return fallback;
+    final digits = value.toString();
+    final buffer = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) buffer.write('.');
+      buffer.write(digits[i]);
+    }
+    return buffer.toString();
   }
 
   Widget _hero(BuildContext context) {

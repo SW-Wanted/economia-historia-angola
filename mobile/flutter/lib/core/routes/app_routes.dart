@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/app_user.dart';
 import '../../models/community_category.dart';
 import '../../models/feed.dart';
+import '../../models/weekly_quiz.dart';
 import '../../screens/admin_panel_screen.dart';
 import '../../screens/admin_users_screen.dart';
 import '../../screens/community_screen.dart';
@@ -142,9 +143,13 @@ class AppRoutes {
       restrictedContent => const RestrictedContentScreen(),
       unlockedText => const ReadingScreen(unlocked: true),
       map => MapScreen(preview: settings.arguments == true),
-      provinceContents => const ProvinceContentsScreen(),
+      provinceContents => ProvinceContentsScreen(
+          province: settings.arguments is String ? settings.arguments as String : null,
+        ),
       quizHub => const QuizHubScreen(),
-      quizQuestion => const QuizQuestionScreen(),
+      quizQuestion => QuizQuestionScreen(
+          quiz: settings.arguments is WeeklyQuiz ? settings.arguments as WeeklyQuiz : null,
+        ),
       quizFeedback => const QuizFeedbackScreen(),
       quizResult => const QuizResultScreen(),
       ranking => const RankingScreen(),
@@ -162,8 +167,14 @@ class AppRoutes {
       publishContent => const PublishContentScreen(),
       publishConfirmation => const PublishConfirmationScreen(),
       searchResults => const SearchResultsScreen(),
-      videoPlayer => const VideoPlayerScreen(),
-      podcastPlayer => const PodcastPlayerScreen(),
+      videoPlayer => VideoPlayerScreen(
+          content: settings.arguments is FeedContent ? settings.arguments as FeedContent : null,
+          preview: settings.arguments == true,
+        ),
+      podcastPlayer => PodcastPlayerScreen(
+          content: settings.arguments is FeedContent ? settings.arguments as FeedContent : null,
+          preview: settings.arguments == true,
+        ),
       helpCenter => const HelpCenterScreen(),
       library => const LibraryScreen(),
       offlineMode => const OfflineModeScreen(),

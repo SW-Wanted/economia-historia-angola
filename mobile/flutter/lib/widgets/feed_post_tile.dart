@@ -187,7 +187,7 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
           if (c.communityPrivate) _privateTag(context),
         ]),
         const SizedBox(height: 1),
-        Text('por ${c.author} · ${relativePublished(c.publishedAt)}',
+        Text('por ${c.author} · ${relativePublished(c.publishedAt)} · ${c.type.label}',
             maxLines: 1, overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary, fontSize: 11.5)),
       ],
@@ -207,10 +207,10 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
           Text(relativePublished(c.publishedAt),
               style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary, fontSize: 11.5)),
           const Text(' · ', style: TextStyle(color: AppColors.secondary, fontSize: 11.5)),
-          Icon(Icons.circle, size: 5, color: AppColors.primary.withValues(alpha: .6)),
+          Icon(c.type.icon, size: 12, color: AppColors.primary.withValues(alpha: .75)),
           const SizedBox(width: 4),
           Flexible(
-            child: Text(c.category,
+            child: Text(c.type.label,
                 maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 11.5)),

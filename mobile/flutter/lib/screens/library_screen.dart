@@ -53,7 +53,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   void _open(FeedEntry entry) {
     final route = entry.content.isRestricted ? AppRoutes.restrictedContent : entry.content.type.route;
-    Navigator.pushNamed(context, route);
+    Navigator.pushNamed(context, route, arguments: entry.content);
   }
 
   double _maxWidth(double w) {

@@ -165,6 +165,7 @@ model User {
   name            String
   username        String?   @unique @db.Citext
   avatarUrl       String?
+  coverUrl        String?
   bio             String?
   region          String?
   province        String?
@@ -697,6 +698,7 @@ model Quiz {
   slug        String        @unique
   description String?
   visibility  Visibility    @default(PUBLIC)
+  isWeekly    Boolean       @default(false)
   categoryId  String?       @db.Uuid
   createdById String        @db.Uuid
   publishedAt DateTime?

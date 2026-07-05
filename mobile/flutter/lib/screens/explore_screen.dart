@@ -5,6 +5,7 @@ import '../core/routes/app_routes.dart';
 import '../models/feed.dart';
 import '../services/feed_service.dart';
 import '../widgets/angola_map.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/attention_pulse.dart';
 import '../widgets/bottom_nav_shell.dart';
 import '../widgets/feed_post_tile.dart';
@@ -28,6 +29,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   /// Tipos de conteúdo — multi-seleção (combinável com a categoria).
   final Set<FeedContentType> _types = {};
+
+  late final Future<void> _catalogF = FeedService.instance.load();
 
   static const _categories = ['Todos', 'Virais', 'Novos', 'Do seu interesse', 'Sugeridos'];
 
@@ -68,7 +71,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   void _open(FeedEntry entry) {
     final route = entry.content.isRestricted ? AppRoutes.restrictedContent : entry.content.type.route;
-    Navigator.pushNamed(context, route);
+    Navigator.pushNamed(context, route, arguments: entry.content);
   }
 
   double _maxWidth(double w) {
@@ -99,20 +102,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: _maxWidth(width)),
-              child: ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.only(bottom: 110),
-                itemCount: 1 + (entries.isEmpty ? 1 : entries.length),
-                itemBuilder: (context, index) {
-                  if (index == 0) return _filtersHeader(context);
-                  if (entries.isEmpty) return _empty(context);
-                  final entry = entries[index - 1];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FeedPostTile(entry: entry, onOpen: () => _open(entry)),
-                      Container(height: 8, color: AppColors.background),
-                    ],
+              child: FutureBuilder<void>(
+                future: _catalogF,
+                builder: (context, snapshot) {
+                  final loading = snapshot.connectionState != ConnectionState.done;
+                  return ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 110),
+                    itemCount: 1 + (loading || entries.isEmpty ? 1 : entries.length),
+                    itemBuilder: (context, index) {
+                      if (index == 0) return _filtersHeader(context);
+                      if (loading) return _loading();
+                      if (entries.isEmpty) return _empty(context);
+                      final entry = entries[index - 1];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FeedPostTile(entry: entry, onOpen: () => _open(entry)),
+                          Container(height: 8, color: AppColors.background),
+                        ],
+                      );
+                    },
                   );
                 },
               ),
@@ -267,17 +277,28 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
+  Widget _loading() => const Padding(
+        padding: EdgeInsets.only(top: 60),
+        child: Center(child: AppLoadingIndicator(size: 72, showDots: false, message: 'A carregar conteúdos...')),
+      );
+
   Widget _empty(BuildContext context) {
+    // Distingue "sem conteúdos no backend" de "pesquisa/filtro sem resultados".
+    final filtering = _query.trim().isNotEmpty || _types.isNotEmpty || _category != 0;
+    final (icon, title, message) = filtering
+        ? (Icons.search_off, 'Nada encontrado', 'Experimente outro termo ou filtro.')
+        : (Icons.explore_off_outlined, 'Ainda não há conteúdos disponíveis',
+            'Assim que forem publicados conteúdos, aparecerão aqui.');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
       child: Center(
         child: Column(children: [
-          const Icon(Icons.search_off, size: 44, color: AppColors.outline),
+          Icon(icon, size: 44, color: AppColors.outline),
           const SizedBox(height: 12),
-          Text('Nada encontrado',
+          Text(title, textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
           const SizedBox(height: 4),
-          Text('Experimente outro termo ou filtro.',
+          Text(message,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
         ]),
