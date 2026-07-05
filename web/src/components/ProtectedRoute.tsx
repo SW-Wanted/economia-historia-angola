@@ -1,10 +1,9 @@
-import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import AuthRequired from './AuthRequired'
 import type { ReactNode } from 'react'
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
-  const location = useLocation()
 
   if (isLoading) {
     return (
@@ -14,8 +13,11 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     )
   }
 
+  // Visitante: em vez de redireccionar bruscamente para /login (o que poderia
+  // parecer um erro), apresentamos um convite elegante para entrar ou criar
+  // conta, mantendo o Sidebar de Visitante para continuar a explorar.
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <AuthRequired />
   }
 
   return <>{children}</>

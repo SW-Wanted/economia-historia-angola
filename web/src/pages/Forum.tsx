@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { forumService } from '../services/api/forum.service'
+import { useAuthGate } from '../contexts/AuthGateContext'
 import type { Topic, Forum } from '../services/types/api.types'
 
 const FILTERS = ['Todos os Tópicos', 'Microtextos', 'Economia Colonial', 'Pós-Independência', 'Arquivos Históricos']
@@ -31,6 +32,7 @@ function AuthorAvatar({ name }: { name: string }) {
 
 export default function Forum() {
   const navigate = useNavigate()
+  const { requireAuth } = useAuthGate()
   const [activeFilter, setActiveFilter] = useState('Todos os Tópicos')
   const [forums, setForums] = useState<Forum[]>([])
   const [topics, setTopics] = useState<Topic[]>([])
@@ -84,7 +86,11 @@ export default function Forum() {
             </p>
           </div>
           <button
-            onClick={() => navigate('/forum/novo-topico')}
+            onClick={() => requireAuth(() => navigate('/forum/novo-topico'), {
+              title: 'Junte-se ao debate',
+              message: 'Crie uma conta gratuita ou inicie sessão para abrir tópicos e participar nas discussões da comunidade.',
+              icon: 'forum',
+            })}
             className="btn-primary flex-shrink-0 mt-1"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>

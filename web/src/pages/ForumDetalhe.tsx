@@ -4,6 +4,7 @@ import AppShell from '../components/AppShell'
 import { forumService } from '../services/api/forum.service'
 import { reportsService } from '../services/api/reports.service'
 import { useAuth } from '../contexts/AuthContext'
+import { useAuthGate } from '../contexts/AuthGateContext'
 import type { Topic, TopicReply } from '../services/types/api.types'
 import { getErrorMessage } from '../utils/errors'
 
@@ -35,6 +36,7 @@ export default function ForumDetalhe() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
+  const { promptAuth } = useAuthGate()
   const topic = (location.state as { topic?: Topic } | null)?.topic ?? null
 
   const [replies, setReplies] = useState<TopicReply[]>([])
@@ -331,14 +333,24 @@ export default function ForumDetalhe() {
                   </div>
                 </form>
               ) : (
-                <div className="alert-info rounded-card">
-                  <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0">info</span>
-                  <p className="text-body-md text-secondary font-body">
-                    <button onClick={() => navigate('/login')} className="font-bold text-primary hover:underline">
-                      Inicie sessão
-                    </button>
-                    {' '}para responder neste tópico.
+                <div className="flex flex-col items-center text-center gap-3 py-4">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/8 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary text-[24px]">lock_open</span>
+                  </div>
+                  <p className="text-body-md text-secondary font-body max-w-sm">
+                    Participe no debate: inicie sessão ou crie uma conta gratuita para responder neste tópico.
                   </p>
+                  <button
+                    onClick={() => promptAuth({
+                      title: 'Junte-se ao debate',
+                      message: 'Crie uma conta gratuita ou inicie sessão para responder e participar nas discussões da comunidade.',
+                      icon: 'forum',
+                    })}
+                    className="btn-primary"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">login</span>
+                    Entrar para responder
+                  </button>
                 </div>
               )}
             </div>

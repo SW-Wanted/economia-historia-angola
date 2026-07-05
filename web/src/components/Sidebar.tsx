@@ -24,6 +24,23 @@ const supportNav = [
   { to: '/ajuda', label: 'Ajuda', icon: 'help_outline' },
 ]
 
+// Navegação do Visitante — apenas áreas públicas. Espelha a app Mobile, onde o
+// Visitante conhece a plataforma antes de criar conta.
+const guestPrimaryNav = [
+  { to: '/home', label: 'Início', icon: 'home' },
+  { to: '/explorar', label: 'Explorar', icon: 'explore' },
+  { to: '/mapa', label: 'Mapa Económico', icon: 'map' },
+  { to: '/forum', label: 'Fórum', icon: 'forum' },
+  { to: '/quiz', label: 'Quizzes', icon: 'quiz' },
+]
+
+const guestExploreNav = [
+  { to: '/glossario', label: 'Glossário', icon: 'menu_book' },
+  { to: '/comparador', label: 'Comparador', icon: 'compare' },
+  { to: '/guia-rapido', label: 'Guia Rápido', icon: 'rocket_launch' },
+  { to: '/ajuda', label: 'Ajuda', icon: 'help_outline' },
+]
+
 function NavGroup({ label, items }: { label: string; items: { to: string; label: string; icon: string }[] }) {
   return (
     <div>
@@ -84,9 +101,70 @@ function AdminNavItem({ to, label, icon }: { to: string; label: string; icon: st
   )
 }
 
+function SidebarBrand() {
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+  return (
+    <div className="px-5 pt-6 pb-4 flex-shrink-0">
+      <button
+        onClick={() => navigate(isAuthenticated ? '/dashboard' : '/home')}
+        className="flex items-center gap-3 group w-full text-left"
+      >
+        <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-200">
+          <Icon name="account_balance" filled className="text-white text-[20px]" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[13px] font-bold text-text font-sans leading-tight tracking-tight truncate">
+            Economia com História
+          </p>
+          <p className="text-[10px] font-semibold text-outline/70 uppercase tracking-[0.10em] font-sans mt-0.5">Angola</p>
+        </div>
+      </button>
+    </div>
+  )
+}
+
+/** Sidebar apresentado ao Visitante (não autenticado). */
+function GuestSidebar() {
+  const navigate = useNavigate()
+  return (
+    <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-sidebar bg-surface border-r border-outline-variant/25 flex-col z-50 overflow-hidden">
+      <SidebarBrand />
+
+      <div className="h-px bg-outline-variant/20 mx-5 flex-shrink-0" />
+
+      {/* Nav */}
+      <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-5 min-h-0">
+        <NavGroup label="Principal" items={guestPrimaryNav} />
+        <NavGroup label="Descobrir" items={guestExploreNav} />
+      </div>
+
+      {/* Convite a autenticar */}
+      <div className="flex-shrink-0 p-3 border-t border-outline-variant/20 flex flex-col gap-1.5">
+        <button
+          onClick={() => navigate('/login')}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold font-sans text-text/60 hover:text-text hover:bg-surface-container-low/60 transition-all duration-150"
+        >
+          <Icon name="login" className="text-[20px] flex-shrink-0 text-outline" />
+          <span>Entrar</span>
+        </button>
+        <button
+          onClick={() => navigate('/cadastro')}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold font-sans bg-primary text-white shadow-xs hover:bg-primary-dark transition-all duration-150"
+        >
+          <Icon name="person_add" className="text-[18px] flex-shrink-0 text-white" />
+          <span>Criar Conta</span>
+        </button>
+      </div>
+    </aside>
+  )
+}
+
 export default function Sidebar() {
   const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { user, isAuthenticated, logout } = useAuth()
+
+  if (!isAuthenticated) return <GuestSidebar />
 
   const displayName = user?.name ?? 'Utilizador'
   const initials = getUserInitials(user)
@@ -96,29 +174,13 @@ export default function Sidebar() {
 
   async function handleLogout() {
     await logout()
-    navigate('/login', { replace: true })
+    navigate('/home', { replace: true })
   }
 
   return (
     <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-sidebar bg-surface border-r border-outline-variant/25 flex-col z-50 overflow-hidden">
 
-      {/* Brand */}
-      <div className="px-5 pt-6 pb-4 flex-shrink-0">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-3 group w-full text-left"
-        >
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-200">
-            <Icon name="account_balance" filled className="text-white text-[20px]" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[13px] font-bold text-text font-sans leading-tight tracking-tight truncate">
-              Economia com História
-            </p>
-            <p className="text-[10px] font-semibold text-outline/70 uppercase tracking-[0.10em] font-sans mt-0.5">Angola</p>
-          </div>
-        </button>
-      </div>
+      <SidebarBrand />
 
       {/* User chip */}
       <div className="px-3 pb-3 flex-shrink-0">

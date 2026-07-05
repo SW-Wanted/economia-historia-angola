@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { contentService } from '../services/api/content.service'
 import { extractList } from '../services/types/api.types'
+import { useAuthGate } from '../contexts/AuthGateContext'
 import type { Content } from '../services/types/api.types'
 
 function getContentRoute(content: Content): string {
@@ -23,8 +24,19 @@ function getTypeLabel(content: Content): string {
 
 export default function ResultadosPesquisa() {
   const navigate = useNavigate()
+  const { requireAuth } = useAuthGate()
   const [searchParams] = useSearchParams()
   const query = searchParams.get('q') ?? ''
+
+  // Visitante pode pesquisar, mas abrir um resultado exige conta.
+  function openResult(content: Content) {
+    const route = getContentRoute(content)
+    requireAuth(() => navigate(route, { state: { contentId: content.id } }), {
+      title: 'Este conteúdo é para membros',
+      message: 'Inicie sessão ou crie uma conta gratuita para abrir e ler este conteúdo.',
+      icon: 'menu_book',
+    })
+  }
 
   const [results, setResults] = useState<Content[]>([])
   const [loading, setLoading] = useState(false)
@@ -86,11 +98,10 @@ export default function ResultadosPesquisa() {
           <div className="flex flex-col gap-4">
             {results.map((r) => {
               const typeLabel = getTypeLabel(r)
-              const route = getContentRoute(r)
               return (
                 <div
                   key={r.id}
-                  onClick={() => navigate(route, { state: { contentId: r.id } })}
+                  onClick={() => openResult(r)}
                   className="card-interactive p-6 group flex items-start gap-5"
                 >
                   <div className="w-12 h-12 bg-surface-container rounded-lg flex items-center justify-center flex-shrink-0">

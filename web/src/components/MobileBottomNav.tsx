@@ -20,6 +20,15 @@ const tabs = [
   { to: '/perfil', match: ['/perfil'], label: 'Perfil', icon: 'person' },
 ]
 
+// Separadores do Visitante — só áreas públicas. O último separador convida a
+// entrar em vez de abrir o Perfil.
+const guestTabs = [
+  { to: '/home', match: ['/home', '/home-publica', '/home-landing'], label: 'Início', icon: 'home' },
+  { to: '/explorar', match: ['/explorar', '/explorar-arquivo'], label: 'Explorar', icon: 'explore' },
+  { to: '/quiz', match: ['/quiz'], label: 'Quizzes', icon: 'quiz' },
+  { to: '/login', match: ['/login'], label: 'Entrar', icon: 'login' },
+]
+
 // Opções do botão "Criar" — apenas rotas reais já existentes na Web.
 const createActions = [
   { to: '/gestao/submeter-artigo', label: 'Novo Artigo', icon: 'article', desc: 'Submeter um artigo para revisão' },
@@ -33,10 +42,11 @@ function isTabActive(pathname: string, match: string[]): boolean {
 export default function MobileBottomNav() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const [createOpen, setCreateOpen] = useState(false)
 
-  const showCreate = canCreateContent(user)
+  const activeTabs = isAuthenticated ? tabs : guestTabs
+  const showCreate = isAuthenticated && canCreateContent(user)
 
   function go(to: string) {
     setCreateOpen(false)
@@ -81,11 +91,11 @@ export default function MobileBottomNav() {
       {/* Cápsula flutuante */}
       <div className="lg:hidden fixed bottom-3 left-4 right-4 z-50 h-16">
         <div className="relative h-16 bg-surface rounded-full shadow-lg border border-outline-variant/25 flex items-center px-1">
-          <NavTab tab={tabs[0]} pathname={pathname} onSelect={go} />
-          <NavTab tab={tabs[1]} pathname={pathname} onSelect={go} />
+          <NavTab tab={activeTabs[0]} pathname={pathname} onSelect={go} />
+          <NavTab tab={activeTabs[1]} pathname={pathname} onSelect={go} />
           {showCreate && <div className="w-16 flex-shrink-0" aria-hidden />}
-          <NavTab tab={tabs[2]} pathname={pathname} onSelect={go} />
-          <NavTab tab={tabs[3]} pathname={pathname} onSelect={go} />
+          <NavTab tab={activeTabs[2]} pathname={pathname} onSelect={go} />
+          <NavTab tab={activeTabs[3]} pathname={pathname} onSelect={go} />
         </div>
 
         {/* Botão central "Criar" sobreposto */}
@@ -111,7 +121,7 @@ function NavTab({
   pathname,
   onSelect,
 }: {
-  tab: (typeof tabs)[number]
+  tab: { to: string; match: string[]; label: string; icon: string }
   pathname: string
   onSelect: (to: string) => void
 }) {
