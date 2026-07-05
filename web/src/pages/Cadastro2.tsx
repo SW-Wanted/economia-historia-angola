@@ -7,8 +7,10 @@ import {
   type CreateWriterApplicationDto,
 } from '../services/api/writer-application.service'
 import { ApiError } from '../services/api/client'
+import { uploadService, IMAGE_CONSTRAINTS, DOCUMENT_CONSTRAINTS } from '../services/api/upload.service'
 import { getErrorMessage } from '../utils/errors'
 import CadastroStepper from '../components/CadastroStepper'
+import FileUpload from '../components/ui/FileUpload'
 
 const INTEREST_AREAS = [
   'História Económica',
@@ -67,6 +69,10 @@ export default function Cadastro2() {
   )
   const [previousPublications, setPreviousPublications] = useState(data.writer?.previousPublications ?? '')
   const [portfolio, setPortfolio] = useState(data.writer?.portfolio ?? '')
+
+  // Ficheiros da candidatura — carregados só na submissão (após register() autenticar).
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [documentFile, setDocumentFile] = useState<File | null>(null)
 
   // Evita que a guarda de fluxo dispare depois de o registo iniciar (o reset()
   // limpa o contexto e esvaziaria email/password momentaneamente).
@@ -178,6 +184,17 @@ export default function Cadastro2() {
       // 2. Submeter candidatura de Escritor, se aplicável.
       let writerApplied = false
       if (isWriter) {
+        // Carregar os ficheiros agora que o utilizador está autenticado.
+        // São opcionais: se um upload falhar, a candidatura segue sem esse anexo.
+        let photoUrl: string | undefined
+        let documentUrl: string | undefined
+        if (photoFile) {
+          try { photoUrl = (await uploadService.upload(photoFile)).publicUrl } catch { photoUrl = undefined }
+        }
+        if (documentFile) {
+          try { documentUrl = (await uploadService.upload(documentFile)).publicUrl } catch { documentUrl = undefined }
+        }
+
         const dto: CreateWriterApplicationDto = {
           fullName: data.name,
           biography: biography.trim(),
@@ -190,6 +207,8 @@ export default function Cadastro2() {
           interestTopics: interestTopics.trim(),
           ...(previousPublications.trim() ? { previousPublications: previousPublications.trim() } : {}),
           ...(portfolio.trim() ? { portfolio: portfolio.trim() } : {}),
+          ...(photoUrl ? { photoUrl } : {}),
+          ...(documentUrl ? { documentUrl } : {}),
         }
         try {
           await writerApplicationService.apply(dto)
@@ -636,6 +655,35 @@ export default function Cadastro2() {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Documentos */}
+              <div className="flex flex-col gap-4">
+                <h3 className="text-label-lg font-sans text-text-muted uppercase tracking-[0.06em]">
+                  Documentos{' '}
+                  <span className="text-outline normal-case tracking-normal font-body">(opcional)</span>
+                </h3>
+                <FileUpload
+                  id="writer-photo"
+                  label="Fotografia"
+                  hint="JPG, PNG, WebP ou GIF · máx. 5 MB"
+                  variant="image"
+                  constraints={IMAGE_CONSTRAINTS}
+                  onFileChange={setPhotoFile}
+                  disabled={loading}
+                />
+                <FileUpload
+                  id="writer-document"
+                  label="Currículo / Documento de Identificação"
+                  hint="PDF ou Word · máx. 15 MB"
+                  variant="document"
+                  constraints={DOCUMENT_CONSTRAINTS}
+                  onFileChange={setDocumentFile}
+                  disabled={loading}
+                />
+                <p className="text-xs text-outline font-body">
+                  Os ficheiros serão enviados de forma segura ao concluir a candidatura.
+                </p>
               </div>
 
               {/* Aviso de candidatura */}

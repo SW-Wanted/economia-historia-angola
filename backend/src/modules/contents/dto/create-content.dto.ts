@@ -25,25 +25,25 @@ export class CreateContentDto {
   @IsString()
   body?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'URL de origem/referência externa do conteúdo.' })
   @IsOptional()
   @IsString()
   sourceUrl?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'URL pública do ficheiro principal (vídeo, áudio, PDF ou documento).' })
   @IsOptional()
   @IsString()
   mediaUrl?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'URL pública da imagem de capa/miniatura.' })
   @IsOptional()
   @IsString()
   thumbnailUrl?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Duração em segundos (vídeo/áudio).' })
   @IsOptional()
   @IsInt()
-  @Min(1)
+  @Min(0)
   durationSeconds?: number;
 
   @ApiPropertyOptional({ enum: Visibility })
