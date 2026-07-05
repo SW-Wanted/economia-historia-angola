@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
+import { join } from 'path';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { configuration } from './config/configuration';
@@ -27,7 +28,12 @@ import { StatsModule } from './modules/stats/stats.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, load: [configuration], validate: validateEnv }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: join(__dirname, '..', '.env'),
+      load: [configuration],
+      validate: validateEnv,
+    }),
     LoggerModule.forRoot({
       pinoHttp: {
         transport: process.env.NODE_ENV === 'production' ? undefined : { target: 'pino-pretty' },
