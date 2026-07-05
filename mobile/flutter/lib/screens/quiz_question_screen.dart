@@ -3,20 +3,29 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../models/quiz_question.dart';
-import '../services/mock_data_service.dart';
+import '../models/weekly_quiz.dart';
+import '../services/backend_service.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/eh_button.dart';
 import '../widgets/eh_card.dart';
 import '../widgets/screen_frame.dart';
 
 class QuizQuestionScreen extends StatefulWidget {
-  const QuizQuestionScreen({super.key});
+  const QuizQuestionScreen({super.key, this.quiz});
+
+  /// Quiz já carregado (passado a partir do cartão "Quiz da Semana"). Quando
+  /// `null`, o ecrã carrega o quiz semanal do backend.
+  final WeeklyQuiz? quiz;
 
   @override
   State<QuizQuestionScreen> createState() => _QuizQuestionScreenState();
 }
 
 class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
-  late final List<QuizQuestion> _questions = const MockDataService().questions();
+  late final Future<WeeklyQuiz?> _quizF =
+      widget.quiz != null ? Future.value(widget.quiz) : BackendService.instance.weeklyQuiz();
+
+  List<QuizQuestion> _questions = const [];
   int _index = 0;
   int _score = 0;
   int? _selected;
@@ -65,6 +74,50 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<WeeklyQuiz?>(
+      future: _quizF,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const ScreenFrame(
+            title: 'Quiz da Semana',
+            showBack: true,
+            children: [
+              Padding(padding: EdgeInsets.only(top: 60), child: Center(child: AppLoadingIndicator(message: 'A carregar quiz...'))),
+            ],
+          );
+        }
+        final quiz = snapshot.data;
+        if (quiz == null || !quiz.hasQuestions) {
+          return ScreenFrame(
+            title: 'Quiz da Semana',
+            showBack: true,
+            children: [_noQuiz(context)],
+          );
+        }
+        // Preenche as perguntas uma única vez a partir do quiz carregado.
+        if (_questions.isEmpty) _questions = quiz.questions;
+        return _quizContent(context);
+      },
+    );
+  }
+
+  Widget _noQuiz(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(top: 60),
+        child: Center(
+          child: Column(children: [
+            const Icon(Icons.quiz_outlined, size: 44, color: AppColors.outline),
+            const SizedBox(height: 12),
+            Text('Sem quiz da semana',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
+            const SizedBox(height: 4),
+            Text('Ainda não há um Quiz da Semana disponível. Volte mais tarde.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
+          ]),
+        ),
+      );
+
+  Widget _quizContent(BuildContext context) {
     final progress = (_index + 1) / _questions.length;
     return ScreenFrame(
       title: 'Pergunta ${_index + 1}/${_questions.length}',

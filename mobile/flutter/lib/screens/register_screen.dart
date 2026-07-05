@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
+import '../core/constants/suggested_categories.dart';
 import '../core/routes/app_routes.dart';
 import '../services/api_client.dart';
 import '../services/backend_service.dart';
@@ -22,20 +23,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   static const _steps = 3;
 
   // Categorias sugeridas para personalização de conteúdos (Tela 2).
-  static const _categories = [
-    'História Económica',
-    'Economia Colonial',
-    'Economia Africana',
-    'Desenvolvimento Económico',
-    'Comércio Internacional',
-    'Políticas Públicas',
-    'Agricultura',
-    'Recursos Naturais',
-    'Industrialização',
-    'Finanças',
-    'Empreendedorismo',
-    'História de Angola',
-  ];
+  static const _categories = kSuggestedCategories;
 
   final _draft = RegistrationDraft.instance;
   bool _loading = false;

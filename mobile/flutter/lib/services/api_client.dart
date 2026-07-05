@@ -24,6 +24,13 @@ class ApiClient {
   String? accessToken;
   String? refreshToken;
 
+  /// Renova a sessão usando o refresh token. Deve devolver o novo par de tokens
+  /// ou lançar em caso de falha. Definido pelo [BackendService] para manter o
+  /// [ApiClient] desacoplado da lógica de autenticação.
+  Future<void> Function()? onUnauthorized;
+
+  bool _refreshing = false;
+
   bool get isAuthenticated => accessToken != null && refreshToken != null;
 
   Future<Map<String, dynamic>> getJson(String path, {Map<String, String?> query = const {}}) async {
@@ -71,21 +78,52 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? body,
     Map<String, String?> query = const {},
+    bool retryOnUnauthorized = true,
   }) async {
-    final headers = <String, String>{
-      'Accept': 'application/json',
-      if (body != null) 'Content-Type': 'application/json',
-      if (accessToken != null) 'Authorization': 'Bearer $accessToken',
-    };
     final uri = _uri(path, query);
     final encodedBody = body == null ? null : jsonEncode(body);
-    final response = switch (method) {
-      'GET' => await _http.get(uri, headers: headers),
-      'POST' => await _http.post(uri, headers: headers, body: encodedBody),
-      'PATCH' => await _http.patch(uri, headers: headers, body: encodedBody),
+    final response = await _dispatch(method, uri, encodedBody, body != null);
+
+    // Access token expirado (15 min): tenta renovar uma única vez e repetir.
+    // Não renova o próprio endpoint de refresh para evitar recursão.
+    if (response.statusCode == 401 &&
+        retryOnUnauthorized &&
+        !_refreshing &&
+        onUnauthorized != null &&
+        refreshToken != null &&
+        !path.contains('/auth/refresh')) {
+      try {
+        _refreshing = true;
+        await onUnauthorized!.call();
+      } catch (_) {
+        // Refresh falhou — a sessão está inválida; devolve o erro original.
+      } finally {
+        _refreshing = false;
+      }
+      if (accessToken != null) {
+        final retry = await _dispatch(method, uri, encodedBody, body != null);
+        return _decode(retry);
+      }
+    }
+
+    return _decode(response);
+  }
+
+  Future<http.Response> _dispatch(String method, Uri uri, String? encodedBody, bool hasBody) {
+    final headers = <String, String>{
+      'Accept': 'application/json',
+      if (hasBody) 'Content-Type': 'application/json',
+      if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+    };
+    return switch (method) {
+      'GET' => _http.get(uri, headers: headers),
+      'POST' => _http.post(uri, headers: headers, body: encodedBody),
+      'PATCH' => _http.patch(uri, headers: headers, body: encodedBody),
       _ => throw const ApiException('Metodo HTTP nao suportado.'),
     };
+  }
 
+  dynamic _decode(http.Response response) {
     final decoded = response.body.isEmpty ? null : jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) return decoded;
 

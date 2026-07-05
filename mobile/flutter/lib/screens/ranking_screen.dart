@@ -62,8 +62,8 @@ class _RankingScreenState extends State<RankingScreen> {
     final myIndex = list.indexWhere((u) => u.isCurrentUser);
     final scopeLabel = switch (_scope) {
       _Scope.geral => 'Angola',
-      _Scope.provincia => me.province,
-      _Scope.instituicao => me.institution,
+      _Scope.provincia => me.province.isEmpty ? 'a sua província' : me.province,
+      _Scope.instituicao => me.institution.isEmpty ? 'a sua instituição' : me.institution,
     };
 
     return ScreenFrame(title: 'Ranking', showBack: true, children: [
@@ -130,12 +130,14 @@ class _RankingScreenState extends State<RankingScreen> {
             children: [
               Text('${me.points}', style: Theme.of(context).textTheme.displayLarge?.copyWith(color: Colors.white, fontSize: 28)),
               Text('pontos', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: .2), borderRadius: BorderRadius.circular(99)),
-                child: Text(me.level, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
-              ),
+              if (me.level.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: .2), borderRadius: BorderRadius.circular(99)),
+                  child: Text(me.level, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+                ),
+              ],
             ],
           ),
         ],

@@ -4,6 +4,7 @@ import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../models/feed.dart';
 import '../services/feed_service.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/bottom_nav_shell.dart';
 import '../widgets/feed_post_tile.dart';
 
@@ -23,6 +24,8 @@ class _ForumScreenState extends State<ForumScreen> {
   int _filter = 0;
 
   static const _filters = ['Todos', 'Públicos', 'Comunidades', 'Privados'];
+
+  late final Future<void> _catalogF = FeedService.instance.load();
 
   @override
   void dispose() {
@@ -59,7 +62,7 @@ class _ForumScreenState extends State<ForumScreen> {
 
   void _open(FeedEntry entry) {
     final route = entry.content.isRestricted ? AppRoutes.restrictedContent : entry.content.type.route;
-    Navigator.pushNamed(context, route);
+    Navigator.pushNamed(context, route, arguments: entry.content);
   }
 
   double _maxWidth(double w) {
@@ -88,20 +91,27 @@ class _ForumScreenState extends State<ForumScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: _maxWidth(width)),
-              child: ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.only(bottom: 110),
-                itemCount: 1 + (entries.isEmpty ? 1 : entries.length),
-                itemBuilder: (context, index) {
-                  if (index == 0) return _header(context);
-                  if (entries.isEmpty) return _empty(context);
-                  final entry = entries[index - 1];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FeedPostTile(entry: entry, onOpen: () => _open(entry)),
-                      Container(height: 8, color: AppColors.background),
-                    ],
+              child: FutureBuilder<void>(
+                future: _catalogF,
+                builder: (context, snapshot) {
+                  final loading = snapshot.connectionState != ConnectionState.done;
+                  return ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 110),
+                    itemCount: 1 + (loading || entries.isEmpty ? 1 : entries.length),
+                    itemBuilder: (context, index) {
+                      if (index == 0) return _header(context);
+                      if (loading) return _loading();
+                      if (entries.isEmpty) return _empty(context);
+                      final entry = entries[index - 1];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FeedPostTile(entry: entry, onOpen: () => _open(entry)),
+                          Container(height: 8, color: AppColors.background),
+                        ],
+                      );
+                    },
                   );
                 },
               ),
@@ -232,6 +242,11 @@ class _ForumScreenState extends State<ForumScreen> {
     );
   }
 
+  Widget _loading() => const Padding(
+        padding: EdgeInsets.only(top: 60),
+        child: Center(child: AppLoadingIndicator(size: 72, showDots: false, message: 'A carregar debates...')),
+      );
+
   Widget _empty(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
@@ -239,7 +254,7 @@ class _ForumScreenState extends State<ForumScreen> {
         child: Column(children: [
           const Icon(Icons.forum_outlined, size: 44, color: AppColors.outline),
           const SizedBox(height: 12),
-          Text('Sem debates por agora',
+          Text('Ainda não há debates disponíveis',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
           const SizedBox(height: 4),
           Text('Use o botão "Criar" para abrir um novo fórum.',
