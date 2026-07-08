@@ -176,11 +176,6 @@ export default function Login() {
               </div>
             )}
 
-            <label className="flex items-center gap-2.5 cursor-pointer pt-1">
-              <input type="checkbox" className="w-4 h-4 rounded border-outline-variant/60 accent-primary" />
-              <span className="text-sm text-secondary font-body">Manter sessão iniciada</span>
-            </label>
-
             <button
               type="submit"
               disabled={loading}
@@ -202,24 +197,6 @@ export default function Login() {
             <div className="h-px flex-grow bg-outline-variant/30" />
           </div>
 
-          {/* Social — clearly "coming soon", not broken */}
-          <div className="grid grid-cols-2 gap-3 mb-8">
-            {[
-              { icon: 'language', label: 'Google' },
-              { icon: 'work', label: 'LinkedIn' },
-            ].map((p) => (
-              <div
-                key={p.label}
-                className="flex items-center justify-center gap-2 py-3 border border-outline-variant/30 rounded-button text-sm font-semibold text-secondary/50 font-sans cursor-not-allowed select-none relative"
-              >
-                <span className="material-symbols-outlined text-[17px] text-secondary/40">{p.icon}</span>
-                {p.label}
-                <span className="absolute -top-2 -right-1 text-[9px] bg-surface-container text-secondary/60 px-1.5 py-0.5 rounded-full font-sans font-bold uppercase tracking-wide border border-outline-variant/30">
-                  Em breve
-                </span>
-              </div>
-            ))}
-          </div>
 
           {/* Register link */}
           <p className="text-center text-sm text-secondary font-body">

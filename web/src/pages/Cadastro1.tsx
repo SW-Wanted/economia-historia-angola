@@ -277,19 +277,7 @@ export default function Cadastro1() {
                 Continuar
                 <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </button>
-              <div className="relative">
-                <button
-                  type="button"
-                  disabled
-                  className="w-full flex items-center justify-center gap-2.5 border border-outline-variant/50 text-secondary/55 py-[14px] rounded-button text-sm font-semibold font-sans cursor-not-allowed"
-                >
-                  <span className="material-symbols-outlined text-[18px]">language</span>
-                  Registar com Google
-                </button>
-                <span className="absolute -top-2 -right-2 bg-surface-container text-primary text-[9px] font-bold font-sans px-1.5 py-0.5 rounded-full border border-primary/20 uppercase tracking-wider">
-                  Em breve
-                </span>
-              </div>
+              
             </div>
           </form>
 
