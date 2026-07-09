@@ -35,6 +35,8 @@ import '../../screens/offline_mode_screen.dart';
 import '../../screens/onboarding_screen.dart';
 import '../../screens/pending_reports_screen.dart';
 import '../../screens/private_forum_access_screen.dart';
+import '../../screens/private_rooms_screen.dart';
+import '../../models/discussion_room.dart';
 import '../../screens/profile_screen.dart';
 import '../../screens/province_contents_screen.dart';
 import '../../screens/publish_confirmation_screen.dart';
@@ -115,6 +117,7 @@ class AppRoutes {
   static const communityDetail = '/community/detail';
   static const createCommunity = '/community/create';
   static const discussionRoom = '/discussion-room';
+  static const privateRooms = '/private-rooms';
   static const faq = '/faq';
   static const feedback = '/feedback';
   static const invite = '/invite';
@@ -197,7 +200,9 @@ class AppRoutes {
       communityDetail => CommunityDetailScreen(
           community: settings.arguments is CommunityCategory ? settings.arguments as CommunityCategory : null),
       createCommunity => const CreateCommunityScreen(),
-      discussionRoom => const DiscussionRoomScreen(),
+      discussionRoom => DiscussionRoomScreen(
+          room: settings.arguments is DiscussionRoom ? settings.arguments as DiscussionRoom : null),
+      privateRooms => const PrivateRoomsScreen(),
       faq => const FaqScreen(),
       feedback => const FeedbackScreen(),
       invite => const InviteScreen(),

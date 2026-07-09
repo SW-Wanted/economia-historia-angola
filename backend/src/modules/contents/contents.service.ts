@@ -1,13 +1,17 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { ContentStatus, MembershipStatus, PermissionCode, Prisma, Visibility } from '@prisma/client';
+import { ContentStatus, MembershipStatus, NotificationType, PermissionCode, Prisma, Visibility } from '@prisma/client';
 import { paginate } from '../../common/dto/pagination.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ContentQueryDto } from './dto/content-query.dto';
 import { CreateContentDto } from './dto/create-content.dto';
 
 @Injectable()
 export class ContentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async listPublic(query: ContentQueryDto) {
     const where = {
@@ -124,12 +128,38 @@ export class ContentsService {
     return slug || 'conteudo';
   }
 
-  favorite(userId: string, contentId: string) {
-    return this.prisma.favorite.upsert({
+  async favorite(userId: string, contentId: string) {
+    // Deteta se já existia para notificar o autor apenas no primeiro gosto
+    // (o endpoint é idempotente — repetir não deve gerar notificações duplicadas).
+    const existing = await this.prisma.favorite.findUnique({
+      where: { userId_contentId: { userId, contentId } },
+      select: { createdAt: true },
+    });
+    const favorite = await this.prisma.favorite.upsert({
       where: { userId_contentId: { userId, contentId } },
       update: {},
       create: { userId, contentId },
     });
+    if (!existing) {
+      void this.notifyContentAuthorOfLike(contentId, userId).catch(() => void 0);
+    }
+    return favorite;
+  }
+
+  private async notifyContentAuthorOfLike(contentId: string, likerId: string) {
+    const content = await this.prisma.content.findUnique({
+      where: { id: contentId },
+      select: { authorId: true, title: true },
+    });
+    if (content && content.authorId !== likerId) {
+      await this.notifications.create(
+        content.authorId,
+        NotificationType.CONTENT,
+        'Novo gosto no seu conteúdo',
+        `Alguém gostou de "${content.title}"`,
+        { contentId },
+      );
+    }
   }
 
   progress(userId: string, contentId: string, percentage: number) {
