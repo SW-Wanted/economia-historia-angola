@@ -33,8 +33,14 @@ class WeeklyQuiz {
   static QuizQuestion _questionFromJson(Map<String, dynamic> json) {
     final rawOptions = json['options'];
     final options = rawOptions is List ? rawOptions.whereType<Map<String, dynamic>>().toList() : <Map<String, dynamic>>[];
+    // `isCorrect` só vem no quiz semanal; num quiz carregado por id fica oculto
+    // (a correção acontece no servidor). `correctIndex` só é fiável quando vem.
     final correctIndex = options.indexWhere((o) => o['isCorrect'] == true);
+    final optionIds = [for (final o in options) o['id']?.toString() ?? ''];
+    final hasIds = json['id'] != null && optionIds.every((id) => id.isNotEmpty);
     return QuizQuestion(
+      id: json['id']?.toString(),
+      optionIds: hasIds ? optionIds : null,
       question: json['statement']?.toString() ?? '',
       options: [for (final o in options) o['text']?.toString() ?? ''],
       correctIndex: correctIndex < 0 ? 0 : correctIndex,

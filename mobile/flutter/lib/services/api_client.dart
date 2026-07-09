@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -57,6 +58,11 @@ class ApiClient {
     return value is Map<String, dynamic> ? value : <String, dynamic>{};
   }
 
+  Future<Map<String, dynamic>> delete(String path, {Map<String, dynamic>? body}) async {
+    final value = await _send('DELETE', path, body: body);
+    return value is Map<String, dynamic> ? value : <String, dynamic>{};
+  }
+
   Uri _uri(String path, Map<String, String?> query) {
     final base = Uri.parse(baseUrl);
     final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
@@ -82,7 +88,14 @@ class ApiClient {
   }) async {
     final uri = _uri(path, query);
     final encodedBody = body == null ? null : jsonEncode(body);
-    final response = await _dispatch(method, uri, encodedBody, body != null);
+    final http.Response response;
+    try {
+      response = await _dispatch(method, uri, encodedBody, body != null);
+    } on TimeoutException {
+      throw ApiException(_networkMessage(uri));
+    } on http.ClientException {
+      throw ApiException(_networkMessage(uri));
+    }
 
     // Access token expirado (15 min): tenta renovar uma única vez e repetir.
     // Não renova o próprio endpoint de refresh para evitar recursão.
@@ -101,7 +114,14 @@ class ApiClient {
         _refreshing = false;
       }
       if (accessToken != null) {
-        final retry = await _dispatch(method, uri, encodedBody, body != null);
+        final http.Response retry;
+        try {
+          retry = await _dispatch(method, uri, encodedBody, body != null);
+        } on TimeoutException {
+          throw ApiException(_networkMessage(uri));
+        } on http.ClientException {
+          throw ApiException(_networkMessage(uri));
+        }
         return _decode(retry);
       }
     }
@@ -112,13 +132,16 @@ class ApiClient {
   Future<http.Response> _dispatch(String method, Uri uri, String? encodedBody, bool hasBody) {
     final headers = <String, String>{
       'Accept': 'application/json',
+      'Cache-Control': 'no-store',
+      'Pragma': 'no-cache',
       if (hasBody) 'Content-Type': 'application/json',
       if (accessToken != null) 'Authorization': 'Bearer $accessToken',
     };
     return switch (method) {
-      'GET' => _http.get(uri, headers: headers),
-      'POST' => _http.post(uri, headers: headers, body: encodedBody),
-      'PATCH' => _http.patch(uri, headers: headers, body: encodedBody),
+      'GET' => _http.get(uri, headers: headers).timeout(const Duration(seconds: 20)),
+      'POST' => _http.post(uri, headers: headers, body: encodedBody).timeout(const Duration(seconds: 20)),
+      'PATCH' => _http.patch(uri, headers: headers, body: encodedBody).timeout(const Duration(seconds: 20)),
+      'DELETE' => _http.delete(uri, headers: headers, body: encodedBody).timeout(const Duration(seconds: 20)),
       _ => throw const ApiException('Metodo HTTP nao suportado.'),
     };
   }
@@ -131,5 +154,10 @@ class ApiClient {
         ? (decoded['message'] is List ? (decoded['message'] as List).join(', ') : decoded['message']?.toString())
         : null;
     throw ApiException(message ?? 'Erro ao comunicar com o backend.', statusCode: response.statusCode);
+  }
+
+  String _networkMessage(Uri uri) {
+    return 'Não foi possível comunicar com o backend em ${uri.origin}. '
+        'Confirme se o servidor está ligado e se o telemóvel/emulador consegue aceder a esse endereço.';
   }
 }

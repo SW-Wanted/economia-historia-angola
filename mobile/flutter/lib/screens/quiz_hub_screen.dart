@@ -132,7 +132,7 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: EhCard(
-        onTap: () => Navigator.pushNamed(context, completed ? AppRoutes.quizResult : AppRoutes.quizQuestion),
+        onTap: () => Navigator.pushNamed(context, completed ? AppRoutes.quizResult : AppRoutes.quizQuestion, arguments: q.id),
         child: Row(children: [
           Container(
             width: 46, height: 46,

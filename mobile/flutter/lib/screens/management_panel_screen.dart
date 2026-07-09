@@ -44,7 +44,6 @@ class ManagementPanelScreen extends StatelessWidget {
               _metric(context, Icons.visibility_outlined, formatCount(sum((c) => c.views)), 'Visualizações'),
               _metric(context, Icons.favorite_border, formatCount(sum((c) => c.likes)), 'Gostos'),
               _metric(context, Icons.mode_comment_outlined, formatCount(sum((c) => c.comments)), 'Comentários'),
-              _metric(context, Icons.ios_share, formatCount(sum((c) => c.shares)), 'Partilhas'),
             ],
           ),
           const SizedBox(height: 24),

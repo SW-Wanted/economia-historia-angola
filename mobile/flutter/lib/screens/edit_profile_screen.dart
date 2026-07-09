@@ -333,7 +333,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       });
     } on ApiException catch (e) {
       if (!mounted) return;
-      _snack(e.statusCode == 401 ? 'Inicie sessão para carregar imagens.' : 'Não foi possível enviar a imagem.');
+      _snack(e.statusCode == 401 ? 'Inicie sessão para carregar imagens.' : e.message);
     } catch (_) {
       if (!mounted) return;
       _snack('Não foi possível enviar a imagem.');
