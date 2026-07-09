@@ -1,61 +1,110 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import AppShell from '../components/AppShell'
+
+interface ResultState {
+  score?: number
+  total?: number
+  quizTitle?: string
+}
+
+function ScoreRing({ pct }: { pct: number }) {
+  const r = 54
+  const circ = 2 * Math.PI * r
+  const fill = circ * (pct / 100)
+  const gap = circ - fill
+
+  return (
+    <div className="relative w-36 h-36 mx-auto mb-6">
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
+        <circle cx="64" cy="64" r={r} fill="none" stroke="#FFE9E6" strokeWidth="8" />
+        <circle
+          cx="64" cy="64" r={r} fill="none"
+          stroke="#8B1A1A" strokeWidth="8"
+          strokeDasharray={`${fill} ${gap}`}
+          strokeLinecap="round"
+          style={{ transition: 'stroke-dasharray 1s cubic-bezier(0.16,1,0.3,1)' }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-3xl font-extrabold text-text font-sans leading-none">{pct}%</span>
+        <span className="text-[10px] text-secondary uppercase tracking-wider font-sans mt-0.5">Precisão</span>
+      </div>
+    </div>
+  )
+}
 
 export default function ResultadoQuiz() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const state = (location.state as ResultState | null) ?? {}
+
+  const score = state.score ?? 0
+  const total = state.total ?? 0
+  const quizTitle = state.quizTitle ?? 'Quiz de História'
+  const wrong = total - score
+  const pct = total > 0 ? Math.round((score / total) * 100) : 0
+
+  const result = pct >= 90 ? { label: 'Excelente!', icon: 'workspace_premium', color: 'text-gold' } :
+                 pct >= 70 ? { label: 'Muito Bom!', icon: 'star', color: 'text-success' } :
+                 pct >= 50 ? { label: 'Bom Progresso!', icon: 'trending_up', color: 'text-primary' } :
+                              { label: 'Continue a Estudar!', icon: 'school', color: 'text-secondary' }
 
   return (
-    <AppShell title="Resultado do Quiz" showSearch={false}>
-      <div className="px-10 py-10 max-w-[640px] mx-auto text-center">
-        <div className="bg-white rounded-xl p-8 border border-[#ebe5e4] shadow-card">
-          {/* Score circle */}
-          <div className="w-28 h-28 rounded-full bg-[#8B1A1A] flex flex-col items-center justify-center mx-auto mb-7 shadow-md">
-            <span className="text-[36px] font-extrabold text-white leading-none font-sans">88%</span>
-            <span className="text-[10px] text-white/70 uppercase tracking-[0.1em] font-sans mt-0.5">Precisão</span>
-          </div>
+    <AppShell showSearch={false}>
+      <div className="page-content-narrow py-12 animate-slide-up">
+        <div className="card p-10 text-center">
+          {/* Score ring */}
+          <ScoreRing pct={pct} />
 
-          <h1 className="text-[28px] font-bold text-[#1c1b1b] mb-1.5 font-sans tracking-tight">Excelente Resultado!</h1>
-          <p className="text-sm text-[#5d5f5d] mb-7 font-serif leading-relaxed max-w-sm mx-auto">
-            Completou o quiz "A Evolução da Moeda Colonial" com 88% de precisão. Ganhou 150 pontos de mérito!
+          {/* Result label */}
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className={`material-symbols-outlined text-3xl ${result.color}`}
+              style={{ fontVariationSettings: "'FILL' 1" }}>{result.icon}</span>
+            <h1 className="text-display-lg font-bold text-text font-sans tracking-tight">{result.label}</h1>
+          </div>
+          <p className="text-body-md text-secondary font-body mb-8 max-w-sm mx-auto leading-relaxed">
+            Completou <strong className="text-text font-sans">&ldquo;{quizTitle}&rdquo;</strong> com {score} de {total} respostas corretas.
           </p>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mb-8">
             {[
-              { icon: 'check_circle', label: 'Corretas', value: '8', color: 'text-emerald-600' },
-              { icon: 'cancel', label: 'Erradas', value: '1', color: 'text-red-500' },
-              { icon: 'timer', label: 'Tempo', value: '7:23', color: 'text-[#8B1A1A]' },
+              { icon: 'check_circle', label: 'Corretas', value: score, colorClass: 'text-success', bgClass: 'bg-success/8 border-success/20' },
+              { icon: 'cancel', label: 'Erradas', value: wrong, colorClass: 'text-error', bgClass: 'bg-error/8 border-error/20' },
+              { icon: 'quiz', label: 'Total', value: total, colorClass: 'text-primary', bgClass: 'bg-primary/8 border-primary/20' },
             ].map((s) => (
-              <div key={s.label} className="bg-[#f8f5f4] rounded-xl p-4 border border-[#ebe5e4]">
-                <span className={`material-symbols-outlined text-2xl ${s.color} mb-2 block`} style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
-                <p className="text-xl font-bold text-[#1c1b1b] font-sans">{s.value}</p>
-                <p className="text-[10px] text-[#8c716e] uppercase tracking-[0.08em] font-sans mt-0.5">{s.label}</p>
+              <div key={s.label} className={`rounded-card p-4 border ${s.bgClass}`}>
+                <span className={`material-symbols-outlined text-2xl ${s.colorClass} mb-2 block`}
+                  style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
+                <p className={`text-2xl font-bold ${s.colorClass} font-sans`}>{s.value}</p>
+                <p className="text-label-md text-secondary uppercase tracking-wider font-sans mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
 
-          {/* Badge earned */}
-          <div className="bg-[#fff5f4] border border-[#8B1A1A]/15 rounded-xl p-4 mb-7 flex items-center gap-4 text-left">
-            <span className="material-symbols-outlined text-[#8B1A1A] text-3xl flex-shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
-            <div>
-              <p className="text-sm font-bold text-[#1c1b1b] font-sans">Emblema Desbloqueado!</p>
-              <p className="text-xs text-[#5d5f5d] font-serif mt-0.5">Especialista em Moeda Colonial — Conquistou 88% ou mais neste quiz.</p>
+          {/* Achievement banner */}
+          {pct >= 70 && (
+            <div className="alert-info rounded-card mb-8 text-left">
+              <span className="material-symbols-outlined text-primary text-2xl flex-shrink-0"
+                style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+              <div>
+                <p className="text-sm font-bold text-text font-sans">Conquista Desbloqueada</p>
+                <p className="text-body-md text-secondary font-body mt-0.5">
+                  Completou o quiz com {pct}% de precisão. Continue assim!
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
+          {/* CTA */}
           <div className="flex gap-3">
-            <button
-              onClick={() => navigate('/quiz')}
-              className="flex-1 border border-[#ebe5e4] text-[#1c1b1b] text-sm font-semibold font-sans py-3 rounded-full hover:bg-[#f0eded] hover:border-[#d4c5c3] transition-all duration-150"
-            >
+            <button onClick={() => navigate('/quiz')} className="btn-secondary flex-1 justify-center">
+              <span className="material-symbols-outlined text-[18px]">quiz</span>
               Mais Quizzes
             </button>
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex-1 bg-[#8B1A1A] text-white text-sm font-semibold font-sans py-3 rounded-full hover:bg-[#7a1616] hover:shadow-md active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
-            >
-              Ir ao Dashboard
+            <button onClick={() => navigate('/dashboard')} className="btn-primary flex-1 justify-center">
               <span className="material-symbols-outlined text-[18px]">home</span>
+              Dashboard
             </button>
           </div>
         </div>
