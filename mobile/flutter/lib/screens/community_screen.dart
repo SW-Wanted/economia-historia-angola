@@ -56,6 +56,34 @@ class _CommunityScreenState extends State<CommunityScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        EhCard(
+          color: AppColors.navy,
+          onTap: () => Navigator.pushNamed(context, AppRoutes.privateRooms),
+          child: Row(
+            children: [
+              const Icon(Icons.lock_person_outlined, color: Colors.white, size: 30),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Salas Privadas',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Espaços fechados para estudo orientado e discussões em grupo.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.white),
+            ],
+          ),
+        ),
         const SizedBox(height: 24),
         SectionTitle('Comunidades', action: TextButton.icon(
           onPressed: _openCreate,
