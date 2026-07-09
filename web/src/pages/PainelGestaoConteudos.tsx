@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
-import { contentService } from '../services/api/content.service'
-import { useAuth, canCreateContent, canManageUsers } from '../contexts/AuthContext'
+import { contentService, type ContentStatus } from '../services/api/content.service'
+import { useAuth, canCreateContent, canManageUsers, hasPermission } from '../contexts/AuthContext'
+import { getErrorMessage } from '../utils/errors'
 import type { Content } from '../services/types/api.types'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -33,19 +34,80 @@ export default function PainelGestaoConteudos() {
   const [filter, setFilter] = useState('Todos')
   const [contents, setContents] = useState<Content[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [actingId, setActingId] = useState<string | null>(null)
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null)
 
   const canCreate = canCreateContent(user)
   const showUserMgmt = canManageUsers(user)
+  const canApprove = hasPermission(user, 'CONTENT_APPROVE')
+  const canPublish = hasPermission(user, 'CONTENT_PUBLISH')
+  const canDelete = hasPermission(user, 'CONTENT_DELETE')
 
   useEffect(() => {
-    contentService.list({ limit: 50 })
+    contentService.listForManagement({ limit: 50 })
       .then((data) => {
         const items = Array.isArray(data) ? data : (data as { items?: Content[] }).items ?? []
         setContents(items)
       })
-      .catch(() => setContents([]))
+      .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false))
   }, [])
+
+  async function applyStatus(id: string, status: ContentStatus) {
+    setActingId(id)
+    setError('')
+    try {
+      const updated = await contentService.changeStatus(id, status)
+      setContents((prev) => prev.map((c) => (c.id === id ? { ...c, ...updated } : c)))
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setActingId(null)
+    }
+  }
+
+  async function removeContent(id: string) {
+    setActingId(id)
+    setError('')
+    try {
+      await contentService.remove(id)
+      setContents((prev) => prev.filter((c) => c.id !== id))
+      setConfirmRemoveId(null)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setActingId(null)
+    }
+  }
+
+  // Ações disponíveis por estado (espelham as regras do backend; a UI só oculta o inválido).
+  function actionsFor(c: Content): { label: string; icon: string; status: ContentStatus; cls: string }[] {
+    const isOwner = c.author?.id === user?.id
+    const list: { label: string; icon: string; status: ContentStatus; cls: string }[] = []
+    const reviewer = canApprove || canPublish
+    switch (c.status) {
+      case 'DRAFT':
+      case 'REJECTED':
+        if (isOwner || reviewer) list.push({ label: 'Submeter', icon: 'send', status: 'PENDING_REVIEW', cls: 'text-primary border-primary/30 hover:bg-primary/5' })
+        if (reviewer) list.push({ label: 'Publicar', icon: 'publish', status: 'PUBLISHED', cls: 'text-success border-success/30 hover:bg-success/5' })
+        break
+      case 'PENDING_REVIEW':
+        if (reviewer) {
+          list.push({ label: 'Publicar', icon: 'publish', status: 'PUBLISHED', cls: 'text-success border-success/30 hover:bg-success/5' })
+          list.push({ label: 'Rejeitar', icon: 'block', status: 'REJECTED', cls: 'text-error border-error/30 hover:bg-error/5' })
+        }
+        if (isOwner && !reviewer) list.push({ label: 'Retirar', icon: 'undo', status: 'DRAFT', cls: 'text-secondary border-outline-variant/50 hover:bg-surface-container' })
+        break
+      case 'PUBLISHED':
+        if (canPublish || isOwner) list.push({ label: 'Arquivar', icon: 'archive', status: 'ARCHIVED', cls: 'text-secondary border-outline-variant/50 hover:bg-surface-container' })
+        break
+      case 'ARCHIVED':
+        if (reviewer) list.push({ label: 'Republicar', icon: 'publish', status: 'PUBLISHED', cls: 'text-success border-success/30 hover:bg-success/5' })
+        break
+    }
+    return list
+  }
 
   const filtered = FILTERS[filter]
     ? contents.filter((c) => c.status === FILTERS[filter])
@@ -89,12 +151,12 @@ export default function PainelGestaoConteudos() {
           </div>
         </div>
 
-        <div className="alert-info rounded-card mb-6">
-          <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0 mt-0.5">info</span>
-          <p className="text-body-md text-secondary font-body">
-            Este painel lista conteúdos públicos publicados. A gestão de rascunhos e aprovação requer endpoints administrativos em desenvolvimento.
-          </p>
-        </div>
+        {error && (
+          <div className="alert-error rounded-card mb-6">
+            <span className="material-symbols-outlined text-error text-[18px] flex-shrink-0 mt-0.5">error_outline</span>
+            <p className="text-body-md text-error font-body">{error}</p>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4 mb-8">
@@ -143,7 +205,7 @@ export default function PainelGestaoConteudos() {
             <table className="w-full">
               <thead className="bg-surface-container-low border-b border-outline-variant/25">
                 <tr>
-                  {['Título', 'Tipo', 'Estado', 'Data', 'Vistas', ''].map((h) => (
+                  {['Título', 'Tipo', 'Estado', 'Data', 'Vistas', 'Ações'].map((h) => (
                     <th key={h} className="text-left px-5 py-3.5 text-label-md font-bold text-secondary uppercase tracking-wider font-sans">
                       {h}
                     </th>
@@ -176,13 +238,61 @@ export default function PainelGestaoConteudos() {
                       {(c._count?.views ?? 0).toLocaleString()}
                     </td>
                     <td className="px-5 py-4">
-                      <button
-                        onClick={() => navigate(getContentRoute(c.type), { state: { contentId: c.id } })}
-                        className="btn-icon"
-                        title="Ver conteúdo"
-                      >
-                        <span className="material-symbols-outlined text-[17px]">visibility</span>
-                      </button>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                          onClick={() => navigate(getContentRoute(c.type), { state: { contentId: c.id } })}
+                          className="btn-icon"
+                          title="Ver conteúdo"
+                        >
+                          <span className="material-symbols-outlined text-[17px]">visibility</span>
+                        </button>
+
+                        {actingId === c.id ? (
+                          <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin block mx-1" />
+                        ) : (
+                          <>
+                            {actionsFor(c).map((a) => (
+                              <button
+                                key={a.status + a.label}
+                                onClick={() => applyStatus(c.id, a.status)}
+                                title={a.label}
+                                className={`inline-flex items-center gap-1 text-xs font-semibold font-sans px-2.5 py-1.5 rounded-button border transition-all ${a.cls}`}
+                              >
+                                <span className="material-symbols-outlined text-[15px]">{a.icon}</span>
+                                {a.label}
+                              </button>
+                            ))}
+
+                            {(canDelete || c.author?.id === user?.id) && (
+                              confirmRemoveId === c.id ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <button
+                                    onClick={() => removeContent(c.id)}
+                                    title="Confirmar remoção"
+                                    className="text-xs font-bold font-sans px-2 py-1.5 rounded-button border border-error text-white bg-error hover:bg-error/90 transition-all"
+                                  >
+                                    Confirmar
+                                  </button>
+                                  <button
+                                    onClick={() => setConfirmRemoveId(null)}
+                                    className="text-xs font-semibold font-sans px-2 py-1.5 rounded-button border border-outline-variant/50 text-secondary hover:border-outline transition-all"
+                                  >
+                                    Não
+                                  </button>
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => setConfirmRemoveId(c.id)}
+                                  title="Remover conteúdo"
+                                  className="text-secondary hover:text-error transition-colors p-1.5 rounded-button"
+                                >
+                                  <span className="material-symbols-outlined text-[17px]">delete</span>
+                                </button>
+                              )
+                            )}
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

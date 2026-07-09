@@ -226,18 +226,26 @@ export default function LeituraJindungo() {
               )}
             </header>
 
-            {/* Cover — styled for Jindungo (rich editorial look) */}
-            <div className="w-full h-64 rounded-card mb-8 overflow-hidden relative"
-              style={{ background: 'linear-gradient(135deg, #8B1A1A 0%, #5A1010 60%, #2A0808 100%)' }}>
-              <div className="absolute inset-0 opacity-[0.04]"
-                style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="material-symbols-outlined text-white/10" style={{ fontSize: '160px' }}>history_edu</span>
+            {/* Cover — imagem de capa carregada, ou fundo editorial por defeito */}
+            {content.thumbnailUrl ? (
+              <img
+                src={content.thumbnailUrl}
+                alt={content.title}
+                className="w-full h-64 object-cover rounded-card mb-8 border border-outline-variant/25"
+              />
+            ) : (
+              <div className="w-full h-64 rounded-card mb-8 overflow-hidden relative"
+                style={{ background: 'linear-gradient(135deg, #8B1A1A 0%, #5A1010 60%, #2A0808 100%)' }}>
+                <div className="absolute inset-0 opacity-[0.04]"
+                  style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-white/10" style={{ fontSize: '160px' }}>history_edu</span>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/40 to-transparent">
+                  <span className="text-white/60 text-xs font-body">Análise aprofundada · Economia com História</span>
+                </div>
               </div>
-              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/40 to-transparent">
-                <span className="text-white/60 text-xs font-body">Análise aprofundada · Economia com História</span>
-              </div>
-            </div>
+            )}
 
             {unlocked ? (
               <article ref={articleRef} className="prose-article">
