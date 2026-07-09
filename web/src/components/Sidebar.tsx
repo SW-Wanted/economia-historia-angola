@@ -37,8 +37,6 @@ const primaryNav: NavEntry[] = [
 const libraryNav: NavEntry[] = [
   { to: '/biblioteca', label: 'Biblioteca', icon: 'library_books' },
   { to: '/favoritos', label: 'Favoritos', icon: 'bookmark' },
-  { to: '/glossario', label: 'Glossário', icon: 'menu_book' },
-  { to: '/comparador', label: 'Comparador', icon: 'compare' },
   { to: '/estatisticas', label: 'Estatísticas', icon: 'bar_chart' },
 ]
 
@@ -58,8 +56,6 @@ const guestPrimaryNav: NavEntry[] = [
 ]
 
 const guestExploreNav: NavEntry[] = [
-  { to: '/glossario', label: 'Glossário', icon: 'menu_book' },
-  { to: '/comparador', label: 'Comparador', icon: 'compare' },
   { to: '/guia-rapido', label: 'Guia Rápido', icon: 'rocket_launch' },
   { to: '/ajuda', label: 'Ajuda', icon: 'help_outline' },
 ]

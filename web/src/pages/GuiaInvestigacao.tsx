@@ -5,7 +5,7 @@ const sections = [
   {
     icon: 'search',
     title: 'Como Pesquisar',
-    desc: 'Use a barra de pesquisa no topo para encontrar artigos, documentos e termos do glossário. Pode pesquisar por palavras-chave, períodos históricos ou setores económicos.',
+    desc: 'Use a barra de pesquisa no topo para encontrar artigos e documentos. Pode pesquisar por palavras-chave, períodos históricos ou setores económicos.',
     tip: 'Tente pesquisar "diamante", "café" ou "kwanza"',
   },
   {
