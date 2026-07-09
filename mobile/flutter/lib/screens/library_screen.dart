@@ -13,14 +13,18 @@ import '../widgets/filter_chips_row.dart';
 /// da Home. O filtro "A ler" mostra os artigos em progresso com barra de
 /// leitura e ação "Continuar".
 class LibraryScreen extends StatefulWidget {
-  const LibraryScreen({super.key});
+  const LibraryScreen({super.key, this.initialFilter = 0});
+
+  /// Separador aberto por omissão (0 = Tudo, 1 = A ler, 2 = Guardados,
+  /// 3 = Offline). Permite abrir diretamente nos "Guardados" a partir do perfil.
+  final int initialFilter;
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
-  int _filter = 0;
+  late int _filter = widget.initialFilter;
   static const _filters = ['Tudo', 'A ler', 'Guardados', 'Offline'];
 
   final _store = FeedInteractions.instance;
@@ -53,7 +57,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   void _open(FeedEntry entry) {
     final route = entry.content.isRestricted ? AppRoutes.restrictedContent : entry.content.type.route;
-    Navigator.pushNamed(context, route);
+    Navigator.pushNamed(context, route, arguments: entry.content);
   }
 
   double _maxWidth(double w) {

@@ -1,7 +1,8 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { ContentStatus, MembershipStatus, PermissionCode, Prisma, Visibility } from '@prisma/client';
+import { ContentStatus, MembershipStatus, NotificationType, PermissionCode, Prisma, Visibility } from '@prisma/client';
 import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { paginate } from '../../common/dto/pagination.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ContentQueryDto } from './dto/content-query.dto';
 import { CreateContentDto } from './dto/create-content.dto';
@@ -14,12 +15,15 @@ const MANAGE_INCLUDE = {
 
 @Injectable()
 export class ContentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async listPublic(query: ContentQueryDto) {
     const where = {
       status: ContentStatus.PUBLISHED,
-      visibility: Visibility.PUBLIC,
+      visibility: { in: [Visibility.PUBLIC, Visibility.AUTHENTICATED] },
       deletedAt: null,
       type: query.type,
       categoryId: query.categoryId,
@@ -30,7 +34,7 @@ export class ContentsService {
         where,
         ...paginate(query),
         orderBy: { publishedAt: 'desc' },
-        include: { category: true, tags: { include: { tag: true } } },
+        include: { author: { select: { id: true, name: true, avatarUrl: true } }, category: true, tags: { include: { tag: true } } },
       }),
       this.prisma.content.count({ where }),
     ]);
@@ -40,7 +44,12 @@ export class ContentsService {
   async findPublic(id: string) {
     const content = await this.prisma.content.findFirst({
       where: { id, status: ContentStatus.PUBLISHED, visibility: Visibility.PUBLIC, deletedAt: null },
-      include: { category: true, tags: { include: { tag: true } }, comments: { where: { deletedAt: null } } },
+      include: {
+        author: { select: { id: true, name: true, avatarUrl: true } },
+        category: true,
+        tags: { include: { tag: true } },
+        comments: { where: { deletedAt: null } },
+      },
     });
     if (!content) throw new NotFoundException('Content not found or not public');
     return content;
@@ -49,7 +58,7 @@ export class ContentsService {
   async findAuthorized(userId: string, contentId: string, userPermissions: PermissionCode[]) {
     const content = await this.prisma.content.findFirst({
       where: { id: contentId, status: ContentStatus.PUBLISHED, deletedAt: null },
-      include: { category: true, tags: { include: { tag: true } } },
+      include: { author: { select: { id: true, name: true, avatarUrl: true } }, category: true, tags: { include: { tag: true } } },
     });
     if (!content) throw new NotFoundException('Content not found');
 
@@ -76,17 +85,51 @@ export class ContentsService {
     return content;
   }
 
-  create(authorId: string, dto: CreateContentDto) {
+  async create(authorId: string, dto: CreateContentDto) {
     if (dto.isJindungo && dto.visibility === Visibility.PUBLIC) {
       throw new ForbiddenException('Textos com Jindungo require controlled access');
     }
-    return this.prisma.content.create({ data: { ...dto, authorId } });
+    const { categoryName, categoryId, ...data } = dto;
+    const resolvedCategoryId = await this.resolveCategoryId(categoryId, categoryName);
+    const contentData: Prisma.ContentUncheckedCreateInput = {
+      ...data,
+      authorId,
+      categoryId: resolvedCategoryId,
+      status: ContentStatus.PUBLISHED,
+      publishedAt: new Date(),
+    };
+
+    return this.prisma.content.create({
+      data: contentData,
+      include: { author: { select: { id: true, name: true, avatarUrl: true } }, category: true },
+    });
   }
 
-  /**
-   * Lista conteúdos para o painel de gestão, incluindo rascunhos e pendentes.
-   * Quem pode aprovar/publicar vê todos; os restantes autores veem só os seus.
-   */
+  private async resolveCategoryId(categoryId?: string, categoryName?: string) {
+    if (categoryId) return categoryId;
+
+    const normalized = categoryName?.trim();
+    if (!normalized) return undefined;
+
+    const slug = this.slugFor(normalized);
+    const category = await this.prisma.category.upsert({
+      where: { slug },
+      update: {},
+      create: { name: normalized, slug },
+    });
+    return category.id;
+  }
+
+  private slugFor(value: string) {
+    const slug = value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return slug || 'conteudo';
+  }
+
   async listForManagement(user: AuthUser, query: ContentQueryDto) {
     const perms = user.permissions as PermissionCode[];
     const canSeeAll =
@@ -113,12 +156,6 @@ export class ContentsService {
     return { items, total, page: query.page, limit: query.limit };
   }
 
-  /**
-   * Aplica uma transição de estado ao conteúdo, validando permissões:
-   * - autor pode submeter (DRAFT/REJECTED → PENDING_REVIEW) e retirar/arquivar os seus;
-   * - CONTENT_APPROVE/CONTENT_PUBLISH podem publicar ou rejeitar;
-   * - CONTENT_PUBLISH pode arquivar/despublicar.
-   */
   async changeStatus(user: AuthUser, id: string, status: ContentStatus) {
     const content = await this.prisma.content.findFirst({ where: { id, deletedAt: null } });
     if (!content) throw new NotFoundException('Conteúdo não encontrado.');
@@ -157,7 +194,6 @@ export class ContentsService {
     return this.prisma.content.update({ where: { id }, data, include: MANAGE_INCLUDE });
   }
 
-  /** Remove (soft-delete) um conteúdo. Autor remove os seus; CONTENT_DELETE remove qualquer um. */
   async remove(user: AuthUser, id: string) {
     const content = await this.prisma.content.findFirst({ where: { id, deletedAt: null } });
     if (!content) throw new NotFoundException('Conteúdo não encontrado.');
@@ -172,12 +208,36 @@ export class ContentsService {
     return { id, deleted: true };
   }
 
-  favorite(userId: string, contentId: string) {
-    return this.prisma.favorite.upsert({
+  async favorite(userId: string, contentId: string) {
+    const existing = await this.prisma.favorite.findUnique({
+      where: { userId_contentId: { userId, contentId } },
+      select: { createdAt: true },
+    });
+    const favorite = await this.prisma.favorite.upsert({
       where: { userId_contentId: { userId, contentId } },
       update: {},
       create: { userId, contentId },
     });
+    if (!existing) {
+      void this.notifyContentAuthorOfLike(contentId, userId).catch(() => void 0);
+    }
+    return favorite;
+  }
+
+  private async notifyContentAuthorOfLike(contentId: string, likerId: string) {
+    const content = await this.prisma.content.findUnique({
+      where: { id: contentId },
+      select: { authorId: true, title: true },
+    });
+    if (content && content.authorId !== likerId) {
+      await this.notifications.create(
+        content.authorId,
+        NotificationType.CONTENT,
+        'Novo gosto no seu conteúdo',
+        `Alguém gostou de "${content.title}"`,
+        { contentId },
+      );
+    }
   }
 
   progress(userId: string, contentId: string, percentage: number) {

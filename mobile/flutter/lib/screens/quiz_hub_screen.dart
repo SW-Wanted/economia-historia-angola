@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../models/feed.dart';
+import '../models/weekly_quiz.dart';
+import '../services/backend_service.dart';
 import '../services/feed_interactions.dart';
 import '../services/feed_service.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/eh_button.dart';
 import '../widgets/eh_card.dart';
 import '../widgets/filter_chips_row.dart';
@@ -25,44 +28,68 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
   int _filter = 0;
   static const _filters = ['Pendentes', 'Concluídos'];
 
+  late final Future<void> _catalogF = FeedService.instance.load();
+  late final Future<WeeklyQuiz?> _weeklyF = BackendService.instance.weeklyQuiz();
+
   @override
   Widget build(BuildContext context) {
-    final fs = FeedService.instance;
-    final store = FeedInteractions.instance;
-
-    final quizzes = fs.catalog.where((c) => c.type == FeedContentType.quiz).toList();
-
-    // Categorias dos conteúdos que o utilizador viu (+ leituras/favoritas).
-    final viewedCats = fs.catalog.where((c) => store.isViewed(c.id)).map((c) => c.category).toSet();
-    final interestCats = {...viewedCats, ...fs.readingHistory, ...fs.favoriteCategories};
-
-    final pending = quizzes
-        .where((q) => !store.isQuizCompleted(q.id) && (interestCats.isEmpty || interestCats.contains(q.category)))
-        .toList();
-    final completed = quizzes.where((q) => store.isQuizCompleted(q.id)).toList();
-
-    final list = _filter == 0 ? pending : completed;
-
     return ScreenFrame(
       title: 'Quizzes',
       showBack: true,
       showNotifications: false,
       children: [
-        _weeklyHero(context),
-        const SizedBox(height: 24),
+        // O destaque "Quiz da Semana" só aparece quando existe um quiz semanal.
+        FutureBuilder<WeeklyQuiz?>(
+          future: _weeklyF,
+          builder: (context, snapshot) {
+            final quiz = snapshot.data;
+            if (quiz == null) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: _weeklyHero(context, quiz),
+            );
+          },
+        ),
         FilterChipsRow(labels: _filters, selected: _filter, onSelected: (i) => setState(() => _filter = i)),
         const SizedBox(height: 8),
         SectionTitle(_filter == 0 ? 'Pendentes para si' : 'Concluídos'),
         const SizedBox(height: 12),
-        if (list.isEmpty)
-          _empty(context)
-        else
-          for (final q in list) _quizCard(context, q, completed: _filter == 1, score: store.quizScore(q.id)),
+        FutureBuilder<void>(
+          future: _catalogF,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 40),
+                child: Center(child: AppLoadingIndicator(size: 72, showDots: false, message: 'A carregar quizzes...')),
+              );
+            }
+            final fs = FeedService.instance;
+            final store = FeedInteractions.instance;
+            final quizzes = fs.catalog.where((c) => c.type == FeedContentType.quiz).toList();
+
+            // Categorias dos conteúdos que o utilizador viu (+ leituras/favoritas).
+            final viewedCats = fs.catalog.where((c) => store.isViewed(c.id)).map((c) => c.category).toSet();
+            final interestCats = {...viewedCats, ...fs.readingHistory, ...fs.favoriteCategories};
+
+            final pending = quizzes
+                .where((q) => !store.isQuizCompleted(q.id) && (interestCats.isEmpty || interestCats.contains(q.category)))
+                .toList();
+            final completed = quizzes.where((q) => store.isQuizCompleted(q.id)).toList();
+            final list = _filter == 0 ? pending : completed;
+
+            if (list.isEmpty) return _empty(context);
+            return Column(
+              children: [
+                for (final q in list) _quizCard(context, q, completed: _filter == 1, score: store.quizScore(q.id)),
+              ],
+            );
+          },
+        ),
       ],
     );
   }
 
-  Widget _weeklyHero(BuildContext context) {
+  Widget _weeklyHero(BuildContext context, WeeklyQuiz quiz) {
     const gold = AppColors.warning;
     return EhCard(
       color: AppColors.primary,
@@ -83,17 +110,19 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
           ),
         ]),
         const SizedBox(height: 12),
-        Text('Quiz da Semana', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
-        const SizedBox(height: 6),
-        Text('Teste os seus conhecimentos sobre o Café em Angola. São só 2 minutos!',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70, height: 1.35)),
+        Text(quiz.title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
+        if (quiz.description.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(quiz.description,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70, height: 1.35)),
+        ],
         const SizedBox(height: 16),
         EhButton(
           label: 'Participar agora',
           icon: Icons.play_arrow_rounded,
           inverted: true,
           fullWidth: false,
-          onPressed: () => Navigator.pushNamed(context, AppRoutes.quizQuestion),
+          onPressed: () => Navigator.pushNamed(context, AppRoutes.quizQuestion, arguments: quiz),
         ),
       ]),
     );
@@ -103,7 +132,7 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: EhCard(
-        onTap: () => Navigator.pushNamed(context, completed ? AppRoutes.quizResult : AppRoutes.quizQuestion),
+        onTap: () => Navigator.pushNamed(context, completed ? AppRoutes.quizResult : AppRoutes.quizQuestion, arguments: q.id),
         child: Row(children: [
           Container(
             width: 46, height: 46,
