@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 
@@ -21,22 +21,27 @@ export default function ComparadorPeriodos() {
 
   return (
     <AppShell title="Comparador de Períodos" showSearch={false}>
-      <div className="px-10 py-8 max-w-[1160px] mx-auto">
+      <div className="page-content animate-fade-in">
         <div className="mb-8">
-          <h2 className="text-[40px] font-extrabold text-[#1c1b1b] mb-2">Comparador de Períodos Económicos</h2>
-          <p className="text-base text-[#5d5f5d]" style={{ fontFamily: 'Merriweather, serif' }}>
+          <h2 className="text-display-web font-extrabold text-text font-sans tracking-tight mb-2">Comparador de Períodos Económicos</h2>
+          <p className="text-body-md font-body text-secondary">
             Compare indicadores económicos entre diferentes períodos da história de Angola.
           </p>
         </div>
 
         {/* Period selectors */}
         <div className="grid grid-cols-2 gap-6 mb-8">
-          {[{ label: 'Período A', value: periodA, set: setPeriodA, color: 'border-[#8B1A1A]' },
-            { label: 'Período B', value: periodB, set: setPeriodB, color: 'border-[#5d5f5d]' }].map((p) => (
+          {[
+            { label: 'Período A', value: periodA, set: setPeriodA, border: 'border-primary' },
+            { label: 'Período B', value: periodB, set: setPeriodB, border: 'border-secondary' },
+          ].map((p) => (
             <div key={p.label}>
-              <label className="text-sm font-bold text-[#1c1b1b] mb-2 block">{p.label}</label>
-              <select value={p.value} onChange={(e) => p.set(e.target.value)}
-                className={`w-full bg-white border-2 ${p.color} rounded-xl p-4 focus:outline-none text-sm font-semibold text-[#1c1b1b]`}>
+              <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em] mb-2 block">{p.label}</label>
+              <select
+                value={p.value}
+                onChange={(e) => p.set(e.target.value)}
+                className={`w-full bg-surface border-2 ${p.border} rounded-card p-4 focus:outline-none text-sm font-semibold text-text font-sans`}
+              >
                 {periods.map((per) => <option key={per}>{per}</option>)}
               </select>
             </div>
@@ -44,11 +49,11 @@ export default function ComparadorPeriodos() {
         </div>
 
         {/* Comparison table */}
-        <div className="bg-white rounded-xl border border-[#e0bfbc] shadow-[0px_4px_20px_rgba(0,0,0,0.04)] overflow-hidden mb-8">
-          <div className="grid grid-cols-3 bg-[#f6f3f2] border-b border-[#e0bfbc]">
-            <div className="p-4 text-xs font-bold text-[#5d5f5d] uppercase tracking-wider">Indicador</div>
-            <div className="p-4 text-xs font-bold text-[#8B1A1A] uppercase tracking-wider border-l border-[#e0bfbc]">{periodA}</div>
-            <div className="p-4 text-xs font-bold text-[#5d5f5d] uppercase tracking-wider border-l border-[#e0bfbc]">{periodB}</div>
+        <div className="bg-surface rounded-card border border-outline-variant/45 shadow-card overflow-hidden mb-8">
+          <div className="grid grid-cols-3 bg-surface-container-low border-b border-outline-variant/45">
+            <div className="p-4 text-label-md font-bold text-text-muted uppercase tracking-wider font-sans">Indicador</div>
+            <div className="p-4 text-label-md font-bold text-primary uppercase tracking-wider border-l border-outline-variant/45 font-sans">{periodA}</div>
+            <div className="p-4 text-label-md font-bold text-secondary uppercase tracking-wider border-l border-outline-variant/45 font-sans">{periodB}</div>
           </div>
           {[
             { label: 'PIB Estimado', keyA: 'gdp' as const, keyB: 'gdp' as const },
@@ -56,23 +61,24 @@ export default function ComparadorPeriodos() {
             { label: 'População', keyA: 'population' as const, keyB: 'population' as const },
             { label: 'Setor Principal', keyA: 'mainSector' as const, keyB: 'mainSector' as const },
           ].map((row) => (
-            <div key={row.label} className="grid grid-cols-3 border-b border-[#e0bfbc] last:border-0">
-              <div className="p-4 text-sm font-semibold text-[#1c1b1b]">{row.label}</div>
-              <div className="p-4 text-sm text-[#5d5f5d] border-l border-[#e0bfbc]" style={{ fontFamily: 'Merriweather, serif' }}>{a[row.keyA]}</div>
-              <div className="p-4 text-sm text-[#5d5f5d] border-l border-[#e0bfbc]" style={{ fontFamily: 'Merriweather, serif' }}>{b[row.keyB]}</div>
+            <div key={row.label} className="grid grid-cols-3 border-b border-outline-variant/30 last:border-0">
+              <div className="p-4 text-sm font-semibold text-text font-sans">{row.label}</div>
+              <div className="p-4 text-sm text-secondary border-l border-outline-variant/30 font-body">{a[row.keyA]}</div>
+              <div className="p-4 text-sm text-secondary border-l border-outline-variant/30 font-body">{b[row.keyB]}</div>
             </div>
           ))}
         </div>
 
         {/* Related content */}
         <div className="flex gap-4">
-          <button onClick={() => navigate('/explorar')}
-            className="flex items-center gap-2 bg-[#8B1A1A] text-white px-6 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-all">
+          <button
+            onClick={() => navigate('/explorar')}
+            className="btn-primary"
+          >
             <span className="material-symbols-outlined text-[18px]">explore</span>
             Explorar Conteúdos
           </button>
-          <button onClick={() => navigate('/mapa')}
-            className="flex items-center gap-2 border border-[#e0bfbc] text-[#1c1b1b] px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#f6f3f2] transition-all">
+          <button onClick={() => navigate('/mapa')} className="btn-secondary">
             <span className="material-symbols-outlined text-[18px]">map</span>
             Ver no Mapa
           </button>
