@@ -1,77 +1,178 @@
-﻿import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
+import { userService } from '../services/api/user.service'
+import { contentService } from '../services/api/content.service'
+import { getErrorMessage } from '../utils/errors'
+import type { Favorite } from '../services/types/api.types'
 
-const favorites = [
-  { category: 'Microtexto', title: 'A Rota dos Diamantes: Da Exploração Colonial à Independência', date: 'Guardado há 2 dias', route: '/leitura/microtexto' },
-  { category: 'Jindungo', title: 'A Geopolítica do Diamante na Lunda Norte', date: 'Guardado há 1 semana', route: '/leitura/jindungo' },
-  { category: 'Arquivo', title: 'Tratado de Comércio de 1891', date: 'Guardado há 2 semanas', route: '/documento/detalhe' },
-  { category: 'Microtexto', title: 'O Ciclo do Café e a Transformação do Planalto Central', date: 'Guardado há 1 mês', route: '/leitura/microtexto' },
-  { category: 'Fórum', title: 'O impacto da moeda Kwanza na transição econômica de 1977', date: 'Guardado há 1 mês', route: '/forum/detalhe' },
-]
+function getContentTypeRoute(type: string): string {
+  if (type === 'VIDEO' || type === 'AUDIO' || type === 'PODCAST') return '/aula-video'
+  if (type === 'PDF') return '/documento/detalhe'
+  if (type === 'ARTICLE') return '/leitura/jindungo'
+  return '/leitura/microtexto'
+}
+
+function typeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    VIDEO: 'Vídeo', PODCAST: 'Podcast', TEXT: 'Texto', MICROTEXT: 'Microtexto',
+    PDF: 'PDF', ARTICLE: 'Artigo', AUDIO: 'Áudio',
+  }
+  return labels[type] ?? type
+}
 
 export default function MeusFavoritos() {
   const navigate = useNavigate()
-  const [removed, setRemoved] = useState<string[]>([])
+  const [favorites, setFavorites] = useState<Favorite[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [removingId, setRemovingId] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
 
-  const visible = favorites.filter((f) => !removed.includes(f.title))
+  useEffect(() => {
+    userService.getMyFavorites()
+      .then((data) => setFavorites(Array.isArray(data) ? data : []))
+      .catch((err) => setError(getErrorMessage(err)))
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function handleRemove(contentId: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    setRemovingId(contentId)
+    try {
+      await contentService.favorite(contentId)
+      setFavorites((prev) => prev.filter((f) => f.contentId !== contentId))
+    } catch {
+      // ignore
+    } finally {
+      setRemovingId(null)
+    }
+  }
+
+  const filtered = favorites.filter((f) =>
+    !search.trim() || f.content.title.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
-    <AppShell title="Favoritos e Marcadores" searchPlaceholder="Pesquisar favoritos...">
-      <div className="px-10 py-8 max-w-[1160px] mx-auto">
-        <div className="flex items-center justify-between mb-8">
+    <AppShell searchPlaceholder="Pesquisar favoritos...">
+      <div className="page-content animate-fade-in">
+        <div className="section-header mb-8">
           <div>
-            <h2 className="text-[40px] font-extrabold text-[#1c1b1b] mb-1">Favoritos e Marcadores</h2>
-            <p className="text-base text-[#5d5f5d]" style={{ fontFamily: 'Merriweather, serif' }}>
-              {visible.length} itens guardados
-            </p>
+            <h2 className="section-title">Favoritos</h2>
+            <p className="section-subtitle">Os seus conteúdos guardados para leitura posterior.</p>
           </div>
-          <button onClick={() => navigate('/explorar')}
-            className="flex items-center gap-2 bg-[#8B1A1A] text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:opacity-90 transition-all">
+          <button onClick={() => navigate('/explorar')} className="btn-primary">
             <span className="material-symbols-outlined text-[18px]">add</span>
-            Explorar mais
+            Explorar Arquivo
           </button>
         </div>
 
-        <div className="flex flex-col gap-4">
-          {visible.map((item) => (
-            <div key={item.title}
-              className="bg-white rounded-xl p-5 border border-[#e0bfbc] hover:shadow-md transition-all flex items-center gap-5 group">
-              <div className="w-12 h-12 bg-[#eae7e7] rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="material-symbols-outlined text-[#8B1A1A]">
-                  {item.category === 'Arquivo' ? 'description' : item.category === 'Jindungo' ? 'nutrition' : item.category === 'Fórum' ? 'forum' : 'article'}
-                </span>
-              </div>
-              <div className="flex-grow cursor-pointer" onClick={() => navigate(item.route)}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-semibold text-[#8B1A1A] bg-[#8B1A1A]/10 px-2 py-0.5 rounded-full">{item.category}</span>
-                  <span className="text-xs text-[#5d5f5d]">{item.date}</span>
-                </div>
-                <h3 className="text-base font-semibold text-[#1c1b1b] group-hover:text-[#8B1A1A] transition-colors">{item.title}</h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => navigate(item.route)}
-                  className="p-2 rounded-full hover:bg-[#f0eded] transition-colors text-[#5d5f5d] hover:text-[#8B1A1A]">
-                  <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                </button>
-                <button onClick={() => setRemoved((r) => [...r, item.title])}
-                  className="p-2 rounded-full hover:bg-red-50 transition-colors text-[#5d5f5d] hover:text-red-500">
-                  <span className="material-symbols-outlined text-[18px]">bookmark_remove</span>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* Search */}
+        {!loading && favorites.length > 0 && (
+          <div className="relative mb-6 max-w-sm">
+            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+            <input
+              type="text"
+              placeholder="Filtrar favoritos..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input pl-10"
+            />
+          </div>
+        )}
 
-        {visible.length === 0 && (
-          <div className="text-center py-20">
-            <span className="material-symbols-outlined text-[#8B1A1A]/20 mb-4" style={{ fontSize: '80px' }}>bookmark</span>
-            <p className="text-xl font-bold text-[#1c1b1b] mb-2">Nenhum favorito ainda</p>
-            <button onClick={() => navigate('/explorar')}
-              className="mt-4 bg-[#8B1A1A] text-white px-8 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-all">
+        {loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="skeleton h-56 rounded-card" />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="alert-error rounded-card">
+            <span className="material-symbols-outlined text-error text-[18px] flex-shrink-0"
+              style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
+            <p className="text-body-md text-error font-body">{error}</p>
+          </div>
+        ) : favorites.length === 0 ? (
+          <div className="empty-state py-20">
+            <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary/30 text-[36px]">bookmark</span>
+            </div>
+            <p className="text-headline-md font-bold text-text font-sans">Nenhum favorito ainda</p>
+            <p className="text-body-md text-secondary font-body max-w-sm text-center leading-relaxed">
+              Explore o arquivo e clique em{' '}
+              <span className="material-symbols-outlined text-[13px] align-middle mx-0.5">bookmark</span>
+              {' '}para guardar artigos para depois.
+            </p>
+            <button onClick={() => navigate('/explorar')} className="btn-primary">
+              <span className="material-symbols-outlined text-[18px]">explore</span>
               Explorar Conteúdos
             </button>
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="empty-state py-16">
+            <span className="material-symbols-outlined text-primary/30 text-[36px]">search_off</span>
+            <p className="text-headline-md font-bold text-text font-sans">Sem resultados</p>
+            <p className="text-body-md text-secondary font-body">Nenhum favorito corresponde à pesquisa.</p>
+            <button onClick={() => setSearch('')} className="btn-ghost">Limpar pesquisa</button>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-secondary font-body mb-5">
+              {filtered.length} {filtered.length === 1 ? 'item guardado' : 'itens guardados'}
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {filtered.map((fav) => (
+                <div
+                  key={fav.contentId}
+                  onClick={() => navigate(getContentTypeRoute(fav.content.type), { state: { contentId: fav.content.id } })}
+                  className="content-card group cursor-pointer"
+                >
+                  {/* Thumbnail */}
+                  <div className="h-32 relative overflow-hidden bg-gradient-to-br from-surface-container to-surface-container-high flex items-center justify-center">
+                    {fav.content.thumbnailUrl ? (
+                      <img
+                        src={fav.content.thumbnailUrl}
+                        alt={fav.content.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <span
+                        className="material-symbols-outlined text-primary/20 group-hover:scale-105 transition-transform duration-300"
+                        style={{ fontSize: '40px' }}
+                      >
+                        history_edu
+                      </span>
+                    )}
+                    {/* Remove button */}
+                    <button
+                      onClick={(e) => handleRemove(fav.contentId, e)}
+                      disabled={removingId === fav.contentId}
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-surface/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-error/10 hover:text-error text-secondary"
+                      title="Remover dos favoritos"
+                    >
+                      {removingId === fav.contentId ? (
+                        <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <span className="material-symbols-outlined text-[14px]"
+                          style={{ fontVariationSettings: "'FILL' 1" }}>bookmark_remove</span>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="p-4 flex flex-col gap-2 flex-grow">
+                    <span className="badge-primary w-fit">{typeLabel(fav.content.type)}</span>
+                    <h4 className="text-title-md font-semibold text-text font-sans leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                      {fav.content.title}
+                    </h4>
+                    <p className="mt-auto text-[11px] text-secondary font-body pt-2">
+                      Guardado {new Date(fav.createdAt).toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </AppShell>

@@ -1,122 +1,277 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
+import { quizService } from '../services/api/quiz.service'
+import { extractList } from '../services/types/api.types'
+import { useAuth } from '../contexts/AuthContext'
+import { useAuthGate } from '../contexts/AuthGateContext'
+import type { Quiz, RankingEntry, PaginatedResponse } from '../services/types/api.types'
 
-const quizzes = [
-  { title: 'Fundamentos do Comércio em Luanda', desc: 'Conheça as primeiras rotas comerciais e os principais produtos de exportação do século XVIII.', level: 'Iniciante', levelColor: 'bg-emerald-50 text-emerald-700 border border-emerald-200', questions: 10 },
-  { title: 'O Ciclo do Café no Planalto Central', desc: 'Identifique os fatores que tornaram Angola o terceiro maior produtor mundial de café.', level: 'Intermédio', levelColor: 'bg-amber-50 text-amber-700 border border-amber-200', questions: 8 },
-  { title: 'História Bancária e do BNA', desc: 'Desde a fundação do Banco Nacional de Angola até à modernização do sistema financeiro.', level: 'Intermédio', levelColor: 'bg-amber-50 text-amber-700 border border-amber-200', questions: 12 },
-  { title: 'Macroeconomia da Transição (1975–1980)', desc: 'Analise os desafios da transição para uma economia planificada nos primeiros anos da República.', level: 'Especialista', levelColor: 'bg-red-50 text-red-700 border border-red-200', questions: 15 },
-]
+const FILTERS = ['Todos', 'Colonialismo', 'Pós-Independência', 'Comércio Atlântico']
 
-const filters = ['Todos', 'Colonialismo', 'Pós-Independência', 'Comércio Atlântico']
+type Level = 'Iniciante' | 'Intermédio' | 'Especialista'
+
+function getLevel(count: number): Level {
+  if (count <= 8) return 'Iniciante'
+  if (count <= 12) return 'Intermédio'
+  return 'Especialista'
+}
+
+const LEVEL_CONFIG: Record<Level, { badge: string; bg: string; dot: string }> = {
+  Iniciante:   { badge: 'badge-success', bg: 'from-success/10 to-success/5',   dot: 'bg-success' },
+  Intermédio:  { badge: 'badge-warning', bg: 'from-warning/10 to-warning/5',    dot: 'bg-warning' },
+  Especialista:{ badge: 'badge-primary', bg: 'from-primary/10 to-primary/5',   dot: 'bg-primary' },
+}
 
 export default function QuizHub() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const { requireAuth } = useAuthGate()
   const [activeFilter, setActiveFilter] = useState('Todos')
+  const [quizzes, setQuizzes] = useState<Quiz[]>([])
+  const [rankings, setRankings] = useState<RankingEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const firstName = user?.name?.split(' ')[0] ?? 'Investigador'
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true)
+      setError('')
+      try {
+        const [quizRes, rankRes] = await Promise.allSettled([quizService.list(), quizService.getRankings()])
+        if (quizRes.status === 'fulfilled') setQuizzes(extractList(quizRes.value as Quiz[] | PaginatedResponse<Quiz>))
+        if (rankRes.status === 'fulfilled') setRankings(extractList(rankRes.value as RankingEntry[] | PaginatedResponse<RankingEntry>))
+      } catch {
+        setError('Não foi possível carregar os quizzes.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
+
+  const filtered = activeFilter === 'Todos'
+    ? quizzes
+    : quizzes.filter((q) =>
+        q.category?.name?.toLowerCase()?.includes(activeFilter.toLowerCase()) ||
+        q.description?.toLowerCase()?.includes(activeFilter.toLowerCase())
+      )
+
+  const featured = quizzes[0]
+  const myRank = rankings.find((r) => r.userId === user?.id)
+  const completedCount = myRank?.attempts ?? 0
+  const topRankings = rankings.slice(0, 5)
+
+  // Visitante vê a lista, dificuldade e nº de perguntas, mas começar um quiz
+  // exige conta (o backend só regista tentativas de utilizadores autenticados).
+  function startQuiz(quizId: string) {
+    requireAuth(() => navigate('/quiz/em-curso', { state: { quizId } }), {
+      title: 'Pronto para testar os seus conhecimentos?',
+      message: 'Crie uma conta gratuita ou inicie sessão para começar o quiz, guardar a pontuação e subir no ranking.',
+      icon: 'quiz',
+    })
+  }
 
   return (
-    <AppShell searchPlaceholder="Pesquisar arquivo histórico...">
-      <div className="px-10 py-10 max-w-[1160px] mx-auto">
-        {/* Featured banner */}
-        <section className="relative bg-[#8b1a1a] rounded-2xl overflow-hidden mb-12 flex items-center min-h-[340px] shadow-lg">
-          <div className="w-full md:w-1/2 p-10 relative z-10">
-            <span className="inline-block bg-white/15 text-white/90 px-4 py-1 rounded-full text-[10px] font-bold font-sans mb-5 uppercase tracking-[0.1em] border border-white/20">
+    <AppShell searchPlaceholder="Pesquisar quizzes...">
+      <div className="page-content animate-fade-in">
+
+        {/* Hero banner */}
+        <section className="relative rounded-2xl overflow-hidden mb-10 min-h-[260px] flex items-center"
+          style={{ background: 'linear-gradient(135deg, #8B1A1A 0%, #5A1010 60%, #3A0808 100%)' }}>
+          <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-[0.06]"
+            style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)', transform: 'translate(35%, -40%)' }} />
+          <div className="absolute inset-0 opacity-[0.025]"
+            style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+          <div className="relative z-10 px-10 py-8 flex-1">
+            <span className="inline-flex items-center gap-1.5 bg-white/12 text-white/85 px-3 py-1 rounded-full text-[11px] font-bold font-sans mb-4 border border-white/15 uppercase tracking-wider">
+              <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>stars</span>
               Quiz da Semana
             </span>
-            <h2 className="text-[36px] font-extrabold text-white mb-4 leading-tight font-sans tracking-tight">A Evolução da Moeda Colonial no Século XIX</h2>
-            <p className="text-sm text-white/80 mb-7 max-w-md font-serif leading-relaxed">
-              "Entender o passado comercial de Angola através dos seus símbolos de troca e valor."
-            </p>
-            <div className="flex items-center gap-5">
-              <button
-                onClick={() => navigate('/quiz/em-curso')}
-                className="bg-white text-[#8B1A1A] px-7 py-3 rounded-full text-sm font-bold font-sans flex items-center gap-2 hover:-translate-y-0.5 hover:shadow-md transition-all duration-150"
-              >
-                Começar Agora
-                <span className="material-symbols-outlined text-[18px]">play_arrow</span>
-              </button>
-              <div className="flex items-center gap-2 text-white/80 text-sm font-sans">
-                <span className="material-symbols-outlined text-[18px]">timer</span>
-                12 Minutos
-              </div>
-            </div>
-          </div>
-          <div className="hidden md:flex w-1/2 h-full absolute right-0 top-0 items-center justify-center pointer-events-none">
-            <span className="material-symbols-outlined text-white/8" style={{ fontSize: '260px' }}>quiz</span>
-          </div>
-        </section>
-
-        {/* Thematic quizzes */}
-        <section>
-          <div className="flex items-end justify-between mb-7">
-            <div>
-              <h3 className="text-xl font-bold text-[#1c1b1b] font-sans">Explorar Quizzes Temáticos</h3>
-              <p className="text-sm text-[#5d5f5d] font-serif mt-0.5">Aprofunde os seus conhecimentos por período histórico ou tema económico.</p>
-            </div>
-            <div className="flex gap-1.5">
-              {filters.map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setActiveFilter(f)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-sans transition-all duration-150 ${
-                    activeFilter === f
-                      ? 'bg-[#8B1A1A] text-white shadow-xs'
-                      : 'bg-[#f0eded] text-[#5d5f5d] hover:bg-[#e8e2e1] hover:text-[#1c1b1b]'
-                  }`}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-12 gap-5">
-            {quizzes.map((quiz) => (
-              <div
-                key={quiz.title}
-                onClick={() => navigate('/quiz/em-curso')}
-                className="col-span-12 md:col-span-4 bg-white rounded-xl overflow-hidden border border-[#ebe5e4] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 flex flex-col group cursor-pointer"
-              >
-                <div className="h-36 relative bg-gradient-to-br from-[#f0eded] to-[#e5e2e1] flex items-center justify-center overflow-hidden">
-                  <span className="material-symbols-outlined text-[#8B1A1A]/20 group-hover:scale-105 transition-transform duration-300" style={{ fontSize: '64px' }}>quiz</span>
-                  <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-bold font-sans ${quiz.levelColor}`}>{quiz.level}</span>
-                </div>
-                <div className="p-5 flex-grow flex flex-col">
-                  <h4 className="text-base font-semibold text-[#1c1b1b] mb-2 font-sans leading-snug">{quiz.title}</h4>
-                  <p className="text-sm text-[#5d5f5d] mb-5 flex-grow font-serif leading-relaxed">{quiz.desc}</p>
-                  <div className="flex items-center justify-between mt-auto">
-                    <span className="text-xs text-[#8c716e] font-sans">{quiz.questions} Questões</span>
-                    <span className="text-[#8B1A1A] font-bold text-sm font-sans flex items-center gap-1">
-                      Participar <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+            {featured ? (
+              <>
+                <h2 className="text-display-web font-extrabold text-white font-sans tracking-tight leading-tight mb-3">
+                  {featured.title}
+                </h2>
+                {featured.description && (
+                  <p className="text-body-lg text-white/65 mb-7 max-w-lg font-body leading-relaxed">{featured.description}</p>
+                )}
+                <div className="flex items-center gap-5">
+                  <button
+                    onClick={() => startQuiz(featured.id)}
+                    className="btn-white shadow-lg"
+                  >
+                    <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                    Começar Agora
+                  </button>
+                  {featured._count && (
+                    <span className="text-white/60 text-sm font-body flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[16px]">quiz</span>
+                      {featured._count.questions} questões
                     </span>
-                  </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              </>
+            ) : (
+              <p className="text-white/60 font-body">A carregar quiz da semana...</p>
+            )}
+          </div>
+
+          {/* Decorative quiz icon */}
+          <div className="hidden lg:block absolute right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+            <span className="material-symbols-outlined text-white/6" style={{ fontSize: '200px' }}>quiz</span>
           </div>
         </section>
 
-        {/* Stats */}
-        <section className="mt-10 bg-white rounded-xl p-8 border border-[#ebe5e4] shadow-card flex gap-10 items-center">
-          <div className="w-1/3">
-            <h3 className="text-lg font-bold text-[#1c1b1b] mb-1 font-sans">A Sua Jornada</h3>
-            <p className="text-sm text-[#5d5f5d] font-serif leading-relaxed">Carlos, o seu progresso como Investigador continua a crescer.</p>
-          </div>
-          <div className="flex flex-grow justify-between border-l border-[#ebe5e4] pl-10">
-            {[
-              { value: '24', label: 'Quizzes Concluídos' },
-              { value: '88%', label: 'Precisão Média' },
-              { value: '05', label: 'Temas Dominados' },
-              { value: '12', label: 'Ranking Geral' },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-[36px] text-[#8B1A1A] font-extrabold leading-none font-sans mb-1">{stat.value}</p>
-                <p className="text-[10px] text-[#8c716e] uppercase tracking-[0.08em] font-sans">{stat.label}</p>
+        {/* My journey */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          {[
+            { icon: 'check_circle', label: 'Concluídos', value: String(completedCount), filled: true },
+            { icon: 'grade', label: 'Pontuação Média', value: myRank && completedCount > 0 ? String(Math.round(myRank.score / completedCount)) : '—', filled: true },
+            { icon: 'quiz', label: 'Disponíveis', value: String(quizzes.length), filled: false },
+            { icon: 'leaderboard', label: 'Ranking', value: myRank?.rank ? `#${myRank.rank}` : '—', filled: true },
+          ].map((s) => (
+            <div key={s.label} className="card p-5">
+              <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center mb-3">
+                <span className="material-symbols-outlined text-primary text-[20px]"
+                  style={s.filled ? { fontVariationSettings: "'FILL' 1" } : undefined}>{s.icon}</span>
               </div>
-            ))}
-          </div>
+              <p className="text-display-lg font-bold text-text font-sans leading-none mb-1">{s.value}</p>
+              <p className="text-label-md uppercase tracking-wider text-secondary font-sans">{s.label}</p>
+            </div>
+          ))}
         </section>
+
+        {/* Quizzes section */}
+        <div className="grid grid-cols-12 gap-8">
+          {/* Quiz grid — 8 cols */}
+          <div className="col-span-12 lg:col-span-8">
+            <div className="section-header">
+              <div>
+                <h2 className="section-title">Quizzes Temáticos</h2>
+                <p className="section-subtitle">Teste os seus conhecimentos por período histórico.</p>
+              </div>
+              <div className="flex gap-1.5">
+                {FILTERS.map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setActiveFilter(f)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold font-sans transition-all duration-150 ${
+                      activeFilter === f
+                        ? 'bg-primary text-white shadow-xs'
+                        : 'bg-surface-container-low text-secondary hover:bg-surface-container hover:text-text'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="grid grid-cols-2 gap-4">
+                {[0, 1, 2, 3].map((i) => <div key={i} className="skeleton h-52 rounded-card" />)}
+              </div>
+            ) : error ? (
+              <div className="alert-error rounded-card p-6">
+                <p className="text-sm text-error font-body">{error}</p>
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="empty-state">
+                <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary/40 text-[30px]">quiz</span>
+                </div>
+                <p className="text-headline-md font-bold text-text font-sans">Sem quizzes neste filtro</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {filtered.map((quiz) => {
+                  const qCount = quiz._count?.questions ?? 0
+                  const level = getLevel(qCount)
+                  const cfg = LEVEL_CONFIG[level]
+                  return (
+                    <div
+                      key={quiz.id}
+                      onClick={() => startQuiz(quiz.id)}
+                      className="content-card group"
+                    >
+                      <div className={`h-32 relative bg-gradient-to-br ${cfg.bg} flex items-center justify-center overflow-hidden`}>
+                        <span className="material-symbols-outlined text-primary/15 group-hover:scale-105 transition-transform duration-300"
+                          style={{ fontSize: '60px' }}>quiz</span>
+                        <span className={`absolute top-3 left-3 ${cfg.badge} badge`}>{level}</span>
+                        <div className={`absolute bottom-3 right-3 w-2 h-2 rounded-full ${cfg.dot} opacity-60`} />
+                      </div>
+                      <div className="p-5 flex-grow flex flex-col">
+                        <h4 className="text-title-lg font-semibold text-text font-sans mb-2 group-hover:text-primary transition-colors duration-150 leading-snug">
+                          {quiz.title}
+                        </h4>
+                        {quiz.description && (
+                          <p className="text-body-md text-secondary font-body flex-grow leading-relaxed line-clamp-2 mb-4">{quiz.description}</p>
+                        )}
+                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-outline-variant/20">
+                          <span className="text-[12px] text-secondary font-body">{qCount} questões</span>
+                          <span className="text-sm font-semibold text-primary font-sans flex items-center gap-1">
+                            Participar <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Ranking sidebar — 4 cols */}
+          <div className="col-span-12 lg:col-span-4">
+            <div className="section-header">
+              <h2 className="section-title">Classificação</h2>
+            </div>
+            <div className="card p-5">
+              {topRankings.length === 0 ? (
+                <div className="text-center py-8">
+                  <span className="material-symbols-outlined text-primary/25 text-[40px] mb-2 block"
+                    style={{ fontVariationSettings: "'FILL' 1" }}>leaderboard</span>
+                  <p className="text-sm text-secondary font-body">Seja o primeiro a aparecer no ranking!</p>
+                </div>
+              ) : (
+                <div className="flex flex-col divide-y divide-outline-variant/20">
+                  {topRankings.map((entry, i) => {
+                    const isMe = entry.userId === user?.id
+                    const medals = ['🥇', '🥈', '🥉']
+                    return (
+                      <div key={entry.userId} className={`flex items-center gap-3 py-3 first:pt-0 last:pb-0 ${isMe ? 'text-primary' : ''}`}>
+                        <span className="text-base font-bold font-sans w-6 text-center flex-shrink-0">
+                          {i < 3 ? medals[i] : <span className="text-secondary text-sm">#{i + 1}</span>}
+                        </span>
+                        <div className="w-7 h-7 rounded-full bg-surface-container border border-outline-variant/40 flex items-center justify-center flex-shrink-0">
+                          <span className="text-[9px] font-bold text-primary font-sans leading-none">
+                            {entry.user?.name?.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() ?? '?'}
+                          </span>
+                        </div>
+                        <span className={`flex-1 text-sm font-medium font-sans truncate ${isMe ? 'font-bold' : 'text-text'}`}>
+                          {isMe ? `${entry.user?.name ?? 'Você'} (Você)` : entry.user?.name ?? `Utilizador #${i + 1}`}
+                        </span>
+                        <span className={`text-sm font-bold font-sans flex-shrink-0 ${isMe ? 'text-primary' : 'text-secondary'}`}>
+                          {entry.score}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              <div className="mt-5 pt-4 border-t border-outline-variant/20">
+                <p className="text-[11px] text-secondary font-body text-center">
+                  {firstName}, complete mais quizzes para subir no ranking.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </AppShell>
   )
