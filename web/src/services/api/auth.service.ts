@@ -15,6 +15,16 @@ export interface RegisterDto {
   motivation?: string
 }
 
+export interface ResetPasswordDto {
+  token: string
+  newPassword: string
+}
+
+export interface ChangePasswordDto {
+  currentPassword: string
+  newPassword: string
+}
+
 export const authService = {
   login: (dto: LoginDto) =>
     api.post<AuthTokens>('/auth/login', dto, { skipAuth: true }),
@@ -26,5 +36,11 @@ export const authService = {
     api.post<void>('/auth/logout', { refreshToken }),
 
   forgotPassword: (email: string) =>
-    api.post<{ queued: boolean; message: string }>('/auth/forgot-password', { email }, { skipAuth: true }),
+    api.post<{ message: string; resetToken?: string; resetUrl?: string }>('/auth/forgot-password', { email }, { skipAuth: true }),
+
+  resetPassword: (dto: ResetPasswordDto) =>
+    api.post<{ success: boolean }>('/auth/reset-password', dto, { skipAuth: true }),
+
+  changePassword: (dto: ChangePasswordDto) =>
+    api.post<{ success: boolean }>('/auth/change-password', dto),
 }

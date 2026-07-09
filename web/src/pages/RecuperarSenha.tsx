@@ -1,13 +1,19 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { authService } from '../services/api/auth.service'
 import { getErrorMessage } from '../utils/errors'
 
 export default function RecuperarSenha() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get('token') ?? ''
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
+  const [resetDone, setResetDone] = useState(false)
+  const [devResetUrl, setDevResetUrl] = useState('')
   const [error, setError] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
@@ -16,8 +22,26 @@ export default function RecuperarSenha() {
     if (!email.trim()) { setError('Por favor, introduza o seu email.'); return }
     setLoading(true)
     try {
-      await authService.forgotPassword(email.trim())
+      const res = await authService.forgotPassword(email.trim())
+      if (res.resetUrl) setDevResetUrl(res.resetUrl)
       setSent(true)
+    } catch (err: unknown) {
+      setError(getErrorMessage(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleReset(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    if (!token) { setError('Token de recuperação em falta.'); return }
+    if (password.length < 8) { setError('A nova senha deve ter pelo menos 8 caracteres.'); return }
+    if (password !== confirmPassword) { setError('As senhas não coincidem.'); return }
+    setLoading(true)
+    try {
+      await authService.resetPassword({ token, newPassword: password })
+      setResetDone(true)
     } catch (err: unknown) {
       setError(getErrorMessage(err))
     } finally {
@@ -40,7 +64,64 @@ export default function RecuperarSenha() {
         </div>
 
         <div className="bg-surface rounded-card shadow-card border border-outline-variant/45 p-10">
-          {sent ? (
+          {token ? (
+            resetDone ? (
+              <div className="flex flex-col items-center text-center gap-5 py-4">
+                <div className="w-14 h-14 rounded-card bg-success/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-success text-[32px]">lock_reset</span>
+                </div>
+                <div>
+                  <h2 className="text-headline-md font-sans font-bold text-text mb-2">Senha Atualizada</h2>
+                  <p className="text-body-md font-body text-secondary leading-relaxed">
+                    Já pode iniciar sessão com a sua nova palavra-passe.
+                  </p>
+                </div>
+                <button onClick={() => navigate('/login')} className="btn-primary">Ir para Login</button>
+              </div>
+            ) : (
+              <>
+                <div className="mb-8">
+                  <h2 className="text-headline-md font-sans font-bold text-text mb-2">Definir Nova Senha</h2>
+                  <p className="text-body-md font-body text-secondary">Escolha uma nova palavra-passe segura.</p>
+                </div>
+
+                <form className="space-y-4" onSubmit={handleReset}>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Nova Senha</label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      minLength={8}
+                      required
+                      className="input"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-label-md font-sans text-text-muted uppercase tracking-[0.05em]">Confirmar Senha</label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      minLength={8}
+                      required
+                      className="input"
+                    />
+                  </div>
+                  {error && (
+                    <p className="text-xs text-error bg-error-container/40 border border-error/20 rounded-button px-3 py-2 font-body">{error}</p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-primary text-white font-semibold py-[14px] rounded-button hover:bg-primary-dark hover:shadow-md transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed uppercase tracking-wide font-sans text-sm"
+                  >
+                    {loading ? 'A atualizar...' : 'Atualizar Senha'}
+                  </button>
+                </form>
+              </>
+            )
+          ) : sent ? (
             <div className="flex flex-col items-center text-center gap-5 py-4">
               <div className="w-14 h-14 rounded-card bg-success/10 flex items-center justify-center">
                 <span className="material-symbols-outlined text-success text-[32px]">mark_email_read</span>
@@ -57,6 +138,14 @@ export default function RecuperarSenha() {
               >
                 Voltar para o Login
               </button>
+              {devResetUrl && (
+                <button
+                  onClick={() => window.location.assign(devResetUrl)}
+                  className="text-xs text-secondary underline underline-offset-2"
+                >
+                  Abrir link de recuperação (desenvolvimento)
+                </button>
+              )}
             </div>
           ) : (
             <>

@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthUser, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreateRoomDto } from './dto/create-room.dto';
+import { InviteParticipantDto } from './dto/invite-participant.dto';
 
 @ApiTags('comments')
 @Controller('comments')
@@ -15,6 +16,18 @@ export class CommentsController {
   @Get('content/:contentId')
   publicForContent(@Param('contentId') contentId: string) {
     return this.comments.publicForContent(contentId);
+  }
+
+  @ApiBearerAuth()
+  @Get('rooms')
+  listRooms(@CurrentUser() user: AuthUser) {
+    return this.comments.listRooms(user.id);
+  }
+
+  @ApiBearerAuth()
+  @Get('rooms/:roomId/detail')
+  roomDetail(@CurrentUser() user: AuthUser, @Param('roomId') roomId: string) {
+    return this.comments.roomDetail(user.id, roomId);
   }
 
   @ApiBearerAuth()
@@ -36,6 +49,16 @@ export class CommentsController {
   }
 
   @ApiBearerAuth()
+  @Post('rooms/:roomId/invite')
+  inviteParticipant(
+    @CurrentUser() user: AuthUser,
+    @Param('roomId') roomId: string,
+    @Body() dto: InviteParticipantDto,
+  ) {
+    return this.comments.inviteParticipantByEmail(user.id, roomId, dto.email);
+  }
+
+  @ApiBearerAuth()
   @Post('rooms/:roomId/participants/:userId')
   addParticipant(
     @CurrentUser() user: AuthUser,
@@ -43,5 +66,15 @@ export class CommentsController {
     @Param('userId') userId: string,
   ) {
     return this.comments.addParticipant(user.id, roomId, userId);
+  }
+
+  @ApiBearerAuth()
+  @Delete('rooms/:roomId/participants/:userId')
+  removeParticipant(
+    @CurrentUser() user: AuthUser,
+    @Param('roomId') roomId: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.comments.removeParticipant(user.id, roomId, userId);
   }
 }

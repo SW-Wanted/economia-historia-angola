@@ -17,6 +17,11 @@ export class UpdateProfileDto {
   @IsString()
   avatarUrl?: string;
 
+  @ApiPropertyOptional({ description: 'Profile cover image URL' })
+  @IsOptional()
+  @IsString()
+  coverUrl?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

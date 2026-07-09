@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/permissions/app_permissions.dart';
@@ -36,6 +37,14 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
   final _titleCtrl = TextEditingController();
   final _extraCtrl = TextEditingController(); // fonte / ligação / episódio
   final _bodyCtrl = TextEditingController(); // corpo / descrição / notas
+  bool _publishing = false;
+  String? _mediaUrl;
+  String? _mediaName;
+
+  /// Imagem de capa (thumbnail) opcional — aplicável a qualquer tipo, útil
+  /// sobretudo em artigos e podcasts que, de outra forma, não teriam imagem.
+  String? _imageUrl;
+  String? _imageName;
 
   @override
   void dispose() {
@@ -108,7 +117,7 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
           const SizedBox(width: 10),
           _typeChip(context, _ContentType.video, Icons.videocam_outlined, 'Vídeo'),
           const SizedBox(width: 10),
-          _typeChip(context, _ContentType.podcast, Icons.headphones_outlined, 'Podcast'),
+          _typeChip(context, _ContentType.podcast, Icons.mic_none_outlined, 'Podcast'),
         ]),
         const SizedBox(height: 24),
         const SectionTitle('Detalhes'),
@@ -192,9 +201,9 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
         ),
         const SizedBox(height: 24),
         EhButton(
-          label: 'Pré-visualizar e publicar',
+          label: _publishing ? 'A publicar...' : 'Pré-visualizar e publicar',
           icon: Icons.publish,
-          onPressed: _preview,
+          onPressed: _publishing ? null : _preview,
         ),
       ],
     );
@@ -204,6 +213,7 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
     switch (_type) {
       case _ContentType.texto:
         return [
+          ..._imageField(context),
           _label(context, 'Bibliografia / fonte'),
           TextField(controller: _extraCtrl, decoration: const InputDecoration(hintText: 'Referência científica')),
           const SizedBox(height: 14),
@@ -212,18 +222,20 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
         ];
       case _ContentType.video:
         return [
+          ..._imageField(context),
           _label(context, 'Ligação do vídeo (ou ficheiro)'),
           TextField(controller: _extraCtrl, decoration: const InputDecoration(hintText: 'URL ou carregar ficheiro de vídeo')),
           const SizedBox(height: 14),
-          _uploadBox(context, Icons.videocam_outlined, 'Carregar vídeo'),
+          _uploadBox(context, Icons.videocam_outlined, 'Carregar vídeo', FileType.video),
           const SizedBox(height: 14),
           _label(context, 'Descrição'),
           TextField(controller: _bodyCtrl, maxLines: 4, decoration: const InputDecoration(hintText: 'Breve descrição do vídeo...')),
         ];
       case _ContentType.podcast:
         return [
+          ..._imageField(context),
           _label(context, 'Ficheiro de áudio'),
-          _uploadBox(context, Icons.audiotrack_outlined, 'Carregar áudio (MP3)'),
+          _uploadBox(context, Icons.mic_none_outlined, 'Carregar áudio (MP3)', FileType.audio),
           const SizedBox(height: 14),
           _label(context, 'Episódio'),
           TextField(controller: _extraCtrl, decoration: const InputDecoration(hintText: 'Ex.: Episódio 4')),
@@ -233,6 +245,19 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
         ];
     }
   }
+
+  /// Campo de imagem de capa (opcional), comum a todos os tipos. Para artigos e
+  /// podcasts é o que dá uma imagem própria ao conteúdo em vez da ilustração.
+  List<Widget> _imageField(BuildContext context) => [
+        _label(context, 'Imagem de capa (opcional)'),
+        DottedUpload(
+          icon: Icons.image_outlined,
+          label: _imageName ?? 'Carregar imagem (JPG/PNG)',
+          uploaded: _imageUrl != null,
+          onTap: _publishing ? () {} : _pickAndUploadImage,
+        ),
+        const SizedBox(height: 14),
+      ];
 
   /// Mostra uma pré-visualização que reflete tudo o que foi introduzido, antes
   /// de confirmar a publicação.
@@ -287,6 +312,8 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
                   const SizedBox(height: 14),
                   _pv('Publicar em', _community ?? 'Público (sem comunidade)'),
                   if (_extraCtrl.text.trim().isNotEmpty) _pv(extraLabel, _extraCtrl.text.trim()),
+                  if (_mediaName != null) _pv('Ficheiro', _mediaName!),
+                  if (_imageName != null) _pv('Imagem de capa', _imageName!),
                   _pv('Sala de discussão', _privateRoom ? 'Privada (turma) — professor' : 'Pública'),
                   _pv('Acesso', _jindungo ? 'Restrito (Jindungo)' : _exclusive ? 'Exclusivo' : 'Público'),
                   const SizedBox(height: 12),
@@ -303,27 +330,9 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
               child: EhButton(
                 label: 'Confirmar publicação',
                 icon: Icons.check_rounded,
-                onPressed: () {
+                onPressed: () async {
                   Navigator.pop(sheetContext);
-                  // Abre o conteúdo criado, refletindo tudo o que foi introduzido.
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.reading,
-                    arguments: ArticleDraft(
-                      title: _titleCtrl.text.trim(),
-                      typeLabel: _typeLabel,
-                      category: _category,
-                      body: _bodyCtrl.text,
-                      source: _extraCtrl.text,
-                      community: _community,
-                      jindungo: _jindungo,
-                      exclusive: _exclusive,
-                      privateRoom: _privateRoom,
-                    ),
-                  );
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Conteúdo publicado')));
+                  await _publish();
                 },
               ),
             ),
@@ -341,7 +350,166 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
         ]),
       );
 
-  Widget _uploadBox(BuildContext context, IconData icon, String label) => DottedUpload(icon: icon, label: label);
+  Future<void> _pickAndUpload(FileType fileType) async {
+    final result = await FilePicker.platform.pickFiles(type: fileType, withData: true);
+    final file = result?.files.single;
+    final bytes = file?.bytes;
+    if (file == null || bytes == null) return;
+    final mimeType = fileType == FileType.video ? _videoMime(file.name) : _audioMime(file.name);
+    setState(() {
+      _publishing = true;
+      _mediaName = file.name;
+    });
+    try {
+      final url = await BackendService.instance.uploadFile(
+        bytes: bytes,
+        filename: file.name,
+        mimeType: mimeType,
+      );
+      if (!mounted) return;
+      setState(() => _mediaUrl = url);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text('${file.name} carregado.')));
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _mediaName = null;
+        _mediaUrl = null;
+      });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text(error.toString())));
+    } finally {
+      if (mounted) setState(() => _publishing = false);
+    }
+  }
+
+  /// Carrega a imagem de capa (thumbnail) — independente do ficheiro de media.
+  Future<void> _pickAndUploadImage() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
+    final file = result?.files.single;
+    final bytes = file?.bytes;
+    if (file == null || bytes == null) return;
+    setState(() {
+      _publishing = true;
+      _imageName = file.name;
+    });
+    try {
+      final url = await BackendService.instance.uploadImage(
+        bytes: bytes,
+        filename: file.name,
+        mimeType: _imageMime(file.name),
+      );
+      if (!mounted) return;
+      setState(() => _imageUrl = url);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text('${file.name} carregada.')));
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _imageName = null;
+        _imageUrl = null;
+      });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text(error.toString())));
+    } finally {
+      if (mounted) setState(() => _publishing = false);
+    }
+  }
+
+  String _imageMime(String filename) {
+    final lower = filename.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.gif')) return 'image/gif';
+    return 'image/jpeg';
+  }
+
+  Future<void> _publish() async {
+    setState(() => _publishing = true);
+    try {
+      final type = switch (_type) {
+        _ContentType.texto => 'ARTICLE',
+        _ContentType.video => 'VIDEO',
+        _ContentType.podcast => 'AUDIO',
+      };
+      final created = await BackendService.instance.createContent(
+        title: _titleCtrl.text.trim(),
+        type: type,
+        summary: _bodyCtrl.text.trim(),
+        body: _bodyCtrl.text,
+        category: _category,
+        sourceUrl: _type == _ContentType.video && _extraCtrl.text.trim().startsWith('http') ? _extraCtrl.text.trim() : null,
+        mediaUrl: _mediaUrl,
+        thumbnailUrl: _imageUrl,
+        isJindungo: _jindungo,
+        exclusive: _exclusive,
+      );
+      // Recarrega o catálogo para que o novo conteúdo apareça de imediato no
+      // feed de todos os utilizadores (ao abrirem/atualizarem a Home).
+      await FeedService.instance.load(force: true);
+      if (!mounted) return;
+      // Vídeo/podcast vão diretamente para o seu player real (reproduz o media
+      // carregado); os restantes seguem para a leitura do artigo.
+      if (_type == _ContentType.video) {
+        Navigator.pushReplacementNamed(context, AppRoutes.videoPlayer, arguments: created);
+      } else if (_type == _ContentType.podcast) {
+        Navigator.pushReplacementNamed(context, AppRoutes.podcastPlayer, arguments: created);
+      } else {
+        Navigator.pushReplacementNamed(
+          context,
+          AppRoutes.reading,
+          arguments: ArticleDraft(
+            title: _titleCtrl.text.trim(),
+            typeLabel: _typeLabel,
+            category: _category,
+            body: _bodyCtrl.text,
+            source: _extraCtrl.text,
+            community: _community,
+            jindungo: _jindungo,
+            exclusive: _exclusive,
+            privateRoom: _privateRoom,
+          ),
+        );
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Conteúdo publicado para todos os utilizadores.')));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text(error.toString())));
+    } finally {
+      if (mounted) setState(() => _publishing = false);
+    }
+  }
+
+  String _videoMime(String filename) {
+    final lower = filename.toLowerCase();
+    if (lower.endsWith('.mov')) return 'video/quicktime';
+    if (lower.endsWith('.webm')) return 'video/webm';
+    if (lower.endsWith('.mkv')) return 'video/x-matroska';
+    return 'video/mp4';
+  }
+
+  String _audioMime(String filename) {
+    final lower = filename.toLowerCase();
+    if (lower.endsWith('.wav')) return 'audio/wav';
+    if (lower.endsWith('.m4a')) return 'audio/mp4';
+    if (lower.endsWith('.ogg')) return 'audio/ogg';
+    return 'audio/mpeg';
+  }
+
+  Widget _uploadBox(BuildContext context, IconData icon, String label, FileType fileType) => DottedUpload(
+        icon: icon,
+        label: _mediaName ?? label,
+        uploaded: _mediaUrl != null,
+        onTap: () => _pickAndUpload(fileType),
+      );
 
   Widget _typeChip(BuildContext context, _ContentType type, IconData icon, String label) {
     final active = _type == type;
@@ -372,17 +540,17 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
 }
 
 class DottedUpload extends StatelessWidget {
-  const DottedUpload({super.key, required this.icon, required this.label});
+  const DottedUpload({super.key, required this.icon, required this.label, required this.onTap, this.uploaded = false});
 
   final IconData icon;
   final String label;
+  final bool uploaded;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$label (demonstração)'), behavior: SnackBarBehavior.floating),
-      ),
+      onTap: onTap,
       child: Container(
         height: 110,
         width: double.infinity,
@@ -394,9 +562,17 @@ class DottedUpload extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: AppColors.primary, size: 30),
+            Icon(uploaded ? Icons.check_circle_outline : icon, color: AppColors.primary, size: 30),
             const SizedBox(height: 8),
-            Text(label, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+              ),
+            ),
           ],
         ),
       ),

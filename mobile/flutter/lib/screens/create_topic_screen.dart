@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
+import '../services/backend_service.dart';
 import '../services/feed_service.dart';
 import '../widgets/eh_button.dart';
 import '../widgets/screen_frame.dart';
@@ -10,22 +11,36 @@ import '../widgets/section_title.dart';
 /// Criação de um **fórum** (público ou privado). O criador é sempre o
 /// **moderador** do fórum. Quando privado, pode gerir os convites.
 class CreateTopicScreen extends StatefulWidget {
-  const CreateTopicScreen({super.key});
+  const CreateTopicScreen({super.key, this.communityId});
+
+  /// Comunidade a que o fórum fica associado, quando criado a partir do
+  /// detalhe de uma comunidade. `null` para um fórum geral.
+  final String? communityId;
 
   @override
   State<CreateTopicScreen> createState() => _CreateTopicScreenState();
 }
 
 class _CreateTopicScreenState extends State<CreateTopicScreen> {
+  final _title = TextEditingController();
+  final _body = TextEditingController();
   bool _private = false;
   String _category = 'Economia';
   bool _argsApplied = false;
+  bool _saving = false;
 
   // Artigo em debate (opcional).
   bool _attachArticle = false;
   String? _article;
 
   List<String> get _articles => FeedService.instance.articleTitles;
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _body.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -46,7 +61,7 @@ class _CreateTopicScreenState extends State<CreateTopicScreen> {
         const SectionTitle('Detalhes do fórum'),
         const SizedBox(height: 16),
         _label(context, 'Título'),
-        const TextField(decoration: InputDecoration(hintText: 'Ex.: O papel do café na economia colonial')),
+        TextField(controller: _title, decoration: const InputDecoration(hintText: 'Ex.: O papel do café na economia colonial')),
         const SizedBox(height: 16),
         _label(context, 'Categoria'),
         DropdownButtonFormField<String>(
@@ -58,7 +73,7 @@ class _CreateTopicScreenState extends State<CreateTopicScreen> {
         ),
         const SizedBox(height: 16),
         _label(context, 'Conteúdo'),
-        const TextField(maxLines: 6, decoration: InputDecoration(hintText: 'Apresente o tema para debate...')),
+        TextField(controller: _body, maxLines: 6, decoration: const InputDecoration(hintText: 'Apresente o tema para debate...')),
         const SizedBox(height: 20),
 
         _articleSection(context),
@@ -88,17 +103,45 @@ class _CreateTopicScreenState extends State<CreateTopicScreen> {
 
         const SizedBox(height: 24),
         EhButton(
-          label: 'Publicar fórum',
+          label: _saving ? 'A publicar...' : 'Publicar fórum',
           icon: Icons.send,
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, AppRoutes.forum);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Fórum publicado com sucesso'), behavior: SnackBarBehavior.floating),
-            );
-          },
+          onPressed: _saving ? null : _submit,
         ),
       ],
     );
+  }
+
+  Future<void> _submit() async {
+    if (_title.text.trim().isEmpty || _body.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha o título e o conteúdo do fórum.'), behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+    setState(() => _saving = true);
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await BackendService.instance.createForumTopic(
+        title: _title.text.trim(),
+        body: _body.text.trim(),
+        category: _category,
+        isPrivate: _private,
+        communityId: widget.communityId,
+      );
+      await FeedService.instance.load(force: true);
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Fórum publicado com sucesso.'), behavior: SnackBarBehavior.floating),
+      );
+      navigator.pushNamedAndRemoveUntil(AppRoutes.forum, (route) => route.isFirst);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text(error.toString()), behavior: SnackBarBehavior.floating),
+      );
+    }
   }
 
   Widget _label(BuildContext context, String text) => Padding(

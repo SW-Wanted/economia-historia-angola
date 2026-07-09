@@ -4,6 +4,8 @@ import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../models/feed.dart';
 import '../models/quiz_question.dart';
+import '../services/backend_service.dart';
+import '../services/feed_service.dart';
 import '../services/quiz_generator.dart';
 import '../widgets/app_loading_indicator.dart';
 import '../widgets/eh_button.dart';
@@ -17,9 +19,13 @@ import '../widgets/section_title.dart';
 /// em [QuizGenerator]) e criação/edição manual. As perguntas geradas ficam
 /// editáveis antes de publicar.
 class CreateQuizScreen extends StatefulWidget {
-  const CreateQuizScreen({super.key, this.content});
+  const CreateQuizScreen({super.key, this.content, this.editQuizId});
 
   final FeedContent? content;
+
+  /// Quando fornecido, o ecrã entra em **modo de edição**: carrega o quiz,
+  /// pré-preenche as perguntas e publica via PATCH em vez de criar.
+  final String? editQuizId;
 
   @override
   State<CreateQuizScreen> createState() => _CreateQuizScreenState();
@@ -29,10 +35,39 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
   int _count = 5;
   String _difficulty = 'Médio';
   bool _generating = false;
+  bool _publishing = false;
+  bool _loadingExisting = false;
+  String _editTitle = 'Novo quiz';
   final List<_QuestionDraft> _drafts = [];
 
-  String get _title => widget.content?.title ?? 'Novo quiz';
+  bool get _isEdit => widget.editQuizId != null;
+  String get _title => _isEdit ? _editTitle : (widget.content?.title ?? 'Novo quiz');
   String get _category => widget.content?.category ?? 'Economia';
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEdit) _loadExisting();
+  }
+
+  Future<void> _loadExisting() async {
+    setState(() => _loadingExisting = true);
+    try {
+      final quiz = await BackendService.instance.quizForEdit(widget.editQuizId!);
+      if (!mounted) return;
+      setState(() {
+        _editTitle = quiz.title;
+        _drafts
+          ..clear()
+          ..addAll(quiz.questions.map(_QuestionDraft.from));
+        _loadingExisting = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _loadingExisting = false);
+      _snack(error.toString());
+    }
+  }
 
   @override
   void dispose() {
@@ -44,12 +79,28 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
 
   Future<void> _generate() async {
     setState(() => _generating = true);
-    final questions = await QuizGenerator.instance.generate(
-      title: _title,
-      category: _category,
-      count: _count,
-      difficulty: _difficulty,
-    );
+    List<QuizQuestion> questions;
+    var usedFallback = false;
+    try {
+      // IA real (Gemini) no backend, a partir do tema/categoria do conteúdo.
+      questions = await BackendService.instance.generateQuizQuestions(
+        title: _title,
+        category: _category,
+        context: widget.content?.subtitle,
+        count: _count,
+        difficulty: _difficulty,
+      );
+      if (questions.isEmpty) throw Exception('Sem perguntas geradas.');
+    } catch (_) {
+      // Fallback: gerador local para não bloquear a criação se a IA falhar.
+      usedFallback = true;
+      questions = await QuizGenerator.instance.generate(
+        title: _title,
+        category: _category,
+        count: _count,
+        difficulty: _difficulty,
+      );
+    }
     if (!mounted) return;
     setState(() {
       for (final d in _drafts) {
@@ -60,13 +111,16 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
         ..addAll(questions.map(_QuestionDraft.from));
       _generating = false;
     });
+    if (usedFallback) {
+      _snack('IA indisponível — geradas perguntas de exemplo. Reveja antes de publicar.');
+    }
   }
 
   void _addManual() => setState(() => _drafts.add(_QuestionDraft.blank()));
 
   void _remove(int i) => setState(() => _drafts.removeAt(i).dispose());
 
-  void _publish() {
+  Future<void> _publish() async {
     if (_drafts.isEmpty) {
       _snack('Adicione ou gere pelo menos uma pergunta.');
       return;
@@ -77,7 +131,36 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
         return;
       }
     }
-    Navigator.pushReplacementNamed(context, AppRoutes.publishConfirmation);
+    setState(() => _publishing = true);
+    try {
+      final questions = _drafts.map((draft) => draft.toJson()).toList();
+      if (_isEdit) {
+        await BackendService.instance.updateQuiz(
+          id: widget.editQuizId!,
+          questions: questions,
+        );
+      } else {
+        await BackendService.instance.createQuiz(
+          title: _title,
+          description: 'Quiz sobre $_category.',
+          questions: questions,
+        );
+      }
+      await FeedService.instance.load(force: true);
+      if (!mounted) return;
+      if (_isEdit) {
+        Navigator.pop(context, true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Quiz atualizado com sucesso.'), behavior: SnackBarBehavior.floating),
+        );
+      } else {
+        Navigator.pushReplacementNamed(context, AppRoutes.publishConfirmation);
+      }
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _publishing = false);
+      _snack(error.toString());
+    }
   }
 
   void _snack(String message) => ScaffoldMessenger.of(context)
@@ -87,12 +170,14 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
   @override
   Widget build(BuildContext context) {
     return ScreenFrame(
-      title: 'Criar Quiz',
+      title: _isEdit ? 'Editar Quiz' : 'Criar Quiz',
       showBack: true,
       children: [
         _sourceCard(context),
         const SizedBox(height: 22),
-        if (_generating)
+        if (_loadingExisting)
+          _loading(context)
+        else if (_generating)
           _loading(context)
         else if (_drafts.isEmpty)
           _aiPanel(context)
@@ -255,7 +340,7 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
       ],
       EhButton(label: 'Adicionar pergunta', secondary: true, icon: Icons.add, onPressed: _addManual),
       const SizedBox(height: 20),
-      EhButton(label: 'Publicar quiz', icon: Icons.check_rounded, onPressed: _publish),
+      EhButton(label: _publishing ? 'A publicar...' : 'Publicar quiz', icon: Icons.check_rounded, onPressed: _publishing ? null : _publish),
       const SizedBox(height: 8),
     ];
   }
@@ -343,6 +428,24 @@ class _QuestionDraft {
     final filled = options.where((o) => o.text.trim().isNotEmpty).length;
     if (filled < 2) return false;
     return options[correctIndex].text.trim().isNotEmpty;
+  }
+
+  Map<String, dynamic> toJson() {
+    final filledOptions = <Map<String, dynamic>>[];
+    for (var i = 0; i < options.length; i++) {
+      final text = options[i].text.trim();
+      if (text.isEmpty) continue;
+      filledOptions.add({
+        'text': text,
+        'isCorrect': i == correctIndex,
+      });
+    }
+    return {
+      'statement': question.text.trim(),
+      'explanation': explanation.text.trim(),
+      'points': 1,
+      'options': filledOptions,
+    };
   }
 
   void dispose() {

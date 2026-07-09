@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ContentType, Visibility } from '@prisma/client';
-import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateContentDto {
   @ApiProperty()
@@ -25,6 +25,27 @@ export class CreateContentDto {
   @IsString()
   body?: string;
 
+  @ApiPropertyOptional({ description: 'URL de origem/referência externa do conteúdo.' })
+  @IsOptional()
+  @IsString()
+  sourceUrl?: string;
+
+  @ApiPropertyOptional({ description: 'URL pública do ficheiro principal (vídeo, áudio, PDF ou documento).' })
+  @IsOptional()
+  @IsString()
+  mediaUrl?: string;
+
+  @ApiPropertyOptional({ description: 'URL pública da imagem de capa/miniatura.' })
+  @IsOptional()
+  @IsString()
+  thumbnailUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Duração em segundos (vídeo/áudio).' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  durationSeconds?: number;
+
   @ApiPropertyOptional({ enum: Visibility })
   @IsOptional()
   @IsEnum(Visibility)
@@ -39,4 +60,9 @@ export class CreateContentDto {
   @IsOptional()
   @IsString()
   categoryId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  categoryName?: string;
 }

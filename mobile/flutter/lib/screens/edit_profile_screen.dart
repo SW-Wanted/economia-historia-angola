@@ -1,6 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../core/constants/app_colors.dart';
+import '../core/constants/suggested_categories.dart';
+import '../services/api_client.dart';
 import '../services/backend_service.dart';
 import '../services/feed_service.dart';
 import '../widgets/eh_card.dart';
@@ -34,12 +39,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   // Áreas de interesse.
   late final Set<String> _interests = {...FeedService.instance.favoriteCategories};
-  late final List<String> _allCategories =
-      (FeedService.instance.catalog.map((c) => c.category).toSet().toList()..sort());
+
+  /// Categorias oferecidas no seletor: as sugeridas pelo sistema unidas às
+  /// categorias reais já existentes no catálogo do backend (sem duplicados).
+  late final List<String> _allCategories = {
+    ...kSuggestedCategories,
+    ...FeedService.instance.catalog.map((c) => c.category),
+  }.toList()
+    ..sort();
 
   // Redes sociais (até 5).
   final List<_Social> _socials = [];
   static const _maxSocials = 5;
+
+  // Imagens de perfil e capa: pré-visualização local + URL já enviado.
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _avatarPreview;
+  Uint8List? _coverPreview;
+  String? _avatarUrl;
+  String? _coverUrl;
+  bool _uploadingAvatar = false;
+  bool _uploadingCover = false;
 
   bool _dirty = false;
 
@@ -49,6 +69,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final user = BackendService.instance.cachedUser;
     _name.text = user.name;
     _location.text = user.province;
+    _bio.text = user.bio ?? '';
+    _avatarUrl = user.avatarUrl;
+    _coverUrl = user.coverUrl;
     for (final c in _controllers) {
       c.addListener(_markDirty);
     }
@@ -80,14 +103,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   bool get _canSave => _dirty && _nameError == null && _validUrl(_website.text);
 
-  void _save() {
+  Future<void> _save() async {
     if (!_canSave) return;
     // Persiste os interesses escolhidos (mesma fonte usada no feed).
     FeedService.instance.favoriteCategories = _interests.toList();
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('Perfil atualizado'), behavior: SnackBarBehavior.floating));
+
+    final changes = <String, dynamic>{
+      'name': _name.text.trim(),
+      'bio': _bio.text.trim(),
+      'region': _location.text.trim(),
+      'interests': _interests.join(','),
+      if (_avatarUrl != null) 'avatarUrl': _avatarUrl,
+      if (_coverUrl != null) 'coverUrl': _coverUrl,
+    };
+
+    final navigator = Navigator.of(context);
+    try {
+      await BackendService.instance.updateProfile(changes);
+    } catch (_) {
+      // Continua mesmo que a persistência falhe (offline-first); os interesses
+      // locais já foram aplicados ao feed.
+    }
+    if (!mounted) return;
+    navigator.pop();
+    _snack('Perfil atualizado');
   }
 
   @override
@@ -184,9 +223,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   right: -18, top: -14,
                   child: Icon(Icons.history_edu, size: 130, color: Colors.white.withValues(alpha: .10)),
                 ),
+                // Capa carregada (pré-visualização local ou imagem já enviada).
+                if (_coverPreview != null)
+                  Positioned.fill(child: Image.memory(_coverPreview!, fit: BoxFit.cover))
+                else if (_coverUrl != null)
+                  Positioned.fill(child: Image.network(_coverUrl!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink())),
+                if (_uploadingCover) const Positioned.fill(child: ColoredBox(color: Colors.black38, child: Center(child: CircularProgressIndicator(color: Colors.white)))),
                 Positioned(
                   right: 12, top: 12,
-                  child: _iconButtonChip(Icons.photo_camera_outlined, 'Alterar capa', () => _pick('capa')),
+                  child: _iconButtonChip(Icons.photo_camera_outlined, 'Alterar capa', () => _pick(isCover: true)),
                 ),
               ],
             ),
@@ -196,7 +241,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             left: 20,
             top: 130 - 46,
             child: _BounceTap(
-              onTap: () => _pick('fotografia'),
+              onTap: () => _pick(isCover: false),
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -206,8 +251,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: CircleAvatar(
                       radius: 46,
                       backgroundColor: AppColors.primary,
-                      child: Text(initials,
-                          style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
+                      backgroundImage: _avatarPreview != null
+                          ? MemoryImage(_avatarPreview!)
+                          : (_avatarUrl != null ? NetworkImage(_avatarUrl!) : null) as ImageProvider?,
+                      child: (_avatarPreview == null && _avatarUrl == null)
+                          ? Text(initials,
+                              style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900))
+                          : (_uploadingAvatar ? const CircularProgressIndicator(color: Colors.white) : null),
                     ),
                   ),
                   Positioned(
@@ -249,10 +299,58 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _pick(String what) {
+  /// Escolhe uma imagem da galeria, mostra a pré-visualização e envia-a para o
+  /// storage. O URL resultante é aplicado ao guardar. [isCover] distingue a
+  /// capa da foto de perfil.
+  Future<void> _pick({required bool isCover}) async {
+    final XFile? file = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 2000, imageQuality: 85);
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
+    setState(() {
+      if (isCover) {
+        _coverPreview = bytes;
+        _uploadingCover = true;
+      } else {
+        _avatarPreview = bytes;
+        _uploadingAvatar = true;
+      }
+      _markDirty();
+    });
+    try {
+      final url = await BackendService.instance.uploadImage(
+        bytes: bytes,
+        filename: file.name,
+        mimeType: file.mimeType ?? 'image/jpeg',
+      );
+      if (!mounted) return;
+      setState(() {
+        if (isCover) {
+          _coverUrl = url;
+        } else {
+          _avatarUrl = url;
+        }
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      _snack(e.statusCode == 401 ? 'Inicie sessão para carregar imagens.' : e.message);
+    } catch (_) {
+      if (!mounted) return;
+      _snack('Não foi possível enviar a imagem.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _uploadingCover = false;
+          _uploadingAvatar = false;
+        });
+      }
+    }
+  }
+
+  void _snack(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text('Alterar $what')));
+      ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text(message)));
   }
 
   // -------------------------------------------------- Informações pessoais

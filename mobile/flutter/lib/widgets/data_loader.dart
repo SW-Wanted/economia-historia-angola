@@ -9,10 +9,14 @@ import 'app_loading_indicator.dart';
 /// quando os dados chegam. O `BackendService` já trata o fallback offline
 /// (devolve dados locais em caso de falha), por isso o estado de erro é raro.
 class DataLoader<T> extends StatelessWidget {
-  const DataLoader({super.key, required this.future, required this.builder});
+  const DataLoader({super.key, required this.future, required this.builder, this.emptyMessage});
 
   final Future<T> future;
   final Widget Function(BuildContext context, T data) builder;
+
+  /// Mensagem a mostrar quando o backend responde com uma coleção vazia.
+  /// Se `null`, delega ao [builder] (que pode simplesmente não renderizar nada).
+  final String? emptyMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,18 @@ class DataLoader<T> extends StatelessWidget {
             ),
           );
         }
-        return builder(context, snapshot.data as T);
+        final data = snapshot.data as T;
+        if (emptyMessage != null && data is Iterable && data.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 40),
+            child: Center(
+              child: Text(emptyMessage!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.secondary)),
+            ),
+          );
+        }
+        return builder(context, data);
       },
     );
   }

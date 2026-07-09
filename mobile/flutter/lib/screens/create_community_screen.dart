@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
+import '../services/backend_service.dart';
 import '../widgets/eh_button.dart';
 import '../widgets/screen_frame.dart';
 import '../widgets/section_title.dart';
@@ -23,6 +24,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
   String _category = 'Economia';
   bool _private = false;
   bool _argsApplied = false;
+  bool _saving = false;
 
   @override
   void didChangeDependencies() {
@@ -41,17 +43,37 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_name.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Indique um nome para a comunidade.'), behavior: SnackBarBehavior.floating),
       );
       return;
     }
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Comunidade "${_name.text.trim()}" criada com sucesso.'), behavior: SnackBarBehavior.floating),
-    );
+    setState(() => _saving = true);
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final description = _description.text.trim().isEmpty
+          ? 'Comunidade de $_category.'
+          : _description.text.trim();
+      await BackendService.instance.createCommunity(
+        name: _name.text.trim(),
+        description: description,
+        isPrivate: _private,
+      );
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('Comunidade "${_name.text.trim()}" criada com sucesso.'), behavior: SnackBarBehavior.floating),
+      );
+      navigator.pop(true);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text(error.toString()), behavior: SnackBarBehavior.floating),
+      );
+    }
   }
 
   @override
@@ -106,7 +128,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
           ),
         ],
         const SizedBox(height: 24),
-        EhButton(label: 'Criar comunidade', icon: Icons.groups_outlined, onPressed: _submit),
+        EhButton(label: _saving ? 'A criar...' : 'Criar comunidade', icon: Icons.groups_outlined, onPressed: _saving ? null : _submit),
       ],
     );
   }

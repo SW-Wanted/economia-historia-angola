@@ -3,42 +3,120 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../models/app_user.dart';
-import '../models/feed.dart';
+import '../models/profile_stats.dart';
 import '../services/app_settings.dart';
 import '../services/backend_service.dart';
-import '../services/feed_service.dart';
+import '../widgets/app_loading_indicator.dart';
 import '../widgets/screen_frame.dart';
 import '../widgets/section_title.dart';
 
-/// Perfil como painel pessoal: quem sou, o que aprendi, o que publiquei, onde
-/// participo e qual o meu progresso. Para Escritor/Admin/Super Admin apresenta
-/// ainda um Painel de Gestão consoante os privilégios. Reutiliza componentes e
-/// dados existentes; não altera navegação, permissões nem regras.
-class ProfileScreen extends StatelessWidget {
+/// Dados reais do perfil carregados de uma só vez do backend.
+class _ProfileData {
+  const _ProfileData({
+    required this.user,
+    required this.stats,
+    required this.interests,
+    required this.communities,
+  });
+
+  final AppUser user;
+  final ProfileStats? stats;
+  final List<String> interests;
+  final List<String> communities;
+}
+
+/// Perfil como painel pessoal: quem sou, o que aprendi, onde participo e qual o
+/// meu progresso. Para Escritor/Admin/Super Admin apresenta ainda um Painel de
+/// Gestão consoante os privilégios. Os dados (identidade, estatísticas,
+/// interesses e comunidades) vêm do backend; secções sem dados reais são
+/// escondidas em vez de mostrarem valores fictícios.
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final user = BackendService.instance.cachedUser;
-    final fs = FeedService.instance;
-    final isWriter = user.canPublish;
-    final isManager = user.canPublish || user.canModerate;
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
 
+class _ProfileScreenState extends State<ProfileScreen> {
+  late Future<_ProfileData> _dataF = _load();
+
+  Future<_ProfileData> _load() async {
+    final backend = BackendService.instance;
+    final results = await Future.wait([
+      backend.currentUser(),
+      backend.profileStats(),
+      backend.myProfileExtras(),
+    ]);
+    final user = results[0] as AppUser;
+    final stats = results[1] as ProfileStats?;
+    final extras = results[2] as ({List<String> interests, List<String> communities});
+    return _ProfileData(
+      user: user,
+      stats: stats,
+      interests: extras.interests,
+      communities: extras.communities,
+    );
+  }
+
+  Future<void> _openEditProfile() async {
+    await Navigator.pushNamed(context, AppRoutes.editProfile);
+    if (!mounted) return;
+    setState(() => _dataF = _load());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return ScreenFrame(
       title: 'Perfil',
       showBack: true,
       showNotifications: false,
       paddingBottom: 28,
       children: [
+        FutureBuilder<_ProfileData>(
+          future: _dataF,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 80),
+                child: Center(child: AppLoadingIndicator(message: 'A carregar o seu perfil...')),
+              );
+            }
+            final data = snapshot.data;
+            if (data == null) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 80),
+                child: Center(child: Text('Não foi possível carregar o perfil.')),
+              );
+            }
+            return _content(context, data);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _content(BuildContext context, _ProfileData data) {
+    final user = data.user;
+    final isWriter = user.canPublish;
+    final isManager = user.canPublish || user.canModerate;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         _header(context, user, isWriter),
-        const SizedBox(height: 22),
-        _interests(context, fs),
+        if (data.interests.isNotEmpty) ...[
+          const SizedBox(height: 22),
+          _interests(context, data.interests),
+        ],
+        if (data.stats != null) ...[
+          const SizedBox(height: 24),
+          _stats(context, user, data.stats!),
+        ],
+        if (data.communities.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          _communities(context, data.communities),
+        ],
         const SizedBox(height: 24),
-        _stats(context, user),
-        const SizedBox(height: 24),
-        _communities(context, fs),
-        const SizedBox(height: 24),
-        _forums(context, fs),
+        _myLibrary(context),
         if (isManager) ...[
           const SizedBox(height: 24),
           _features(context, user),
@@ -75,6 +153,11 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Capa real do utilizador, quando definida.
+                  if (user.coverUrl != null)
+                    Positioned.fill(
+                      child: Image.network(user.coverUrl!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
+                    ),
                   Positioned(right: -16, top: -12, child: Icon(Icons.history_edu, size: 120, color: Colors.white.withValues(alpha: .10))),
                 ]),
               ),
@@ -86,7 +169,10 @@ class ProfileScreen extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 42,
                     backgroundColor: AppColors.primary,
-                    child: Text(user.initials, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+                    backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+                    child: user.avatarUrl != null
+                        ? null
+                        : Text(user.initials, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
                   ),
                 ),
               ),
@@ -101,23 +187,22 @@ class ProfileScreen extends StatelessWidget {
         const SizedBox(height: 6),
         Wrap(spacing: 8, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
           _roleChip(context, user),
-          _meta(context, Icons.calendar_today_outlined, 'Membro desde mar. 2024'),
-          _meta(context, Icons.place_outlined, user.province),
+          // Só mostra a data de adesão e a província quando são dados reais.
+          if (user.memberSince != null)
+            _meta(context, Icons.calendar_today_outlined, 'Membro desde ${_memberSince(user.memberSince!)}'),
+          if (user.province.isNotEmpty) _meta(context, Icons.place_outlined, user.province),
         ]),
-        const SizedBox(height: 10),
-        Text('Estudante de economia apaixonado pela história económica de Angola.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted, height: 1.4)),
-        if (isWriter) ...[
-          const SizedBox(height: 12),
-          _kv(context, Icons.workspace_premium_outlined, 'Especialização', 'Economia colonial'),
-          _kv(context, Icons.account_balance_outlined, 'Instituição', user.institution),
-          _kv(context, Icons.school_outlined, 'Formação', 'Mestrado em Economia'),
+        // Biografia real do utilizador — omitida quando não está preenchida.
+        if (user.bio != null) ...[
+          const SizedBox(height: 10),
+          Text(user.bio!,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted, height: 1.4)),
         ],
         const SizedBox(height: 14),
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.editProfile),
+            onPressed: _openEditProfile,
             icon: const Icon(Icons.edit_outlined, size: 18),
             label: const Text('Editar Perfil'),
             style: OutlinedButton.styleFrom(
@@ -151,15 +236,12 @@ class ProfileScreen extends StatelessWidget {
         Text(text, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
       ]);
 
-  Widget _kv(BuildContext context, IconData icon, String k, String v) => Padding(
-        padding: const EdgeInsets.only(bottom: 4),
-        child: Row(children: [
-          Icon(icon, size: 15, color: AppColors.primary),
-          const SizedBox(width: 8),
-          Text('$k: ', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
-          Expanded(child: Text(v, style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700))),
-        ]),
-      );
+  /// "mar. 2024" a partir da data de criação da conta.
+  String _memberSince(DateTime date) {
+    const months = ['jan.', 'fev.', 'mar.', 'abr.', 'mai.', 'jun.', 'jul.', 'ago.', 'set.', 'out.', 'nov.', 'dez.'];
+    final local = date.toLocal();
+    return '${months[local.month - 1]} ${local.year}';
+  }
 
   Widget _roleChip(BuildContext context, AppUser user) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -169,8 +251,8 @@ class ProfileScreen extends StatelessWidget {
 
   // ------------------------------------------------------------ Interesses
 
-  Widget _interests(BuildContext context, FeedService fs) => _section(context, 'Áreas de Interesse',
-      child: Wrap(spacing: 8, runSpacing: 8, children: [for (final c in fs.favoriteCategories) _chip(c)]));
+  Widget _interests(BuildContext context, List<String> interests) => _section(context, 'Áreas de Interesse',
+      child: Wrap(spacing: 8, runSpacing: 8, children: [for (final c in interests) _chip(c)]));
 
   Widget _chip(String label) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -184,14 +266,12 @@ class ProfileScreen extends StatelessWidget {
 
   // -------------------------------------------------- Estatísticas (Progresso)
 
-  Widget _stats(BuildContext context, AppUser user) {
+  Widget _stats(BuildContext context, AppUser user, ProfileStats stats) {
     final items = <Widget>[
-      _statCard(context, Icons.bolt, '${user.points}', 'Pontos'),
-      if (AppSettings.instance.showReadingStats)
-        _statCard(context, Icons.schedule, '3h20', 'Leitura', color: AppColors.navy),
-      _statCard(context, Icons.menu_book_outlined, '20', 'Conteúdos', color: AppColors.tertiary),
-      _statCard(context, Icons.quiz_outlined, '8', 'Quizzes', color: AppColors.success),
-      _statCard(context, Icons.emoji_events_outlined, '#14', 'Ranking'),
+      _statCard(context, Icons.bolt, '${stats.points}', 'Pontos'),
+      _statCard(context, Icons.menu_book_outlined, '${stats.contentsCompleted}', 'Conteúdos', color: AppColors.tertiary),
+      _statCard(context, Icons.quiz_outlined, '${stats.quizzesTaken}', 'Quizzes', color: AppColors.success),
+      _statCard(context, Icons.emoji_events_outlined, stats.rank == null ? '—' : '#${stats.rank}', 'Ranking'),
     ];
     return _section(context, 'O Meu Progresso', child: GridView.count(
       shrinkWrap: true,
@@ -227,42 +307,37 @@ class ProfileScreen extends StatelessWidget {
 
   // ------------------------------------------------------------ Comunidades
 
-  Widget _communities(BuildContext context, FeedService fs) {
-    final owned = fs.ownedCommunities.toSet();
+  /// Comunidades reais em que o utilizador participa (memberships de
+  /// `/users/me`). Só é apresentada quando existem — sem exemplos fictícios.
+  Widget _communities(BuildContext context, List<String> communities) {
     return _section(context, 'As Minhas Comunidades', child: Column(children: [
-      for (final name in fs.userCommunities)
+      for (final name in communities)
         _rowTile(
           context,
           leading: const Icon(Icons.groups, color: AppColors.navy, size: 20),
           leadingBg: AppColors.navy.withValues(alpha: .12),
-          title: 'eh/${name.replaceAll(' ', '')}',
+          title: name,
           titleColor: AppColors.navy,
-          tag: owned.contains(name) ? null : 'Participa',
-          onManage: owned.contains(name) ? () => _manageOwned(context, 'comunidade', name) : null,
+          tag: 'Participa',
           onTap: () => Navigator.pushNamed(context, AppRoutes.community),
         ),
     ]));
   }
 
-  // ---------------------------------------------------------------- Fóruns
+  // ------------------------------------------------------- Minha Biblioteca
 
-  Widget _forums(BuildContext context, FeedService fs) {
-    final owned = fs.ownedCommunities.toSet();
-    final forums = fs.catalog.where((c) => c.type == FeedContentType.forum).take(4).toList();
-    return _section(context, 'Os Meus Fóruns', child: Column(children: [
-      for (final c in forums)
-        () {
-          final isOwn = c.community != null && owned.contains(c.community);
-          return _rowTile(
-            context,
-            leading: Icon(c.type.icon, color: AppColors.primary, size: 20),
-            leadingBg: AppColors.surfaceContainer,
-            title: c.title,
-            subtitle: isOwn ? 'Criado · eh/${c.community!.replaceAll(' ', '')}' : 'Participou · público',
-            onManage: isOwn ? () => _manageOwned(context, 'fórum', c.title) : null,
-            onTap: () => Navigator.pushNamed(context, c.isRestricted ? AppRoutes.restrictedContent : AppRoutes.forumTopic),
-          );
-        }(),
+  /// Acesso rápido à biblioteca pessoal — em especial aos conteúdos guardados.
+  /// Disponível para qualquer utilizador (não só escritores/gestores).
+  Widget _myLibrary(BuildContext context) {
+    return _section(context, 'A Minha Biblioteca', child: Column(children: [
+      _rowTile(
+        context,
+        leading: const Icon(Icons.library_books_outlined, color: AppColors.primary, size: 20),
+        leadingBg: AppColors.primary.withValues(alpha: .10),
+        title: 'Minha biblioteca',
+        subtitle: 'Guardados, leituras em progresso e offline.',
+        onTap: () => Navigator.pushNamed(context, AppRoutes.library),
+      ),
     ]));
   }
 
@@ -290,52 +365,6 @@ class ProfileScreen extends StatelessWidget {
         ),
     ];
     return _section(context, 'Gestão', child: Column(children: tiles));
-  }
-
-  /// Ações de gestão (editar/eliminar) de conteúdo próprio (comunidade/fórum).
-  void _manageOwned(BuildContext context, String kind, String name) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: EdgeInsets.only(bottom: 12 + MediaQuery.viewPaddingOf(sheetContext).bottom),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const SizedBox(height: 10),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.outlineVariant, borderRadius: BorderRadius.circular(99))),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
-            child: Row(children: [
-              Expanded(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleLarge)),
-            ]),
-          ),
-          ListTile(
-            leading: const Icon(Icons.edit_outlined, color: AppColors.primary),
-            title: const Text('Editar'),
-            onTap: () {
-              Navigator.pop(sheetContext);
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text('A editar $kind: $name')));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.delete_outline, color: AppColors.error),
-            title: const Text('Eliminar', style: TextStyle(color: AppColors.error)),
-            onTap: () {
-              Navigator.pop(sheetContext);
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text('$kind eliminado')));
-            },
-          ),
-          const SizedBox(height: 6),
-        ]),
-      ),
-    );
   }
 
   // -------------------------------------------------------- Conta (rodapé)
