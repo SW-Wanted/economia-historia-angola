@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { useAuth, getUserInitials, getUserRole, canCreateContent } from '../contexts/AuthContext'
+import { authService } from '../services/api/auth.service'
 import { userService } from '../services/api/user.service'
 import { quizService } from '../services/api/quiz.service'
 import { writerApplicationService } from '../services/api/writer-application.service'
@@ -12,7 +13,7 @@ import { getErrorMessage } from '../utils/errors'
 import { extractList } from '../services/types/api.types'
 import type { Progress, RankingEntry, PaginatedResponse, WriterApplication } from '../services/types/api.types'
 
-const tabs = ['Leituras', 'Contribuições', 'Medalhas', 'Atividade']
+const tabs = ['Leituras', 'Contribuições', 'Medalhas', 'Atividade', 'Segurança']
 
 const badges = [
   { icon: 'auto_stories',       label: 'Leitor Voraz: 100 artigos lidos',        unlocked: true },
@@ -78,6 +79,12 @@ export default function Perfil() {
   const [editAvatarUrl, setEditAvatarUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [passwordMessage, setPasswordMessage] = useState('')
+  const [passwordError, setPasswordError] = useState('')
 
   // Writer application state
   const [writerApp, setWriterApp] = useState<WriterApplication | null>(null)
@@ -143,6 +150,26 @@ export default function Perfil() {
       setSaveError(getErrorMessage(err))
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault()
+    setPasswordError('')
+    setPasswordMessage('')
+    if (newPassword.length < 8) { setPasswordError('A nova senha deve ter pelo menos 8 caracteres.'); return }
+    if (newPassword !== confirmNewPassword) { setPasswordError('As senhas não coincidem.'); return }
+    setPasswordSaving(true)
+    try {
+      await authService.changePassword({ currentPassword, newPassword })
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmNewPassword('')
+      setPasswordMessage('Senha alterada com sucesso. As outras sessões foram terminadas.')
+    } catch (err) {
+      setPasswordError(getErrorMessage(err))
+    } finally {
+      setPasswordSaving(false)
     }
   }
 
@@ -537,6 +564,60 @@ export default function Perfil() {
               </div>
             </div>
           )
+        )}
+
+        {/* Tab: Segurança */}
+        {activeTab === 'Segurança' && (
+          <section className="card p-6 max-w-2xl">
+            <div className="mb-5">
+              <h2 className="text-headline-md font-bold text-text font-sans">Alterar Senha</h2>
+              <p className="text-body-md text-secondary font-body">
+                Atualize a sua palavra-passe. Após a alteração, outras sessões serão terminadas.
+              </p>
+            </div>
+            <form className="space-y-4" onSubmit={handleChangePassword}>
+              <div>
+                <label className="block text-label-lg text-text-muted font-sans mb-1.5">Senha Atual</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                  className="input"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-label-lg text-text-muted font-sans mb-1.5">Nova Senha</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    minLength={8}
+                    required
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-label-lg text-text-muted font-sans mb-1.5">Confirmar Nova Senha</label>
+                  <input
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    minLength={8}
+                    required
+                    className="input"
+                  />
+                </div>
+              </div>
+              {passwordError && <div className="alert-error rounded-button"><p className="text-sm text-error font-body">{passwordError}</p></div>}
+              {passwordMessage && <div className="rounded-button border border-success/20 bg-success/10 px-3 py-2"><p className="text-sm text-success font-body">{passwordMessage}</p></div>}
+              <button type="submit" disabled={passwordSaving} className="btn-primary">
+                {passwordSaving && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                Guardar Nova Senha
+              </button>
+            </form>
+          </section>
         )}
       </div>
     </AppShell>

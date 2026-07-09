@@ -5,6 +5,7 @@ import { PermissionCode, RoleCode } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
@@ -107,7 +108,11 @@ export class AuthService {
       data: { action: 'AUTH_FORGOT_PASSWORD', entityType: 'User', entityId: user.id, metadata: { email } },
     });
 
-    return { message: 'If that email is registered, a reset link has been sent.' };
+    const resetUrl = this.buildResetUrl(rawToken);
+    return {
+      message: 'If that email is registered, a reset link has been sent.',
+      ...(process.env.NODE_ENV === 'production' ? {} : { resetToken: rawToken, resetUrl }),
+    };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
@@ -127,6 +132,29 @@ export class AuthService {
     ]);
 
     return { success: true };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.passwordHash || !(await argon2.verify(user.passwordHash, dto.currentPassword))) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const passwordHash = await argon2.hash(dto.newPassword);
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: userId }, data: { passwordHash } }),
+      this.prisma.refreshToken.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } }),
+      this.prisma.auditLog.create({
+        data: { action: 'AUTH_CHANGE_PASSWORD', entityType: 'User', entityId: userId },
+      }),
+    ]);
+
+    return { success: true };
+  }
+
+  private buildResetUrl(token: string) {
+    const baseUrl = process.env.WEB_APP_URL ?? process.env.FRONTEND_URL ?? 'http://localhost:5173';
+    return `${baseUrl.replace(/\/$/, '')}/redefinir-senha?token=${encodeURIComponent(token)}`;
   }
 
   private async issueTokens(userId: string, userAgent?: string) {
