@@ -187,7 +187,7 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
           if (c.communityPrivate) _privateTag(context),
         ]),
         const SizedBox(height: 1),
-        Text('por ${c.author} · ${relativePublished(c.publishedAt)}',
+        Text('por ${c.author} · ${relativePublished(c.publishedAt)} · ${c.type.label}',
             maxLines: 1, overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary, fontSize: 11.5)),
       ],
@@ -207,10 +207,10 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
           Text(relativePublished(c.publishedAt),
               style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary, fontSize: 11.5)),
           const Text(' · ', style: TextStyle(color: AppColors.secondary, fontSize: 11.5)),
-          Icon(Icons.circle, size: 5, color: AppColors.primary.withValues(alpha: .6)),
+          Icon(c.type.icon, size: 12, color: AppColors.primary.withValues(alpha: .75)),
           const SizedBox(width: 4),
           Flexible(
-            child: Text(c.category,
+            child: Text(c.type.label,
                 maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 11.5)),
@@ -305,7 +305,10 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
       child: Stack(
         alignment: Alignment.center,
         children: [
-          EhIllustration(scene: _c.scene, height: 210, borderRadius: BorderRadius.zero),
+          EhIllustration(scene: _c.scene, imageUrl: _c.imageUrl, height: 210, borderRadius: BorderRadius.zero),
+          // Sem imagem própria do utilizador, mostra o símbolo do tipo (ex.:
+          // microfone para podcast) para identificar o formato de imediato.
+          _typeBadge(context),
           // Véu explícito de conteúdo restrito (Jindungo ou comunidade privada).
           if (restricted) _restrictedOverlay(context),
           // Coração da animação de duplo toque.
@@ -321,6 +324,31 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Selo do tipo no canto da capa: ícone (ex.: microfone para podcast) + rótulo.
+  /// Identifica o formato quando não há imagem própria do utilizador.
+  Widget _typeBadge(BuildContext context) {
+    return Positioned(
+      top: 10,
+      left: 10,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: .45),
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(_c.type.icon, size: 14, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(_c.type.label,
+                style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w700)),
+          ],
+        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import { NotificationType, Visibility } from '@prisma/client';
 import { PaginationDto, paginate } from '../../common/dto/pagination.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateForumDto } from './dto/create-forum.dto';
 import { CreateReplyDto } from './dto/create-reply.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
 
@@ -23,6 +24,10 @@ export class ForumsService {
       include: { author: { select: { id: true, name: true, avatarUrl: true } }, _count: { select: { replies: true } } },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  createForum(dto: CreateForumDto) {
+    return this.prisma.forum.create({ data: dto });
   }
 
   createTopic(authorId: string, forumId: string, dto: CreateTopicDto) {

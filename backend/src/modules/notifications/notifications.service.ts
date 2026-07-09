@@ -17,4 +17,11 @@ export class NotificationsService {
   markRead(userId: string, id: string) {
     return this.prisma.notification.updateMany({ where: { id, userId }, data: { readAt: new Date() } });
   }
+
+  markAllRead(userId: string) {
+    return this.prisma.notification.updateMany({
+      where: { userId, readAt: null },
+      data: { readAt: new Date() },
+    });
+  }
 }
