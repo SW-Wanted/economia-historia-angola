@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthUser, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { Public } from '../../common/decorators/public.decorator';
+import { CreateForumDto } from './dto/create-forum.dto';
 import { CreateReplyDto } from './dto/create-reply.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { ForumsService } from './forums.service';
@@ -16,6 +17,12 @@ export class ForumsController {
   @Get()
   list() {
     return this.forums.listPublicForums();
+  }
+
+  @ApiBearerAuth()
+  @Post()
+  createForum(@Body() dto: CreateForumDto) {
+    return this.forums.createForum(dto);
   }
 
   @Public()
