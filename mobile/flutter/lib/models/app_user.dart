@@ -82,6 +82,10 @@ class AppUser {
     this.institution = 'ISPTEC',
     this.province = 'Luanda',
     this.superAdminGrade,
+    this.bio,
+    this.memberSince,
+    this.avatarUrl,
+    this.coverUrl,
   });
 
   final String name;
@@ -92,6 +96,17 @@ class AppUser {
   final int points;
   final String institution;
   final String province;
+
+  /// Biografia real do utilizador (de `/users/me`). `null`/vazia quando não
+  /// preenchida — nesse caso a UI não mostra nada em vez de um texto fictício.
+  final String? bio;
+
+  /// Data de criação da conta (de `/users/me`). `null` quando desconhecida.
+  final DateTime? memberSince;
+
+  /// URLs das imagens de perfil e capa. `null`/vazio quando não definidas.
+  final String? avatarUrl;
+  final String? coverUrl;
 
   /// Grau de Super Admin: 0 é o fundador (o mais alto, imutável).
   /// Quanto MAIOR o número, MENOR a prioridade. `null` se não for Super Admin.

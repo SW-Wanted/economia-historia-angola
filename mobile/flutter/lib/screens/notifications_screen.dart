@@ -30,6 +30,31 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     setState(() => _items = items);
   }
 
+  Future<void> _markAllRead() async {
+    final current = _items;
+    if (current == null || current.every((n) => !n.unread)) return;
+    // Otimista: marca localmente e persiste no backend.
+    setState(() => _items = [for (final n in current) n.copyWith(unread: false)]);
+    try {
+      await BackendService.instance.markAllNotificationsRead();
+    } catch (_) {
+      // Falha de rede — recarrega para refletir o estado real do servidor.
+      await _load();
+    }
+  }
+
+  Future<void> _markOneRead(NotificationItem item) async {
+    if (!item.unread) return;
+    final current = _items;
+    if (current == null) return;
+    setState(() => _items = [for (final n in current) identical(n, item) ? n.copyWith(unread: false) : n]);
+    try {
+      await BackendService.instance.markNotificationRead(item.id);
+    } catch (_) {
+      await _load();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = _items;
@@ -57,12 +82,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Text('Recentes', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
             const Spacer(),
             TextButton(
-              onPressed: () => setState(() => _items = const <NotificationItem>[]),
+              onPressed: _markAllRead,
               child: const Text('Marcar todas', style: TextStyle(color: AppColors.primary)),
             ),
           ]),
           const SizedBox(height: 8),
-          for (final n in items) ...[NotificationTile(item: n), const SizedBox(height: 10)],
+          for (final n in items) ...[
+            GestureDetector(
+              onTap: () => _markOneRead(n),
+              behavior: HitTestBehavior.opaque,
+              child: NotificationTile(item: n),
+            ),
+            const SizedBox(height: 10),
+          ],
         ],
       ],
     );

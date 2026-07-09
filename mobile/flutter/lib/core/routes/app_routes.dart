@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/app_user.dart';
 import '../../models/community_category.dart';
 import '../../models/feed.dart';
+import '../../models/weekly_quiz.dart';
 import '../../screens/admin_panel_screen.dart';
 import '../../screens/admin_users_screen.dart';
 import '../../screens/community_screen.dart';
@@ -34,6 +35,8 @@ import '../../screens/offline_mode_screen.dart';
 import '../../screens/onboarding_screen.dart';
 import '../../screens/pending_reports_screen.dart';
 import '../../screens/private_forum_access_screen.dart';
+import '../../screens/private_rooms_screen.dart';
+import '../../models/discussion_room.dart';
 import '../../screens/profile_screen.dart';
 import '../../screens/province_contents_screen.dart';
 import '../../screens/publish_confirmation_screen.dart';
@@ -114,6 +117,7 @@ class AppRoutes {
   static const communityDetail = '/community/detail';
   static const createCommunity = '/community/create';
   static const discussionRoom = '/discussion-room';
+  static const privateRooms = '/private-rooms';
   static const faq = '/faq';
   static const feedback = '/feedback';
   static const invite = '/invite';
@@ -142,17 +146,30 @@ class AppRoutes {
       restrictedContent => const RestrictedContentScreen(),
       unlockedText => const ReadingScreen(unlocked: true),
       map => MapScreen(preview: settings.arguments == true),
-      provinceContents => const ProvinceContentsScreen(),
+      provinceContents => ProvinceContentsScreen(
+          province: settings.arguments is String ? settings.arguments as String : null,
+        ),
       quizHub => const QuizHubScreen(),
-      quizQuestion => const QuizQuestionScreen(),
+      quizQuestion => QuizQuestionScreen(
+          quiz: settings.arguments is WeeklyQuiz ? settings.arguments as WeeklyQuiz : null,
+          quizId: settings.arguments is String
+              ? settings.arguments as String
+              : settings.arguments is FeedContent
+                  ? (settings.arguments as FeedContent).id
+                  : null,
+        ),
       quizFeedback => const QuizFeedbackScreen(),
       quizResult => const QuizResultScreen(),
       ranking => const RankingScreen(),
       rankingDetail => const RankingDetailScreen(),
       forum => const ForumScreen(),
       forumTopic => const ForumTopicScreen(),
-      createTopic => const CreateTopicScreen(),
-      createQuiz => CreateQuizScreen(content: settings.arguments is FeedContent ? settings.arguments as FeedContent : null),
+      createTopic => CreateTopicScreen(
+          communityId: settings.arguments is String ? settings.arguments as String : null),
+      createQuiz => CreateQuizScreen(
+          content: settings.arguments is FeedContent ? settings.arguments as FeedContent : null,
+          editQuizId: settings.arguments is String ? settings.arguments as String : null,
+        ),
       createContent => const CreateContentScreen(),
       privateForumAccess => const PrivateForumAccessScreen(),
       profile => const ProfileScreen(),
@@ -162,10 +179,16 @@ class AppRoutes {
       publishContent => const PublishContentScreen(),
       publishConfirmation => const PublishConfirmationScreen(),
       searchResults => const SearchResultsScreen(),
-      videoPlayer => const VideoPlayerScreen(),
-      podcastPlayer => const PodcastPlayerScreen(),
+      videoPlayer => VideoPlayerScreen(
+          content: settings.arguments is FeedContent ? settings.arguments as FeedContent : null,
+          preview: settings.arguments == true,
+        ),
+      podcastPlayer => PodcastPlayerScreen(
+          content: settings.arguments is FeedContent ? settings.arguments as FeedContent : null,
+          preview: settings.arguments == true,
+        ),
       helpCenter => const HelpCenterScreen(),
-      library => const LibraryScreen(),
+      library => LibraryScreen(initialFilter: settings.arguments is int ? settings.arguments as int : 0),
       offlineMode => const OfflineModeScreen(),
       subscription => const SubscriptionScreen(),
       manageForums => const ManageForumsScreen(),
@@ -177,7 +200,9 @@ class AppRoutes {
       communityDetail => CommunityDetailScreen(
           community: settings.arguments is CommunityCategory ? settings.arguments as CommunityCategory : null),
       createCommunity => const CreateCommunityScreen(),
-      discussionRoom => const DiscussionRoomScreen(),
+      discussionRoom => DiscussionRoomScreen(
+          room: settings.arguments is DiscussionRoom ? settings.arguments as DiscussionRoom : null),
+      privateRooms => const PrivateRoomsScreen(),
       faq => const FaqScreen(),
       feedback => const FeedbackScreen(),
       invite => const InviteScreen(),
