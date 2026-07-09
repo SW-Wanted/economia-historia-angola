@@ -333,7 +333,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(width: 12),
           GestureDetector(
-            onTap: () => Navigator.pushNamed(context, AppRoutes.profile),
+            onTap: () async {
+              await Navigator.pushNamed(context, AppRoutes.profile);
+              if (mounted) setState(() {});
+            },
             child: Container(
               padding: const EdgeInsets.all(2.5),
               decoration: BoxDecoration(
@@ -343,8 +346,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: CircleAvatar(
                 radius: 24,
                 backgroundColor: AppColors.surfaceContainer,
-                child: Text(user.initials,
-                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 16)),
+                backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+                child: user.avatarUrl != null
+                    ? null
+                    : Text(user.initials,
+                        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 16)),
               ),
             ),
           ),

@@ -38,7 +38,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late final Future<_ProfileData> _dataF = _load();
+  late Future<_ProfileData> _dataF = _load();
 
   Future<_ProfileData> _load() async {
     final backend = BackendService.instance;
@@ -56,6 +56,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       interests: extras.interests,
       communities: extras.communities,
     );
+  }
+
+  Future<void> _openEditProfile() async {
+    await Navigator.pushNamed(context, AppRoutes.editProfile);
+    if (!mounted) return;
+    setState(() => _dataF = _load());
   }
 
   @override
@@ -109,6 +115,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 24),
           _communities(context, data.communities),
         ],
+        const SizedBox(height: 24),
+        _myLibrary(context),
         if (isManager) ...[
           const SizedBox(height: 24),
           _features(context, user),
@@ -194,7 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.editProfile),
+            onPressed: _openEditProfile,
             icon: const Icon(Icons.edit_outlined, size: 18),
             label: const Text('Editar Perfil'),
             style: OutlinedButton.styleFrom(
@@ -313,6 +321,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           tag: 'Participa',
           onTap: () => Navigator.pushNamed(context, AppRoutes.community),
         ),
+    ]));
+  }
+
+  // ------------------------------------------------------- Minha Biblioteca
+
+  /// Acesso rápido à biblioteca pessoal — em especial aos conteúdos guardados.
+  /// Disponível para qualquer utilizador (não só escritores/gestores).
+  Widget _myLibrary(BuildContext context) {
+    return _section(context, 'A Minha Biblioteca', child: Column(children: [
+      _rowTile(
+        context,
+        leading: const Icon(Icons.library_books_outlined, color: AppColors.primary, size: 20),
+        leadingBg: AppColors.primary.withValues(alpha: .10),
+        title: 'Minha biblioteca',
+        subtitle: 'Guardados, leituras em progresso e offline.',
+        onTap: () => Navigator.pushNamed(context, AppRoutes.library),
+      ),
     ]));
   }
 

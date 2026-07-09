@@ -41,6 +41,11 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
   String? _mediaUrl;
   String? _mediaName;
 
+  /// Imagem de capa (thumbnail) opcional — aplicável a qualquer tipo, útil
+  /// sobretudo em artigos e podcasts que, de outra forma, não teriam imagem.
+  String? _imageUrl;
+  String? _imageName;
+
   @override
   void dispose() {
     _titleCtrl.dispose();
@@ -208,6 +213,7 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
     switch (_type) {
       case _ContentType.texto:
         return [
+          ..._imageField(context),
           _label(context, 'Bibliografia / fonte'),
           TextField(controller: _extraCtrl, decoration: const InputDecoration(hintText: 'Referência científica')),
           const SizedBox(height: 14),
@@ -216,6 +222,7 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
         ];
       case _ContentType.video:
         return [
+          ..._imageField(context),
           _label(context, 'Ligação do vídeo (ou ficheiro)'),
           TextField(controller: _extraCtrl, decoration: const InputDecoration(hintText: 'URL ou carregar ficheiro de vídeo')),
           const SizedBox(height: 14),
@@ -226,6 +233,7 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
         ];
       case _ContentType.podcast:
         return [
+          ..._imageField(context),
           _label(context, 'Ficheiro de áudio'),
           _uploadBox(context, Icons.mic_none_outlined, 'Carregar áudio (MP3)', FileType.audio),
           const SizedBox(height: 14),
@@ -237,6 +245,19 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
         ];
     }
   }
+
+  /// Campo de imagem de capa (opcional), comum a todos os tipos. Para artigos e
+  /// podcasts é o que dá uma imagem própria ao conteúdo em vez da ilustração.
+  List<Widget> _imageField(BuildContext context) => [
+        _label(context, 'Imagem de capa (opcional)'),
+        DottedUpload(
+          icon: Icons.image_outlined,
+          label: _imageName ?? 'Carregar imagem (JPG/PNG)',
+          uploaded: _imageUrl != null,
+          onTap: _publishing ? () {} : _pickAndUploadImage,
+        ),
+        const SizedBox(height: 14),
+      ];
 
   /// Mostra uma pré-visualização que reflete tudo o que foi introduzido, antes
   /// de confirmar a publicação.
@@ -292,6 +313,7 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
                   _pv('Publicar em', _community ?? 'Público (sem comunidade)'),
                   if (_extraCtrl.text.trim().isNotEmpty) _pv(extraLabel, _extraCtrl.text.trim()),
                   if (_mediaName != null) _pv('Ficheiro', _mediaName!),
+                  if (_imageName != null) _pv('Imagem de capa', _imageName!),
                   _pv('Sala de discussão', _privateRoom ? 'Privada (turma) — professor' : 'Pública'),
                   _pv('Acesso', _jindungo ? 'Restrito (Jindungo)' : _exclusive ? 'Exclusivo' : 'Público'),
                   const SizedBox(height: 12),
@@ -363,6 +385,49 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
     }
   }
 
+  /// Carrega a imagem de capa (thumbnail) — independente do ficheiro de media.
+  Future<void> _pickAndUploadImage() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
+    final file = result?.files.single;
+    final bytes = file?.bytes;
+    if (file == null || bytes == null) return;
+    setState(() {
+      _publishing = true;
+      _imageName = file.name;
+    });
+    try {
+      final url = await BackendService.instance.uploadImage(
+        bytes: bytes,
+        filename: file.name,
+        mimeType: _imageMime(file.name),
+      );
+      if (!mounted) return;
+      setState(() => _imageUrl = url);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text('${file.name} carregada.')));
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _imageName = null;
+        _imageUrl = null;
+      });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text(error.toString())));
+    } finally {
+      if (mounted) setState(() => _publishing = false);
+    }
+  }
+
+  String _imageMime(String filename) {
+    final lower = filename.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.gif')) return 'image/gif';
+    return 'image/jpeg';
+  }
+
   Future<void> _publish() async {
     setState(() => _publishing = true);
     try {
@@ -379,6 +444,7 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
         category: _category,
         sourceUrl: _type == _ContentType.video && _extraCtrl.text.trim().startsWith('http') ? _extraCtrl.text.trim() : null,
         mediaUrl: _mediaUrl,
+        thumbnailUrl: _imageUrl,
         isJindungo: _jindungo,
         exclusive: _exclusive,
       );

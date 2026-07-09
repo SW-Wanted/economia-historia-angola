@@ -98,6 +98,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     });
   }
 
+  Future<void> _seekBy(int seconds) async {
+    final controller = _controller;
+    if (controller == null || !_ready) return;
+    var target = controller.value.position + Duration(seconds: seconds);
+    if (target < Duration.zero) target = Duration.zero;
+    final cap = _preview ? const Duration(seconds: _kPreviewSeconds) : controller.value.duration;
+    if (cap > Duration.zero && target > cap) target = cap;
+    await controller.seekTo(target);
+    if (mounted) setState(() {});
+  }
+
   String _fmt(Duration d) =>
       '${d.inMinutes.toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
 
@@ -151,10 +162,29 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     final playing = _controller?.value.isPlaying ?? false;
     return GestureDetector(
       onTap: _mediaUrl == null ? null : _togglePlay,
-      child: CircleAvatar(
-        radius: 34,
-        backgroundColor: AppColors.primary,
-        child: Icon(playing ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 42),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: 'Recuar 10 segundos',
+            iconSize: 34,
+            onPressed: _ready ? () => _seekBy(-10) : null,
+            icon: const Icon(Icons.replay_10, color: Colors.white),
+          ),
+          const SizedBox(width: 8),
+          CircleAvatar(
+            radius: 34,
+            backgroundColor: AppColors.primary,
+            child: Icon(playing ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 42),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            tooltip: 'Avançar 30 segundos',
+            iconSize: 34,
+            onPressed: _ready ? () => _seekBy(30) : null,
+            icon: const Icon(Icons.forward_30, color: Colors.white),
+          ),
+        ],
       ),
     );
   }
