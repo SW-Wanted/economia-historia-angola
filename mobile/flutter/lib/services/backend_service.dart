@@ -341,6 +341,117 @@ class BackendService {
     }
   }
 
+  /// Pede acesso a um texto Jindungo (conteúdo restrito). O backend cria um
+  /// pedido PENDING (ou devolve o existente) e notifica os moderadores. Devolve
+  /// `true` se o pedido ficou registado.
+  Future<bool> requestContentAccess(String contentId, {String? reason}) async {
+    if (!isAuthenticated || contentId.isEmpty) return false;
+    try {
+      await _api.postJson('/contents/$contentId/request-access', {
+        if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
+      });
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Lê o conteúdo completo de um texto autorizado (`GET /contents/:id/full`).
+  /// Só devolve o corpo se o utilizador tiver acesso (permissão global ou pedido
+  /// aprovado); caso contrário o backend responde 403 e devolvemos `null`.
+  Future<FeedContent?> contentFull(String contentId) async {
+    if (contentId.isEmpty) return null;
+    try {
+      return _feedFromContent(await _api.getJson('/contents/$contentId/full'));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Pedidos de acesso Jindungo pendentes (para o painel de moderação). Requer
+  /// CONTENT_APPROVE. Cada item traz o requerente e o conteúdo pedido.
+  Future<List<Map<String, dynamic>>> jindungoAccessRequests() async {
+    if (!isAuthenticated) return const [];
+    try {
+      final list = await _api.getList('/contents/access-requests', query: {'status': 'PENDING'});
+      return list.whereType<Map<String, dynamic>>().toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Aprova ou rejeita um pedido de acesso Jindungo. O backend concede o acesso
+  /// (ACTIVE) ou rejeita e notifica o requerente da decisão.
+  Future<void> reviewAccessRequest(String requestId, {required bool approve}) async {
+    if (requestId.isEmpty) return;
+    await _api.patchJson('/contents/access-requests/$requestId', {'approve': approve});
+  }
+
+  /// Lista de utilizadores para o painel de gestão (Admin+). Requer USER_MANAGE.
+  /// Mapeia cada utilizador para [AppUser] com `id`, papel real e grau de super
+  /// admin. Lista vazia se não houver sessão/permissão ou o backend falhar.
+  Future<List<AppUser>> adminUsers({String? search}) async {
+    if (!isAuthenticated) return const [];
+    try {
+      final json = await _api.getJson('/users', query: {
+        if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+        'limit': '100',
+      });
+      final items = json['items'];
+      if (items is! List) return const [];
+      return items.whereType<Map<String, dynamic>>().map(_adminUserFromJson).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Altera o papel de um utilizador (`PATCH /users/:id/role`). O backend aplica
+  /// a hierarquia (só Super Admin gere admins; grau protege super admins).
+  Future<void> setUserRole(String userId, UserRole role) async {
+    if (userId.isEmpty) return;
+    await _api.patchJson('/users/$userId/role', {'role': _roleCodeForBackend(role)});
+  }
+
+  /// Suspende ou reativa uma conta (`PATCH /users/:id/status`).
+  Future<void> setUserActive(String userId, bool isActive) async {
+    if (userId.isEmpty) return;
+    await _api.patchJson('/users/$userId/status', {'isActive': isActive});
+  }
+
+  /// Remove (soft-delete) um utilizador (`DELETE /users/:id`).
+  Future<void> removeUser(String userId) async {
+    if (userId.isEmpty) return;
+    await _api.delete('/users/$userId');
+  }
+
+  AppUser _adminUserFromJson(Map<String, dynamic> json) {
+    final name = json['name']?.toString() ?? json['username']?.toString() ?? 'Utilizador';
+    final roles = (json['roles'] as List?)
+        ?.map((item) => item is Map && item['role'] is Map ? item['role']['code']?.toString() : item?.toString())
+        .whereType<String>()
+        .toList();
+    return AppUser(
+      id: json['id']?.toString(),
+      name: name,
+      initials: _initials(name),
+      role: _roleFromBackend(roles),
+      course: json['school']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      institution: json['school']?.toString() ?? '',
+      province: json['region']?.toString() ?? json['province']?.toString() ?? '',
+      superAdminGrade: (json['superAdminGrade'] as num?)?.toInt(),
+    );
+  }
+
+  /// Converte o [UserRole] do mobile para o RoleCode do backend. 'escritor'
+  /// mapeia para WRITER (o backend distingue WRITER de PROFESSOR).
+  String _roleCodeForBackend(UserRole role) => switch (role) {
+        UserRole.superAdmin => 'SUPER_ADMIN',
+        UserRole.admin => 'ADMIN',
+        UserRole.escritor => 'WRITER',
+        UserRole.utilizador => 'USER',
+      };
+
   Future<CommunityCategory> createCommunity({
     required String name,
     required String description,
@@ -963,6 +1074,7 @@ class BackendService {
     final province = json['province']?.toString();
     final bio = json['bio']?.toString();
     return AppUser(
+      id: json['id']?.toString(),
       name: name,
       initials: _initials(name),
       role: _roleFromBackend((json['roles'] as List?)?.map((item) {

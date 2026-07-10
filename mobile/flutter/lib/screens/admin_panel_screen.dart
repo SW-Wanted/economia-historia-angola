@@ -33,6 +33,8 @@ class AdminPanelScreen extends StatelessWidget {
         const SectionTitle('Gestão editorial'),
         const SizedBox(height: 12),
         AdminActionCard(icon: Icons.fact_check_outlined, title: 'Aprovação de conteúdos', subtitle: 'Rever submissões dos escritores.', onTap: () => Navigator.pushNamed(context, AppRoutes.contentModeration)),
+        const SizedBox(height: 10),
+        AdminActionCard(icon: Icons.local_fire_department_outlined, title: 'Acessos Jindungo', subtitle: 'Conceder acesso a textos restritos.', onTap: () => Navigator.pushNamed(context, AppRoutes.jindungoAccess)),
         const SizedBox(height: 24),
         const SectionTitle('Comunidade e acesso'),
         const SizedBox(height: 12),
