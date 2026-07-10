@@ -59,6 +59,7 @@ const seededUsers: Array<{
   course?: string;
   interests?: string;
   motivation?: string;
+  superAdminGrade?: number;
 }> = [
   {
     role: RoleCode.USER,
@@ -124,6 +125,7 @@ const seededUsers: Array<{
     region: 'Luanda',
     interests: 'Governança, auditoria e infraestrutura',
     motivation: 'Supervisionar todos os módulos do sistema.',
+    superAdminGrade: 0,
   },
 ];
 
@@ -188,6 +190,7 @@ async function main() {
         course: userData.course,
         interests: userData.interests,
         motivation: userData.motivation,
+        superAdminGrade: userData.superAdminGrade ?? null,
         isActive: true,
       },
       create: {
@@ -203,6 +206,7 @@ async function main() {
         course: userData.course,
         interests: userData.interests,
         motivation: userData.motivation,
+        superAdminGrade: userData.superAdminGrade ?? null,
       },
     });
 

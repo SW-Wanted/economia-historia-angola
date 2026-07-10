@@ -39,11 +39,13 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    // Conta uma visualização após o post permanecer montado (≈ visível, pois o
-    // ListView.builder só constrói itens perto da viewport) alguns segundos.
+    // Marca o conteúdo como visto na sessão após permanecer montado (≈ visível)
+    // alguns segundos. Alimenta o histórico de leitura (ex.: sugestão de
+    // quizzes) — não incrementa o contador de visualizações apresentado, que
+    // reflete apenas o valor real do backend.
     _viewTimer = Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
-      if (_store.markViewed(_c.id)) setState(() {});
+      _store.markViewed(_c.id);
     });
   }
 
@@ -305,7 +307,13 @@ class _FeedPostTileState extends State<FeedPostTile> with TickerProviderStateMix
       child: Stack(
         alignment: Alignment.center,
         children: [
-          EhIllustration(scene: _c.scene, imageUrl: _c.imageUrl, height: 210, borderRadius: BorderRadius.zero),
+          EhIllustration(
+            scene: _c.scene,
+            imageUrl: _c.imageUrl,
+            fallbackIcon: _c.type.icon,
+            height: 210,
+            borderRadius: BorderRadius.zero,
+          ),
           // Sem imagem própria do utilizador, mostra o símbolo do tipo (ex.:
           // microfone para podcast) para identificar o formato de imediato.
           _typeBadge(context),

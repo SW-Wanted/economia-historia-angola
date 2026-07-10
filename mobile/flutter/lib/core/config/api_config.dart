@@ -26,6 +26,16 @@ class ApiConfig {
     return 'http://$host:$_port$_apiPath';
   }
 
+  /// Origem (scheme://host[:porta]) do backend, sem o prefixo `/api/v1`. Usada
+  /// pelo cliente Socket.IO, que se liga ao namespace `/realtime` na raiz do
+  /// servidor — e não sob o prefixo REST. Deriva de [baseUrl] para respeitar o
+  /// mesmo override/host por plataforma.
+  static String get realtimeOrigin {
+    final uri = Uri.parse(baseUrl);
+    final port = uri.hasPort ? ':${uri.port}' : '';
+    return '${uri.scheme}://${uri.host}$port';
+  }
+
   static String _defaultHost() {
     if (kIsWeb) return 'localhost';
     try {

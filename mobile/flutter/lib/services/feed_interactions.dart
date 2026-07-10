@@ -1,4 +1,5 @@
 import '../models/feed.dart';
+import 'backend_service.dart';
 
 /// Um comentário (ou resposta) de uma publicação do feed.
 class FeedComment {
@@ -57,7 +58,12 @@ class FeedInteractions {
 
   bool toggleLike(String id) {
     if (!_liked.add(id)) _liked.remove(id);
-    return _liked.contains(id);
+    final liked = _liked.contains(id);
+    // Persiste no backend quando é um gosto novo — o servidor faz upsert e
+    // notifica o autor do conteúdo. O des-curtir mantém-se local (o backend
+    // não remove favoritos), para não perder a notificação já enviada.
+    if (liked) BackendService.instance.favoriteContent(id);
+    return liked;
   }
 
   /// Total de gostos apresentado = base do conteúdo + gosto do utilizador.
@@ -83,67 +89,77 @@ class FeedInteractions {
   /// vez (para o widget atualizar o contador).
   bool markViewed(String id) => _viewed.add(id);
 
-  int viewCount(FeedContent c) => c.views + (isViewed(c.id) ? 1 : 0);
+  /// Contagem de visualizações apresentada. Usa apenas o valor real do backend:
+  /// não inflaciona localmente (antes somava +1 assim que o post ficava visível,
+  /// fazendo um conteúdo recém-criado aparecer logo com "1 visualização" para o
+  /// próprio autor). Enquanto o backend não expõe visualizações, fica em 0.
+  int viewCount(FeedContent c) => c.views;
 
   // ------------------------------------------------------------- Comentários
 
-  /// Lista de comentários de um conteúdo. Semeada de forma preguiçosa com uma
-  /// pequena amostra representativa (as redes sociais carregam por partes).
-  List<FeedComment> comments(FeedContent c) => _comments.putIfAbsent(c.id, () => _seed(c));
+  /// Conteúdos cujos comentários já foram carregados do backend (evita recargas).
+  final Set<String> _commentsLoaded = {};
 
-  /// Total apresentado = base do conteúdo + respostas adicionadas pelo utilizador.
+  /// Lista de comentários de um conteúdo, já carregada em memória. Vazia até
+  /// [loadComments] terminar (a UI chama-o e depois reconstrói-se).
+  List<FeedComment> comments(FeedContent c) => _comments.putIfAbsent(c.id, () => []);
+
+  /// Carrega os comentários reais do conteúdo a partir do backend (uma vez por
+  /// sessão, exceto [force]). Devolve a lista já em memória.
+  Future<List<FeedComment>> loadComments(FeedContent c, {bool force = false}) async {
+    if (_commentsLoaded.contains(c.id) && !force) return comments(c);
+    final raw = await BackendService.instance.contentComments(c.id);
+    final loaded = raw.map(_fromBackend).toList();
+    _comments[c.id] = loaded;
+    _commentsLoaded.add(c.id);
+    return loaded;
+  }
+
+  /// Total apresentado = comentários carregados do backend. Enquanto ainda não
+  /// carregaram, mostra a contagem base que veio com o conteúdo.
   int commentCount(FeedContent c) {
-    final list = comments(c);
-    final userAdded = _countUserAdded(list);
-    return c.comments + userAdded;
+    if (!_commentsLoaded.contains(c.id)) return c.comments;
+    return comments(c).length;
   }
 
-  void addComment(FeedContent c, String text) {
-    comments(c).insert(
-      0,
-      FeedComment(author: 'Você', initials: 'EU', text: text.trim(), timeAgo: 'agora', isMine: true),
-    );
-  }
-
-  void addReply(FeedContent c, FeedComment parent, String text) {
-    comments(c); // garante inicialização
-    parent.replies.add(
-      FeedComment(author: 'Você', initials: 'EU', text: text.trim(), timeAgo: 'agora', isMine: true),
-    );
-  }
-
-  int _countUserAdded(List<FeedComment> list) {
-    var count = 0;
-    for (final c in list) {
-      if (c.isMine) count++;
-      count += c.replies.where((r) => r.isMine).length;
+  /// Publica um comentário. Persiste no backend (que notifica o autor) e, em
+  /// caso de sucesso, insere-o na lista local. Devolve `true` se persistiu.
+  Future<bool> addComment(FeedContent c, String text) async {
+    final ok = await BackendService.instance.commentOnContent(contentId: c.id, text: text);
+    if (ok) {
+      comments(c).insert(
+        0,
+        FeedComment(author: 'Você', initials: 'EU', text: text.trim(), timeAgo: 'agora', isMine: true),
+      );
     }
-    return count;
+    return ok;
   }
 
-  /// Amostra determinística de comentários por conteúdo (varia com o id/tema).
-  List<FeedComment> _seed(FeedContent c) {
-    if (c.comments == 0) return [];
-    final pool = <FeedComment>[
-      FeedComment(
-        author: 'Ana Muachia', initials: 'AM', role: 'Historiadora', timeAgo: 'há 1 h', likes: 12,
-        text: 'Excelente contextualização — vale ligar isto às rotas comerciais regionais.',
-        replies: [
-          FeedComment(author: 'João Domingos', initials: 'JD', role: 'Analista', timeAgo: 'há 40 min', likes: 3,
-              text: 'Concordo. A infraestrutura define quem participa do mercado.'),
-        ],
-      ),
-      FeedComment(
-        author: 'Beatriz Neto', initials: 'BN', role: 'Investigadora', timeAgo: 'há 2 h', likes: 7,
-        text: 'Tem fontes sobre o impacto no emprego rural? Gostava de aprofundar.',
-      ),
-      FeedComment(
-        author: 'Dr. Kambinda', initials: 'DK', role: 'Escritor', timeAgo: 'há 3 h', likes: 21,
-        text: 'Este é precisamente o tipo de análise que falta no debate público.',
-      ),
-    ];
-    // Número de comentários visíveis proporcional (amostra até 3).
-    final take = c.comments >= 3 ? 3 : c.comments;
-    return pool.take(take).toList();
+  FeedComment _fromBackend(Map<String, dynamic> json) {
+    final author = json['author'];
+    final name = author is Map ? author['name']?.toString() ?? 'Utilizador' : 'Utilizador';
+    return FeedComment(
+      author: name,
+      initials: _initials(name),
+      text: json['text']?.toString() ?? '',
+      timeAgo: _relative(json['createdAt']?.toString()),
+    );
+  }
+
+  String _initials(String value) {
+    final parts = value.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
+    return (parts.first[0] + parts.last[0]).toUpperCase();
+  }
+
+  String _relative(String? iso) {
+    final date = iso == null ? null : DateTime.tryParse(iso);
+    if (date == null) return 'agora';
+    final diff = DateTime.now().difference(date.toLocal());
+    if (diff.inDays > 0) return 'há ${diff.inDays} dia${diff.inDays == 1 ? '' : 's'}';
+    if (diff.inHours > 0) return 'há ${diff.inHours} h';
+    if (diff.inMinutes > 0) return 'há ${diff.inMinutes} min';
+    return 'agora';
   }
 }

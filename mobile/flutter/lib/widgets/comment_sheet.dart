@@ -29,6 +29,19 @@ class _CommentSheetState extends State<_CommentSheet> {
   final _controller = TextEditingController();
   final _focus = FocusNode();
   FeedComment? _replyTo;
+  bool _loading = true;
+  bool _sending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    await _store.loadComments(widget.content);
+    if (mounted) setState(() => _loading = false);
+  }
 
   @override
   void dispose() {
@@ -37,19 +50,30 @@ class _CommentSheetState extends State<_CommentSheet> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
-    setState(() {
-      if (_replyTo != null) {
-        _store.addReply(widget.content, _replyTo!, text);
-        _replyTo = null;
-      } else {
-        _store.addComment(widget.content, text);
-      }
-      _controller.clear();
-    });
+    if (text.isEmpty || _sending) return;
+    setState(() => _sending = true);
     _focus.unfocus();
+    // Respostas persistem como comentários no conteúdo (o backend notifica o
+    // autor); a distinção visual de "resposta" mantém-se apenas no prefixo.
+    final body = _replyTo == null ? text : '@${_replyTo!.author} $text';
+    final ok = await _store.addComment(widget.content, body);
+    if (!mounted) return;
+    setState(() {
+      _sending = false;
+      if (ok) {
+        _controller.clear();
+        _replyTo = null;
+      }
+    });
+    if (!ok) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Não foi possível publicar o comentário. Tente novamente.')));
+    }
   }
 
   @override
@@ -103,7 +127,9 @@ class _CommentSheetState extends State<_CommentSheet> {
               const Divider(height: 1, thickness: .6),
               // Lista de comentários.
               Expanded(
-                child: comments.isEmpty
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : comments.isEmpty
                     ? _empty(context)
                     : ListView.separated(
                         controller: scrollController,
@@ -205,8 +231,11 @@ class _CommentSheetState extends State<_CommentSheet> {
                 ),
                 const SizedBox(width: 4),
                 IconButton(
-                  onPressed: _submit,
-                  icon: const Icon(Icons.send_rounded, color: AppColors.primary),
+                  onPressed: _sending ? null : _submit,
+                  icon: _sending
+                      ? const SizedBox(
+                          width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.send_rounded, color: AppColors.primary),
                 ),
               ],
             ),

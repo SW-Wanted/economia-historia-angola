@@ -25,10 +25,17 @@ class EhIllustration extends StatelessWidget {
     this.tone,
     this.semanticLabel,
     this.imageUrl,
+    this.fallbackIcon,
   });
 
   final EhScene scene;
   final double height;
+
+  /// Símbolo do tipo de conteúdo (ex.: livro para artigo, microfone para
+  /// podcast, play para vídeo) apresentado como capa quando o autor **não**
+  /// carregou uma imagem própria. Quando indicado, substitui a ilustração de
+  /// cena por um símbolo limpo sobre fundo da paleta. `null` mantém a cena.
+  final IconData? fallbackIcon;
 
   /// Largura da ilustração. Por omissão preenche a largura disponível
   /// (`double.infinity`), o que é válido em colunas/listas. Em contextos de
@@ -70,10 +77,14 @@ class EhIllustration extends StatelessWidget {
   /// Camada híbrida: tenta a imagem da internet e, em qualquer falha ou
   /// enquanto carrega, mostra a ilustração vetorial local (fallback garantido).
   Widget _buildImage(String? url) {
-    final fallback = CustomPaint(
-      size: Size.infinite,
-      painter: _ScenePainter(scene, tone ?? _defaultTone(scene)),
-    );
+    // Sem imagem do autor: mostra o símbolo do tipo (quando indicado) em vez da
+    // ilustração de cena, para uma capa limpa e reconhecível pelo formato.
+    final fallback = fallbackIcon != null
+        ? _IconCover(icon: fallbackIcon!, tone: tone ?? _defaultTone(scene))
+        : CustomPaint(
+            size: Size.infinite,
+            painter: _ScenePainter(scene, tone ?? _defaultTone(scene)),
+          );
 
     if (url == null || url.isEmpty) return fallback;
 
@@ -120,6 +131,36 @@ class EhIllustration extends StatelessWidget {
         EhScene.rubber => const Color(0xFF5A3210),
         EhScene.podcast => const Color(0xFF45132B),
       };
+}
+
+/// Capa de símbolo: fundo em gradiente suave da paleta com o ícone do tipo de
+/// conteúdo ao centro. Usada quando o autor não carregou uma imagem própria.
+class _IconCover extends StatelessWidget {
+  const _IconCover({required this.icon, required this.tone});
+
+  final IconData icon;
+  final Color tone;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            HSLColor.fromColor(tone).withLightness(
+                (HSLColor.fromColor(tone).lightness + 0.12).clamp(0.0, 1.0)).toColor(),
+            HSLColor.fromColor(tone).withLightness(
+                (HSLColor.fromColor(tone).lightness - 0.18).clamp(0.0, 1.0)).toColor(),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(icon, size: 64, color: Colors.white.withValues(alpha: .92)),
+      ),
+    );
+  }
 }
 
 class _ScenePainter extends CustomPainter {
