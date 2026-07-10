@@ -56,6 +56,12 @@ const guestPrimaryNav: NavEntry[] = [
 ]
 
 const guestExploreNav: NavEntry[] = [
+  { to: '/pesquisa', label: 'Pesquisa', icon: 'search' },
+  { to: '/conteudos/provincia', label: 'Províncias', icon: 'place' },
+  { to: '/guia-investigacao', label: 'Guia de Investigação', icon: 'menu_book' },
+  { to: '/mapa/caminhos-ferro', label: 'Caminhos de Ferro', icon: 'route' },
+]
+
 function Tooltip({ label }: { label: string }) {
   return (
     <span

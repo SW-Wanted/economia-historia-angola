@@ -116,7 +116,8 @@ Pré-requisito: **backend a correr em `http://localhost:3001`** (ver [`backend/R
 npm install
 
 # Rodar em modo de desenvolvimento
-npm run dev
+o
+
 ```
 
 A aplicação fica disponível em **`http://localhost:5173`** (porta default do Vite).
@@ -126,7 +127,8 @@ A aplicação fica disponível em **`http://localhost:5173`** (porta default do 
 ```bash
 npm run dev        # Servidor de desenvolvimento (Vite) com HMR
 npm run build      # Build de produção para dist/
-npm run preview    # Servir localmente o build de produção
+npmnpm run start
+ run preview    # Servir localmente o build de produção
 ```
 
 > Não existem scripts `lint` nem `start` neste `package.json`.
