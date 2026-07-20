@@ -18,6 +18,7 @@ ENV NODE_ENV=production
 RUN apk add --no-cache openssl
 COPY --chown=node:node package*.json ./
 COPY --chown=node:node --from=deps /app/node_modules ./node_modules
+COPY --chown=node:node --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --chown=node:node --from=builder /app/dist ./dist
 COPY --chown=node:node --from=builder /app/prisma ./prisma
 COPY --chown=node:node --from=builder /app/prisma.config.ts ./prisma.config.ts
