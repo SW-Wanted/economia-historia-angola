@@ -104,9 +104,16 @@ class _ManageContentScreenState extends State<ManageContentScreen> {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: AppColors.secondary),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            onSelected: (v) => v == 'edit' ? _edit(c) : _confirmDelete(c),
+            onSelected: (v) => switch (v) {
+              'edit' => _edit(c),
+              'access' => _manageAccess(c),
+              _ => _confirmDelete(c),
+            },
             itemBuilder: (context) => [
               _menuItem('edit', Icons.edit_outlined, 'Editar'),
+              // Gerir acessos só faz sentido para textos Jindungo (restritos).
+              if (c.type == FeedContentType.jindungo)
+                _menuItem('access', Icons.lock_open_outlined, 'Gerir acessos'),
               _menuItem('delete', Icons.delete_outline, 'Eliminar', danger: true),
             ],
           ),
@@ -129,6 +136,15 @@ class _ManageContentScreenState extends State<ManageContentScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, content: Text('A editar: ${c.title}')));
+  }
+
+  /// Abre a gestão de acessos (convidados) de um texto Jindungo.
+  void _manageAccess(FeedContent c) {
+    Navigator.pushNamed(
+      context,
+      AppRoutes.jindungoInvitees,
+      arguments: {'contentId': c.id, 'title': c.title},
+    );
   }
 
   String _typeArg(FeedContentType t) => switch (t) {

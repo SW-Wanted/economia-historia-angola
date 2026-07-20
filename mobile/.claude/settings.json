@@ -33,7 +33,9 @@
       "Bash(xargs grep -l \"s3\")",
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3001/api/v1/contents\" -TimeoutSec 5 -UseBasicParsing; \"UP status=$\\($r.StatusCode\\)\" } catch { \"DOWN or error: $\\($_.Exception.Message\\)\" })",
       "PowerShell(Get-Process chrome -ErrorAction SilentlyContinue)",
-      "PowerShell(Get-Process dart,flutter_tester -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-Process dart,flutter_tester -ErrorAction SilentlyContinue)",
+      "Read(//tmp/**)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X OPTIONS \"http://localhost:3001/api/v1/contents\" -H \"Origin: http://localhost:8080\" -H \"Access-Control-Request-Method: GET\")"
     ],
     "additionalDirectories": [
       "d:\\Labs\\projetos\\economia-historia-angola\\backend",
@@ -44,7 +46,11 @@
       "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\stats",
       "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\users\\dto",
       "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\uploads",
-      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\contents"
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\contents",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\config",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\mail",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src",
+      "d:\\Labs\\projetos\\economia-historia-angola\\backend\\src\\modules\\contents\\dto"
     ]
   }
 }

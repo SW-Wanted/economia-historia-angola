@@ -37,6 +37,7 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
   final _titleCtrl = TextEditingController();
   final _extraCtrl = TextEditingController(); // fonte / ligação / episódio
   final _bodyCtrl = TextEditingController(); // corpo / descrição / notas
+  final _inviteCtrl = TextEditingController(); // emails a convidar (Jindungo)
   bool _publishing = false;
   // Verdadeiro quando o conteúdo foi enviado para aprovação (Escritor) em vez
   // de publicado diretamente (Admin+). Ajusta a mensagem de sucesso.
@@ -54,7 +55,28 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
     _titleCtrl.dispose();
     _extraCtrl.dispose();
     _bodyCtrl.dispose();
+    _inviteCtrl.dispose();
     super.dispose();
+  }
+
+  /// Divide o texto do campo de convites em emails individuais (separados por
+  /// vírgula, ponto e vírgula, espaço ou nova linha), normalizados.
+  List<String> _parseEmails(String raw) {
+    return raw
+        .split(RegExp(r'[,;\s]+'))
+        .map((e) => e.trim().toLowerCase())
+        .where((e) => e.contains('@'))
+        .toSet()
+        .toList();
+  }
+
+  /// Mensagem-resumo do resultado do convite (concedidos / já tinham / sem conta).
+  String _inviteSummaryText(({List<String> invited, List<String> alreadyHad, List<String> notFound}) r) {
+    final parts = <String>[];
+    if (r.invited.isNotEmpty) parts.add('${r.invited.length} convidado(s) com acesso');
+    if (r.alreadyHad.isNotEmpty) parts.add('${r.alreadyHad.length} já tinha(m) acesso');
+    if (r.notFound.isNotEmpty) parts.add('${r.notFound.length} sem conta: ${r.notFound.join(', ')}');
+    return parts.isEmpty ? 'Nenhum convite processado.' : parts.join(' · ');
   }
 
   @override
@@ -202,6 +224,25 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.secondary)),
           ),
         ),
+        // Convite direto por email — só faz sentido para textos Jindungo. As
+        // pessoas indicadas recebem acesso imediato ao publicar (têm de já ter
+        // conta na app). Também é possível convidar mais gente depois.
+        if (_jindungo) ...[
+          const SizedBox(height: 12),
+          TextField(
+            controller: _inviteCtrl,
+            keyboardType: TextInputType.emailAddress,
+            minLines: 1,
+            maxLines: 3,
+            decoration: InputDecoration(
+              labelText: 'Convidar por email (opcional)',
+              hintText: 'ana@exemplo.ao, joao@exemplo.ao',
+              helperText: 'Separe vários emails por vírgula. Recebem acesso imediato.',
+              helperMaxLines: 2,
+              prefixIcon: const Icon(Icons.mail_outline),
+            ),
+          ),
+        ],
         const SizedBox(height: 24),
         EhButton(
           label: _publishing ? 'A publicar...' : 'Pré-visualizar e publicar',
@@ -465,6 +506,19 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
         // Se a transição falhar, o conteúdo fica em rascunho (gerível no painel).
         _submittedForReview = true;
       }
+      // Convites Jindungo: as pessoas indicadas recebem acesso imediato ao texto.
+      String? inviteSummary;
+      if (_jindungo) {
+        final emails = _parseEmails(_inviteCtrl.text);
+        if (emails.isNotEmpty) {
+          try {
+            final result = await BackendService.instance.inviteToJindungo(created.id, emails);
+            inviteSummary = _inviteSummaryText(result);
+          } catch (_) {
+            inviteSummary = 'Não foi possível enviar os convites agora — pode convidar depois no conteúdo.';
+          }
+        }
+      }
       // Recarrega o catálogo para que, quando publicado, apareça de imediato no
       // feed de todos os utilizadores (ao abrirem/atualizarem a Home).
       await FeedService.instance.load(force: true);
@@ -492,13 +546,14 @@ class _PublishContentScreenState extends State<PublishContentScreen> {
           ),
         );
       }
+      final baseMsg = _submittedForReview
+          ? 'Conteúdo enviado para aprovação. Ficará visível para todos assim que um administrador o aprovar.'
+          : 'Conteúdo publicado para todos os utilizadores.';
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
-          content: Text(_submittedForReview
-              ? 'Conteúdo enviado para aprovação. Ficará visível para todos assim que um administrador o aprovar.'
-              : 'Conteúdo publicado para todos os utilizadores.'),
+          content: Text(inviteSummary == null ? baseMsg : '$baseMsg\n$inviteSummary'),
         ));
     } catch (error) {
       if (!mounted) return;

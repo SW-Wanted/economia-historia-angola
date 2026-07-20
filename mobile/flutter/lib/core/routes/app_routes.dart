@@ -61,6 +61,7 @@ import '../../screens/super_admin_chain_screen.dart';
 import '../../screens/super_admin_screen.dart';
 import '../../screens/content_moderation_screen.dart';
 import '../../screens/jindungo_access_screen.dart';
+import '../../screens/jindungo_invitees_screen.dart';
 import '../../screens/podcast_player_screen.dart';
 import '../../screens/video_player_screen.dart';
 
@@ -117,6 +118,7 @@ class AppRoutes {
   static const superAdminChain = '/super-admin-chain';
   static const contentModeration = '/content-moderation';
   static const jindungoAccess = '/jindungo-access';
+  static const jindungoInvitees = '/jindungo-invitees';
   static const community = '/community';
   static const communityDetail = '/community/detail';
   static const createCommunity = '/community/create';
@@ -203,6 +205,10 @@ class AppRoutes {
       superAdminChain => const SuperAdminChainScreen(),
       contentModeration => const ContentModerationScreen(),
       jindungoAccess => const JindungoAccessScreen(),
+      jindungoInvitees => JindungoInviteesScreen(
+          contentId: (settings.arguments is Map ? (settings.arguments as Map)['contentId']?.toString() : null) ?? '',
+          title: (settings.arguments is Map ? (settings.arguments as Map)['title']?.toString() : null) ?? 'Texto Jindungo',
+        ),
       community => const CommunityScreen(),
       communityDetail => CommunityDetailScreen(
           community: settings.arguments is CommunityCategory ? settings.arguments as CommunityCategory : null),

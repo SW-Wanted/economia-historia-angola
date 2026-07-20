@@ -387,6 +387,45 @@ class BackendService {
     await _api.patchJson('/contents/access-requests/$requestId', {'approve': approve});
   }
 
+  /// Convida pessoas específicas (por email) para um texto Jindungo, concedendo
+  /// acesso imediato. Devolve o resumo: `invited` (concedidos), `alreadyHad` (já
+  /// tinham) e `notFound` (emails sem conta — não convidados). Só o autor ou um
+  /// moderador pode convidar.
+  Future<({List<String> invited, List<String> alreadyHad, List<String> notFound})> inviteToJindungo(
+    String contentId,
+    List<String> emails,
+  ) async {
+    final cleaned = emails.map((e) => e.trim().toLowerCase()).where((e) => e.isNotEmpty).toList();
+    if (contentId.isEmpty || cleaned.isEmpty) {
+      return (invited: const <String>[], alreadyHad: const <String>[], notFound: const <String>[]);
+    }
+    final json = await _api.postJson('/contents/$contentId/invite', {'emails': cleaned});
+    List<String> strList(dynamic v) => v is List ? v.whereType<String>().toList() : const <String>[];
+    return (
+      invited: strList(json['invited']),
+      alreadyHad: strList(json['alreadyHad']),
+      notFound: strList(json['notFound']),
+    );
+  }
+
+  /// Lista quem tem acesso concedido a um texto Jindungo (para o autor gerir os
+  /// convidados). Cada item traz o utilizador (`user.name`, `user.email`).
+  Future<List<Map<String, dynamic>>> contentInvitees(String contentId) async {
+    if (!isAuthenticated || contentId.isEmpty) return const [];
+    try {
+      final list = await _api.getList('/contents/$contentId/invitees');
+      return list.whereType<Map<String, dynamic>>().toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Revoga o acesso de um utilizador a um texto Jindungo.
+  Future<void> revokeContentAccess(String contentId, String userId) async {
+    if (contentId.isEmpty || userId.isEmpty) return;
+    await _api.delete('/contents/$contentId/invitees/$userId');
+  }
+
   /// Lista de utilizadores para o painel de gestão (Admin+). Requer USER_MANAGE.
   /// Mapeia cada utilizador para [AppUser] com `id`, papel real e grau de super
   /// admin. Lista vazia se não houver sessão/permissão ou o backend falhar.
