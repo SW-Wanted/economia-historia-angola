@@ -90,6 +90,7 @@ export class CommentsService {
     const room = await this.prisma.discussionRoom.findFirst({
       where: { id: roomId, deletedAt: null },
       include: {
+        _count: { select: { participants: true, comments: true } },
         participants: {
           include: { user: { select: { id: true, name: true, avatarUrl: true } } },
         },

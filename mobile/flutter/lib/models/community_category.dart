@@ -1,3 +1,13 @@
+/// Comunidade a que o utilizador pertence, tal como aparece em "As Minhas
+/// Comunidades" do perfil. Guarda o `id` para permitir navegar diretamente para
+/// o detalhe da comunidade.
+class MyCommunity {
+  const MyCommunity({required this.id, required this.name});
+
+  final String id;
+  final String name;
+}
+
 /// Estado de adesão do utilizador atual a uma comunidade.
 enum CommunityViewerStatus { none, pending, active }
 

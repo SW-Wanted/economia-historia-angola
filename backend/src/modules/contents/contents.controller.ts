@@ -7,6 +7,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { ChangeContentStatusDto } from './dto/change-content-status.dto';
 import { ContentQueryDto } from './dto/content-query.dto';
 import { CreateContentDto } from './dto/create-content.dto';
+import { InviteJindungoDto } from './dto/invite-jindungo.dto';
 import { RequestAccessDto } from './dto/request-access.dto';
 import { ReviewAccessRequestDto } from './dto/review-access-request.dto';
 import { UpdateProgressDto } from './dto/update-progress.dto';
@@ -116,5 +117,29 @@ export class ContentsController {
     @Body() dto: RequestAccessDto,
   ) {
     return this.contents.requestJindungoAccess(user.id, id, dto.reason);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Invite specific people (by email) to a Jindungo content item',
+    description: 'Author or approver only. Grants immediate access to existing users; unknown emails are returned in notFound.',
+  })
+  @Post(':id/invite')
+  invite(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() dto: InviteJindungoDto) {
+    return this.contents.inviteToJindungo(user, id, dto.emails);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List users with granted access to a Jindungo content item' })
+  @Get(':id/invitees')
+  invitees(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.contents.listInvitees(user, id);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Revoke a user access to a Jindungo content item' })
+  @Delete(':id/invitees/:userId')
+  revokeAccess(@CurrentUser() user: AuthUser, @Param('id') id: string, @Param('userId') userId: string) {
+    return this.contents.revokeAccess(user, id, userId);
   }
 }

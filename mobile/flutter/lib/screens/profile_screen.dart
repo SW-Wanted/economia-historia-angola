@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../core/routes/app_routes.dart';
 import '../models/app_user.dart';
+import '../models/community_category.dart';
+import '../models/discussion_room.dart';
 import '../models/profile_stats.dart';
 import '../services/app_settings.dart';
 import '../services/backend_service.dart';
@@ -17,12 +19,14 @@ class _ProfileData {
     required this.stats,
     required this.interests,
     required this.communities,
+    required this.rooms,
   });
 
   final AppUser user;
   final ProfileStats? stats;
   final List<String> interests;
-  final List<String> communities;
+  final List<MyCommunity> communities;
+  final List<DiscussionRoom> rooms;
 }
 
 /// Perfil como painel pessoal: quem sou, o que aprendi, onde participo e qual o
@@ -46,15 +50,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backend.currentUser(),
       backend.profileStats(),
       backend.myProfileExtras(),
+      backend.rooms(),
     ]);
     final user = results[0] as AppUser;
     final stats = results[1] as ProfileStats?;
-    final extras = results[2] as ({List<String> interests, List<String> communities});
+    final extras = results[2] as ({List<String> interests, List<MyCommunity> communities});
+    final rooms = results[3] as List<DiscussionRoom>;
     return _ProfileData(
       user: user,
       stats: stats,
       interests: extras.interests,
       communities: extras.communities,
+      rooms: rooms,
     );
   }
 
@@ -114,6 +121,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (data.communities.isNotEmpty) ...[
           const SizedBox(height: 24),
           _communities(context, data.communities),
+        ],
+        if (data.rooms.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          _rooms(context, data.rooms),
         ],
         const SizedBox(height: 24),
         _myLibrary(context),
@@ -307,19 +318,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ------------------------------------------------------------ Comunidades
 
-  /// Comunidades reais em que o utilizador participa (memberships de
-  /// `/users/me`). Só é apresentada quando existem — sem exemplos fictícios.
-  Widget _communities(BuildContext context, List<String> communities) {
+  /// Comunidades reais em que o utilizador participa (memberships ativas de
+  /// `/users/me`). Só é apresentada quando existem — sem exemplos fictícios. Ao
+  /// tocar, navega diretamente para o detalhe da comunidade correspondente.
+  Widget _communities(BuildContext context, List<MyCommunity> communities) {
     return _section(context, 'As Minhas Comunidades', child: Column(children: [
-      for (final name in communities)
+      for (final community in communities)
         _rowTile(
           context,
           leading: const Icon(Icons.groups, color: AppColors.navy, size: 20),
           leadingBg: AppColors.navy.withValues(alpha: .12),
-          title: name,
+          title: community.name,
           titleColor: AppColors.navy,
           tag: 'Participa',
-          onTap: () => Navigator.pushNamed(context, AppRoutes.community),
+          onTap: () => _openCommunity(community),
+        ),
+    ]));
+  }
+
+  Future<void> _openCommunity(MyCommunity community) async {
+    // Carrega o detalhe completo (estado de adesão, contagens, fóruns) antes de
+    // navegar, para que o ecrã de detalhe receba dados reais.
+    try {
+      final detail = await BackendService.instance.communityDetail(community.id);
+      if (!mounted) return;
+      await Navigator.pushNamed(context, AppRoutes.communityDetail, arguments: detail);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível abrir a comunidade.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  // ----------------------------------------------------------- Salas privadas
+
+  /// Salas privadas reais do utilizador (onde é professor ou participante),
+  /// carregadas de `/comments/rooms`. Ao tocar, abre a sala de discussão.
+  Widget _rooms(BuildContext context, List<DiscussionRoom> rooms) {
+    return _section(context, 'As Minhas Salas', child: Column(children: [
+      for (final room in rooms)
+        _rowTile(
+          context,
+          leading: const Icon(Icons.lock_person_outlined, color: AppColors.navy, size: 20),
+          leadingBg: AppColors.navy.withValues(alpha: .12),
+          title: room.name,
+          titleColor: AppColors.navy,
+          subtitle: '${room.participants} participantes • ${room.messages} mensagens',
+          tag: room.isOwner ? 'Professor' : 'Membro',
+          onTap: () => Navigator.pushNamed(context, AppRoutes.discussionRoom, arguments: room),
         ),
     ]));
   }

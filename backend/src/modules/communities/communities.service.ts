@@ -63,12 +63,43 @@ export class CommunitiesService {
     });
   }
 
-  join(userId: string, communityId: string) {
-    return this.prisma.communityMembership.upsert({
-      where: { communityId_userId: { communityId, userId } },
-      update: { status: MembershipStatus.PENDING },
-      create: { communityId, userId, status: MembershipStatus.PENDING },
+  async join(userId: string, communityId: string) {
+    const community = await this.prisma.community.findFirst({
+      where: { id: communityId, deletedAt: null },
+      select: { name: true, type: true, ownerId: true },
     });
+    if (!community) throw new NotFoundException('Community not found');
+
+    // Comunidades públicas: adesão imediata (ACTIVE). Privadas: pedido pendente
+    // que aguarda aprovação do dono/moderador.
+    const immediate = community.type === CommunityType.PUBLIC;
+    const membership = await this.prisma.communityMembership.upsert({
+      where: { communityId_userId: { communityId, userId } },
+      update: immediate
+        ? { status: MembershipStatus.ACTIVE, joinedAt: new Date() }
+        : { status: MembershipStatus.PENDING },
+      create: {
+        communityId,
+        userId,
+        status: immediate ? MembershipStatus.ACTIVE : MembershipStatus.PENDING,
+        joinedAt: immediate ? new Date() : null,
+      },
+    });
+
+    // Numa comunidade privada, avisa o dono de que há um pedido para aprovar.
+    if (!immediate && community.ownerId !== userId) {
+      const applicant = await this.prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+      void this.notifications
+        .create(
+          community.ownerId,
+          NotificationType.COMMUNITY,
+          'Novo pedido de adesão',
+          `${applicant?.name ?? 'Um utilizador'} pediu para entrar na comunidade "${community.name}"`,
+          { communityId },
+        )
+        .catch(() => void 0);
+    }
+    return membership;
   }
 
   async leave(userId: string, communityId: string) {
@@ -112,7 +143,7 @@ export class CommunitiesService {
   async approve(currentUserId: string, communityId: string, membershipId: string) {
     const membership = await this.prisma.communityMembership.findUnique({
       where: { id: membershipId },
-      include: { community: { select: { ownerId: true } } },
+      include: { community: { select: { ownerId: true, name: true } } },
     });
     if (!membership) throw new NotFoundException('Membership not found');
     if (membership.communityId !== communityId) {
@@ -129,9 +160,21 @@ export class CommunitiesService {
       }
     }
 
-    return this.prisma.communityMembership.update({
+    const updated = await this.prisma.communityMembership.update({
       where: { id: membershipId },
       data: { status: MembershipStatus.ACTIVE, joinedAt: new Date() },
     });
+
+    // Avisa o candidato de que a sua adesão foi aprovada.
+    void this.notifications
+      .create(
+        membership.userId,
+        NotificationType.COMMUNITY,
+        'Adesão aprovada',
+        `A sua adesão à comunidade "${membership.community.name}" foi aprovada.`,
+        { communityId },
+      )
+      .catch(() => void 0);
+    return updated;
   }
 }

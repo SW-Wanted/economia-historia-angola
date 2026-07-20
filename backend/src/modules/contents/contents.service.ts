@@ -399,4 +399,140 @@ export class ContentsService {
       ),
     );
   }
+
+  /// Convida pessoas específicas (por email) para um texto Jindungo, concedendo
+  /// acesso imediato. Só o autor do conteúdo ou quem tem CONTENT_APPROVE pode
+  /// convidar. Cada email é resolvido para um utilizador existente; emails sem
+  /// conta são devolvidos em `notFound` (não são convidados — decisão de design:
+  /// só utilizadores registados). Devolve o resumo por email.
+  async inviteToJindungo(actor: AuthUser, contentId: string, emails: string[]) {
+    const content = await this.prisma.content.findFirst({
+      where: { id: contentId, deletedAt: null },
+      select: { id: true, title: true, authorId: true },
+    });
+    if (!content) throw new NotFoundException('Conteúdo não encontrado.');
+
+    const perms = actor.permissions as PermissionCode[];
+    const isOwner = content.authorId === actor.id;
+    if (!isOwner && !perms.includes(PermissionCode.CONTENT_APPROVE)) {
+      throw new ForbiddenException('Só o autor ou um moderador pode convidar para este conteúdo.');
+    }
+
+    // Normaliza e desduplica os emails.
+    const normalized = [...new Set(emails.map((e) => e.trim().toLowerCase()).filter(Boolean))];
+    const invited: Array<{ email: string; userId: string }> = [];
+    const alreadyHad: string[] = [];
+    const notFound: string[] = [];
+
+    for (const email of normalized) {
+      const user = await this.prisma.user.findUnique({ where: { email }, select: { id: true } });
+      if (!user) {
+        notFound.push(email);
+        continue;
+      }
+      // Não convidar o próprio autor (já tem acesso implícito) nem duplicar.
+      if (user.id === content.authorId) {
+        alreadyHad.push(email);
+        continue;
+      }
+      const existing = await this.prisma.accessRequest.findFirst({
+        where: {
+          userId: user.id,
+          contentId,
+          permission: PermissionCode.JINDUNGO_ACCESS,
+          status: MembershipStatus.ACTIVE,
+        },
+        select: { id: true },
+      });
+      if (existing) {
+        alreadyHad.push(email);
+        continue;
+      }
+
+      // Concede acesso imediato: reativa um pedido anterior (ex.: rejeitado) se
+      // existir, senão cria um novo AccessRequest ACTIVE, já revisto por quem
+      // convidou.
+      const priorId = await this.findRequestId(user.id, contentId);
+      if (priorId) {
+        await this.prisma.accessRequest.update({
+          where: { id: priorId },
+          data: { status: MembershipStatus.ACTIVE, reviewedBy: actor.id, reviewedAt: new Date() },
+        });
+      } else {
+        await this.prisma.accessRequest.create({
+          data: {
+            userId: user.id,
+            contentId,
+            permission: PermissionCode.JINDUNGO_ACCESS,
+            status: MembershipStatus.ACTIVE,
+            reviewedBy: actor.id,
+            reviewedAt: new Date(),
+          },
+        });
+      }
+      invited.push({ email, userId: user.id });
+
+      void this.notifications
+        .create(
+          user.id,
+          NotificationType.MODERATION,
+          'Convite para um texto Jindungo',
+          `Foi convidado a ler "${content.title}". Já pode aceder ao texto.`,
+          { contentId },
+        )
+        .catch(() => void 0);
+    }
+
+    return { invited: invited.map((i) => i.email), alreadyHad, notFound };
+  }
+
+  /// Devolve o id de um AccessRequest existente (qualquer estado) deste user para
+  /// este conteúdo, para o upsert do convite reativar em vez de duplicar.
+  private async findRequestId(userId: string, contentId: string): Promise<string | undefined> {
+    const found = await this.prisma.accessRequest.findFirst({
+      where: { userId, contentId, permission: PermissionCode.JINDUNGO_ACCESS },
+      select: { id: true },
+    });
+    return found?.id;
+  }
+
+  /// Lista quem tem acesso concedido (ACTIVE) a um texto Jindungo — para o autor
+  /// gerir os convidados depois. Só o autor ou quem tem CONTENT_APPROVE vê.
+  async listInvitees(actor: AuthUser, contentId: string) {
+    const content = await this.prisma.content.findFirst({
+      where: { id: contentId, deletedAt: null },
+      select: { authorId: true },
+    });
+    if (!content) throw new NotFoundException('Conteúdo não encontrado.');
+    const perms = actor.permissions as PermissionCode[];
+    if (content.authorId !== actor.id && !perms.includes(PermissionCode.CONTENT_APPROVE)) {
+      throw new ForbiddenException('Sem permissão para ver os convidados deste conteúdo.');
+    }
+    return this.prisma.accessRequest.findMany({
+      where: { contentId, permission: PermissionCode.JINDUNGO_ACCESS, status: MembershipStatus.ACTIVE },
+      orderBy: { reviewedAt: 'desc' },
+      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
+    });
+  }
+
+  /// Revoga o acesso Jindungo de um utilizador a um conteúdo (o convidado deixa
+  /// de poder ler). Só o autor ou quem tem CONTENT_APPROVE.
+  async revokeAccess(actor: AuthUser, contentId: string, userId: string) {
+    const content = await this.prisma.content.findFirst({
+      where: { id: contentId, deletedAt: null },
+      select: { authorId: true, title: true },
+    });
+    if (!content) throw new NotFoundException('Conteúdo não encontrado.');
+    const perms = actor.permissions as PermissionCode[];
+    if (content.authorId !== actor.id && !perms.includes(PermissionCode.CONTENT_APPROVE)) {
+      throw new ForbiddenException('Sem permissão para revogar acesso a este conteúdo.');
+    }
+    // O enum MembershipStatus não tem REVOKED; usamos REJECTED para marcar que o
+    // acesso deixou de estar concedido (findAuthorized só aceita ACTIVE).
+    await this.prisma.accessRequest.updateMany({
+      where: { contentId, userId, permission: PermissionCode.JINDUNGO_ACCESS, status: MembershipStatus.ACTIVE },
+      data: { status: MembershipStatus.REJECTED, reviewedBy: actor.id, reviewedAt: new Date() },
+    });
+    return { revoked: true };
+  }
 }

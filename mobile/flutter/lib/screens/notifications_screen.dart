@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
+import '../core/routes/app_routes.dart';
 import '../models/notification_item.dart';
 import '../services/backend_service.dart';
 import '../services/realtime_service.dart';
@@ -60,6 +61,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  /// Toca numa notificação: marca-a como lida (otimista + persistência) e navega
+  /// diretamente para o recurso associado (sala, comunidade ou conteúdo).
+  Future<void> _onTap(NotificationItem item) async {
+    await _markOneRead(item);
+    if (!mounted) return;
+    await _navigateToResource(item);
+  }
+
   Future<void> _markOneRead(NotificationItem item) async {
     if (!item.unread) return;
     final current = _items;
@@ -69,6 +78,41 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await BackendService.instance.markNotificationRead(item.id);
     } catch (_) {
       await _load();
+    }
+  }
+
+  /// Abre o recurso referido pela notificação a partir do respetivo payload.
+  /// Salas e comunidades exigem carregar o detalhe (as telas de destino recebem
+  /// o objeto completo). Notificações sem recurso navegável não fazem nada além
+  /// de marcar como lida.
+  Future<void> _navigateToResource(NotificationItem item) async {
+    final backend = BackendService.instance;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    try {
+      final roomId = item.roomId;
+      final communityId = item.communityId;
+      if (roomId != null && roomId.isNotEmpty) {
+        final room = await backend.roomDetail(roomId);
+        if (!mounted) return;
+        await navigator.pushNamed(AppRoutes.discussionRoom, arguments: room);
+        return;
+      }
+      if (communityId != null && communityId.isNotEmpty) {
+        final community = await backend.communityDetail(communityId);
+        if (!mounted) return;
+        await navigator.pushNamed(AppRoutes.communityDetail, arguments: community);
+        return;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível abrir o recurso desta notificação.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -105,11 +149,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ]),
           const SizedBox(height: 8),
           for (final n in items) ...[
-            GestureDetector(
-              onTap: () => _markOneRead(n),
-              behavior: HitTestBehavior.opaque,
-              child: NotificationTile(item: n),
-            ),
+            NotificationTile(item: n, onTap: () => _onTap(n)),
             const SizedBox(height: 10),
           ],
         ],

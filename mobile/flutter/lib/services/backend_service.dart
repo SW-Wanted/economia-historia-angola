@@ -20,7 +20,6 @@ import '../models/quiz_question.dart';
 import '../models/weekly_quiz.dart';
 import '../widgets/eh_illustration.dart';
 import 'api_client.dart';
-import 'mock_data_service.dart';
 import 'realtime_service.dart';
 import 'token_store.dart';
 
@@ -34,7 +33,6 @@ class BackendService {
   static final BackendService instance = BackendService._();
 
   final ApiClient _api = ApiClient();
-  final MockDataService _fallback = const MockDataService();
   AppUser? _currentUser;
 
   bool get isAuthenticated => _api.isAuthenticated;
@@ -174,9 +172,11 @@ class BackendService {
   }
 
   /// Interesses e comunidades reais do utilizador autenticado, extraídos de
-  /// `/users/me`. Listas vazias quando não há sessão/dados.
-  Future<({List<String> interests, List<String> communities})> myProfileExtras() async {
-    if (!isAuthenticated) return (interests: const <String>[], communities: const <String>[]);
+  /// `/users/me`. Listas vazias quando não há sessão/dados. Só são incluídas as
+  /// comunidades onde a adesão está **ativa** (aprovada) — pedidos ainda
+  /// pendentes não aparecem como "participa".
+  Future<({List<String> interests, List<MyCommunity> communities})> myProfileExtras() async {
+    if (!isAuthenticated) return (interests: const <String>[], communities: const <MyCommunity>[]);
     try {
       final json = await _api.getJson('/users/me');
       final interestsRaw = json['interests']?.toString() ?? '';
@@ -189,16 +189,21 @@ class BackendService {
       final communities = memberships is List
           ? memberships
               .whereType<Map<String, dynamic>>()
+              .where((membership) => membership['status']?.toString().toUpperCase() == 'ACTIVE')
               .map((membership) {
                 final community = membership['community'];
-                return community is Map ? community['name']?.toString() : null;
+                if (community is! Map) return null;
+                final id = community['id']?.toString();
+                final name = community['name']?.toString();
+                if (id == null || id.isEmpty || name == null || name.isEmpty) return null;
+                return MyCommunity(id: id, name: name);
               })
-              .whereType<String>()
+              .whereType<MyCommunity>()
               .toList()
-          : <String>[];
+          : <MyCommunity>[];
       return (interests: interests, communities: communities);
     } catch (_) {
-      return (interests: const <String>[], communities: const <String>[]);
+      return (interests: const <String>[], communities: const <MyCommunity>[]);
     }
   }
 
@@ -738,11 +743,11 @@ class BackendService {
   Future<List<ContentItem>> contents({String? search}) async {
     try {
       final list = await _api.getList('/contents', query: {'search': search});
-      // Backend disponível: mostra sempre o que ele devolve, mesmo que vazio.
-      // O mock só entra em ação quando o backend está inacessível (catch).
       return list.whereType<Map<String, dynamic>>().map(_contentFromJson).toList();
     } catch (_) {
-      return _fallback.contents();
+      // Backend inacessível: lista vazia (a UI mostra o estado "sem conteúdos"),
+      // nunca conteúdos fictícios.
+      return const [];
     }
   }
 
@@ -962,7 +967,8 @@ class BackendService {
       final topics = await _api.getList('/forums/${forum['id']}/topics');
       return topics.whereType<Map<String, dynamic>>().map(_topicFromJson).toList();
     } catch (_) {
-      return _fallback.topics();
+      // Backend inacessível: lista vazia, nunca tópicos fictícios.
+      return const [];
     }
   }
 
@@ -1015,12 +1021,14 @@ class BackendService {
   }
 
   Future<List<NotificationItem>> notifications() async {
-    if (!isAuthenticated) return _fallback.notifications();
+    if (!isAuthenticated) return const [];
     try {
       final list = await _api.getList('/notifications');
       return list.whereType<Map<String, dynamic>>().map(_notificationFromJson).toList();
     } catch (_) {
-      return _fallback.notifications();
+      // Sem ligação: lista vazia (estado "sem notificações"), nunca notificações
+      // fictícias.
+      return const [];
     }
   }
 
@@ -1036,12 +1044,14 @@ class BackendService {
   }
 
   Future<List<ContentReport>> reports() async {
-    if (!isAuthenticated) return _fallback.reports();
+    if (!isAuthenticated) return const [];
     try {
       final list = await _api.getList('/reports');
       return list.whereType<Map<String, dynamic>>().map(_reportFromJson).toList();
     } catch (_) {
-      return _fallback.reports();
+      // Sem ligação: lista vazia (estado "sem denúncias pendentes"), nunca
+      // denúncias fictícias.
+      return const [];
     }
   }
 
@@ -1185,13 +1195,15 @@ class BackendService {
   }
 
   NotificationItem _notificationFromJson(Map<String, dynamic> json) {
+    final data = json['data'];
     return NotificationItem(
       id: json['id']?.toString(),
-      title: json['title']?.toString() ?? 'Notificacao',
+      title: json['title']?.toString() ?? 'Notificação',
       body: json['body']?.toString() ?? '',
       timeAgo: _relativeTime(json['createdAt']?.toString()),
       kind: _notificationKind(json['type']?.toString()),
       unread: json['readAt'] == null,
+      data: data is Map ? Map<String, dynamic>.from(data) : const {},
     );
   }
 
@@ -1240,6 +1252,8 @@ class BackendService {
     final value = type?.toLowerCase() ?? '';
     if (value.contains('quiz')) return NotificationKind.quiz;
     if (value.contains('forum') || value.contains('reply')) return NotificationKind.forum;
+    if (value.contains('community')) return NotificationKind.community;
+    if (value.contains('comment')) return NotificationKind.comment;
     if (value.contains('content')) return NotificationKind.content;
     if (value.contains('access')) return NotificationKind.access;
     return NotificationKind.system;

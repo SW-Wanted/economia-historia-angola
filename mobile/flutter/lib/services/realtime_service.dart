@@ -74,6 +74,7 @@ class RealtimeService {
   }
 
   NotificationItem _notificationFrom(Map<String, dynamic> json) {
+    final data = json['data'];
     return NotificationItem(
       id: json['id']?.toString(),
       title: json['title']?.toString() ?? 'Notificação',
@@ -81,6 +82,7 @@ class RealtimeService {
       timeAgo: 'agora',
       kind: _kindFrom(json['type']?.toString()),
       unread: json['readAt'] == null,
+      data: data is Map ? Map<String, dynamic>.from(data) : const {},
     );
   }
 
@@ -88,6 +90,8 @@ class RealtimeService {
     final value = type?.toLowerCase() ?? '';
     if (value.contains('quiz')) return NotificationKind.quiz;
     if (value.contains('forum') || value.contains('reply')) return NotificationKind.forum;
+    if (value.contains('community')) return NotificationKind.community;
+    if (value.contains('comment')) return NotificationKind.comment;
     if (value.contains('content') || value.contains('moderation')) return NotificationKind.content;
     if (value.contains('access')) return NotificationKind.access;
     return NotificationKind.system;
